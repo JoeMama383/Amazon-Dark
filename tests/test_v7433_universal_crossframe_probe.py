@@ -10,11 +10,11 @@ CTL=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text()
 SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 
-assert 'Version: 7.449~full-probe-nonblocking' in CTL
-assert '#define AD_VERSION "v7.449-full-probe-nonblocking"' in S
-assert 'VER=7.449' in UI
-assert 'AD_PROBE_VERSION=7.449' in SK and 'AD_PROBE_NAME=AmazonDark-v7.449' in SK
-assert 'AmazonDark-v7.449-ui-viewport.arm' in INC
+assert 'Version: 7.450~pdp-readonly-full' in CTL
+assert '#define AD_VERSION "v7.450-pdp-readonly-full"' in S
+assert 'VER=7.450' in UI
+assert 'AD_PROBE_VERSION=7.450' in SK and 'AD_PROBE_NAME=AmazonDark-v7.450' in SK
+assert 'AmazonDark-v7.450-ui-viewport.arm' in INC
 
 # The bridge must exist before any frame document loads, including cross-origin SafeFrames.
 assert 'ADUIProbeAttach7362(ucc);' in S

@@ -1,4 +1,4 @@
-// v7.449 universal cross-frame UI probe architecture: FULL/VIEWPORT cover native, main Web DOM, and every injected child/SafeFrame DOM.
+// v7.450 universal cross-frame UI probe architecture: PDP FULL is read-only; all other FULL/VIEWPORT coverage remains inherited.
 // Exactly two UI forensics categories remain:
 //   1) screenshot -> FULL finite Web/native renderer sweep + final full inventories
 //   2) scripts/ui-probe.sh arm -> one VIEWPORT capture at Amazon's next WillResignActive boundary
@@ -19,6 +19,7 @@ static NSHashTable *gADUIFailedWebs7446=nil;
 static NSUInteger gADUIFramePayloads7446=0;
 static BOOL gADUIExpectedFrames7446=NO;
 static NSMutableSet *gADUIFrameBatches7446=nil;
+static BOOL gADUIFullHasPDP7450=NO; // current explicit FULL contains #dp; never drive Web/native scroll owners
 static BOOL ADUIExpired7446(void){return NSDate.date.timeIntervalSince1970>gADUIProbeDeadline7446;}
 static NSUInteger gADUIFullRun7362=0;
 static NSUInteger gADUIViewportRun7362=0;
@@ -207,13 +208,13 @@ static NSString *ADUIProbePath7362(BOOL viewportOnly,NSUInteger run){
         static NSDateFormatter *f=nil;static dispatch_once_t once;dispatch_once(&once,^{f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";});
         NSString *stamp=nil;@synchronized(f){f.timeZone=[NSTimeZone localTimeZone];stamp=[f stringFromDate:[NSDate date]];}
         NSString *stem=viewportOnly?@"ui-viewport-probe":@"ui-full-probe";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.449-%@-%@-r%lu.txt",stem,stamp?:@"unknown",(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.450-%@-%@-r%lu.txt",stem,stamp?:@"unknown",(unsigned long)run];
         return [ADUIDocuments7362() stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.449-ui-probe.txt"]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.450-ui-probe.txt"]; }
 }
 
 static NSString *ADUIStatePath7445(BOOL viewportOnly){
-    NSString *name=viewportOnly?@"AmazonDark-v7.449-ui-viewport.state":@"AmazonDark-v7.449-ui-full.state";
+    NSString *name=viewportOnly?@"AmazonDark-v7.450-ui-viewport.state":@"AmazonDark-v7.450-ui-full.state";
     return [ADUIDocuments7362() stringByAppendingPathComponent:name];
 }
 static void ADUIWriteState7445(BOOL viewportOnly,NSString *state,NSString *path){
@@ -241,7 +242,7 @@ static void ADUIAppend7362(NSString *path,NSString *text,unsigned long long cap)
     } @catch(...) {}
 }
 
-// v7.449 FULL-only cooperative native walker. The previous FULL path formatted up to
+// v7.450 FULL-only cooperative native walker. The previous FULL path formatted up to
 // 26k UIKit/React views synchronously inside the screenshot notification, which could
 // monopolize the main thread before the Web sweep even began. This walker preserves
 // the same metadata but yields every few milliseconds. It can also collect the visible
@@ -463,7 +464,7 @@ static NSArray *ADUINativeScrollCandidates7364(NSString *path,unsigned long long
 }
 
 
-// v7.449 cooperative version of native scroll discovery. The scoring/selection policy
+// v7.450 cooperative version of native scroll discovery. The scoring/selection policy
 // is unchanged; only traversal scheduling changes so a React-heavy screen cannot spend
 // one long uninterrupted turn enumerating ~18k views.
 static void ADUINativeScrollCandidatesAsync7449(NSString *path,unsigned long long cap,void (^done)(NSArray *)){
@@ -546,7 +547,7 @@ static void ADUIScrollCommand7446(WKWebView *wv,NSString *command,void (^done)(N
     }];
 }
 
-// v7.449 FULL: scrolling is now the cheap lazy-load driver; the expensive complete DOM
+// v7.450 FULL: scrolling is now the cheap lazy-load driver; the expensive complete DOM
 // inventory runs only after the document has converged. Per-step evidence uses bounded
 // hit-test sampling instead of restarting a whole-document TreeWalker on every offset.
 static void ADUIScanWebViewFull7364(WKWebView *wv,NSUInteger index,NSString *path,unsigned long long cap,void (^done)(void)){
@@ -554,7 +555,7 @@ static void ADUIScanWebViewFull7364(WKWebView *wv,NSUInteger index,NSString *pat
     CGPoint original=wv.scrollView.contentOffset;
     __block BOOL finishing=NO;__block NSString *kind=@"root";__block NSUInteger ownerStep=0,totalSteps=0,bottomStable=0,stalled=0,reconciles=0,lastOwnerIndex=NSNotFound;__block NSInteger lastNodeCount=-1;__block CGFloat lastMax=-1,targetY=0,rootStableMax=-1;
     __block void (^next)(NSDictionary *)=nil;__block void (^finish)(NSString *)=nil;__block void (^startRoot)(BOOL)=nil;__block void (^startOwners)(void)=nil;__block void (^afterOwners)(void)=nil;
-    ADUIAppend7362(path,@"WEB_DOCUMENT_SWEEP v7.449 root-first lazy-load drive; final complete DOM inventory; nested-owner sweep; unseen-node catch-up; scrollLock=none\n",cap);
+    ADUIAppend7362(path,@"WEB_DOCUMENT_SWEEP v7.450 root-first lazy-load drive; final complete DOM inventory; nested-owner sweep; unseen-node catch-up; scrollLock=none\n",cap);
     void (^resetOwnerState)(void)=^{ownerStep=0;bottomStable=0;stalled=0;lastOwnerIndex=NSNotFound;lastNodeCount=-1;lastMax=-1;targetY=0;};
     void (^restoreAndFinish)(NSString *)=^(NSString *reason){
         ADUIScrollCommand7446(wv,@"'restore'",^(NSDictionary *restored){
@@ -629,12 +630,47 @@ static void ADUIScanWebViewFull7364(WKWebView *wv,NSUInteger index,NSString *pat
     startRoot(NO);
 }
 
+// v7.450: PDP is a special renderer. Proven v7.435 FULL captures show the entire
+// mounted #dp document was already present before any sweep (7.5k-9.1k nodes across
+// 11k-13k px), while touching the WK scroll owner collapsed the same document to one
+// ~779pt viewport. Detect only the exact product root/route and keep its FULL capture
+// read-only. Non-PDP FULL sessions retain the generic v7.449 sweep unchanged.
+static BOOL ADUIURLIsPDP7450(WKWebView *wv){
+    if(!wv)return NO;@try{NSString *p=wv.URL.path?:@"";return [p isEqualToString:@"/dp"]||[p hasPrefix:@"/dp/"]||[p isEqualToString:@"/gp/product"]||[p hasPrefix:@"/gp/product/"]||[p isEqualToString:@"/gp/aw/d"]||[p hasPrefix:@"/gp/aw/d/"];}@catch(...){return NO;}
+}
+
+static void ADUIIsPDPWebView7450(WKWebView *wv,void (^done)(BOOL)){
+    if(!wv){if(done)done(NO);return;}if(ADUIURLIsPDP7450(wv)){if(done)done(YES);return;}__block BOOL settled=NO;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(2.0*NSEC_PER_SEC)),dispatch_get_main_queue(),^{if(settled)return;settled=YES;if(done)done(NO);});
+    [wv evaluateJavaScript:@"(function(){try{return !!document.getElementById('dp');}catch(_){return false;}})();" completionHandler:^(id result,NSError *error){dispatch_async(dispatch_get_main_queue(),^{if(settled)return;settled=YES;if(done)done(!error&&[result respondsToSelector:@selector(boolValue)]&&[result boolValue]);});}];
+}
+
+static void ADUIDetectPDPSession7450(NSArray *webs,void (^done)(void)){
+    for(WKWebView *wv in webs)if(ADUIURLIsPDP7450(wv)){gADUIFullHasPDP7450=YES;if(done)done();return;}
+    __block NSUInteger i=0;__block void (^check)(void)=nil;check=^{if(i>=webs.count){check=nil;if(done)done();return;}WKWebView *wv=webs[i++];ADUIIsPDPWebView7450(wv,^(BOOL yes){if(yes){gADUIFullHasPDP7450=YES;check=nil;if(done)done();return;}dispatch_async(dispatch_get_main_queue(),check);});};check();
+}
+
+static void ADUIScanPDPReadOnly7450(WKWebView *wv,NSUInteger index,NSString *path,unsigned long long cap,void (^done)(void)){
+    if(!wv){if(done)done();return;}CGPoint before=wv.scrollView.contentOffset;CGSize content=wv.scrollView.contentSize;CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
+    ADUIAppend7362(path,[NSString stringWithFormat:@"PDP_READONLY_FULL index=%lu ptr=%p frame=%@ offset=(%.1f,%.1f) content=(%.1fx%.1f) policy=no-scroll-mutation\n",(unsigned long)index,wv,ADUIRect7362(wr),before.x,before.y,content.width,content.height],cap);
+    ADUIEvalAppend7364(wv,path,ADUIWebJS7364(@"full",@"final-full",0),@"PDP_READONLY_FULL_DOM",cap,^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.75*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            if(!wv.window||UIApplication.sharedApplication.applicationState!=UIApplicationStateActive){gADUIProbePartial7446=YES;ADUIAppend7362(path,@"PDP_READONLY_CATCHUP skipped=inactive-or-detached\n",cap);if(done)done();return;}
+            ADUIEvalAppend7364(wv,path,ADUIWebJS7364(@"full",@"catchup-full",1),@"PDP_READONLY_CATCHUP_DOM",cap,^{
+                CGPoint after=wv.scrollView.contentOffset;CGSize finalContent=wv.scrollView.contentSize;
+                ADUIAppend7362(path,[NSString stringWithFormat:@"PDP_READONLY_END index=%lu offsetBefore=(%.1f,%.1f) offsetAfter=(%.1f,%.1f) contentBefore=(%.1fx%.1f) contentAfter=(%.1fx%.1f) mutated=0\n",(unsigned long)index,before.x,before.y,after.x,after.y,content.width,content.height,finalContent.width,finalContent.height],cap);
+                if(done)done();
+            });
+        });
+    });
+}
+
 static void ADUIProcessWebViews7364(NSArray *webs,NSUInteger index,BOOL viewportOnly,NSString *path,unsigned long long cap,void (^done)(void)){
     if(index>=webs.count){if(done)done();return;}WKWebView *wv=webs[index];CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}UIScrollView *sv=wv.scrollView;CGPoint off=sv.contentOffset;CGSize content=sv.contentSize;
     ADUIAppend7362(path,[NSString stringWithFormat:@"\n===== WEBVIEW index=%lu ptr=%p frame=%@ offset=(%.1f,%.1f) content=(%.1fx%.1f) =====\n",(unsigned long)index,wv,ADUIRect7362(wr),off.x,off.y,content.width,content.height],cap);
     void (^nextWeb)(void)=^{ADUIProcessWebViews7364(webs,index+1,viewportOnly,path,cap,done);};
-    if(viewportOnly)ADUIEvalAppend7364(wv,path,ADUIWebJS7364(@"viewport",@"viewport-trigger",0),@"VIEWPORT_DOM",cap,nextWeb);
-    else ADUIScanWebViewFull7364(wv,index,path,cap,nextWeb);
+    if(viewportOnly){ADUIEvalAppend7364(wv,path,ADUIWebJS7364(@"viewport",@"viewport-trigger",0),@"VIEWPORT_DOM",cap,nextWeb);return;}
+    if(gADUIFullHasPDP7450){ADUIScanPDPReadOnly7450(wv,index,path,cap,nextWeb);return;}ADUIScanWebViewFull7364(wv,index,path,cap,nextWeb);
 }
 
 static void ADUIScanNativeAxis7364(UIScrollView *sv,NSUInteger selectedIndex,BOOL horizontal,NSString *path,unsigned long long cap,CGPoint original,void (^done)(void)){
@@ -686,28 +722,36 @@ static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){
     if(UIApplication.sharedApplication.applicationState!=UIApplicationStateActive&&!backgroundBoundary){ADUIWriteState7445(viewportOnly,@"inactive-trigger-rejected",@"no-capture");return;}
     if(gADUIProbeBusy7362){ADUIAppend7362(gADUIProbeActivePath7433,@"TRIGGER_REJECTED reason=capture-already-running\n",gADUIProbeActiveCap7433);return;}
     if(ADSkelProbe7339&&!ADSkelProbe7339.finished)[ADSkelProbe7339 finish];
-    gADUIProbeBusy7362=YES;gADUIProbePartial7446=NO;gADUIFramePayloads7446=0;gADUIExpectedFrames7446=NO;gADUIFrameBatches7446=[NSMutableSet set];
+    gADUIProbeBusy7362=YES;gADUIProbePartial7446=NO;gADUIFramePayloads7446=0;gADUIExpectedFrames7446=NO;gADUIFrameBatches7446=[NSMutableSet set];gADUIFullHasPDP7450=NO;
     gADUIProbeDeadline7446=NSDate.date.timeIntervalSince1970+(viewportOnly?(backgroundBoundary?20.0:45.0):360.0);
     gADUIFailedWebs7446=[NSHashTable weakObjectsHashTable];
     NSUInteger run=viewportOnly?++gADUIViewportRun7362:++gADUIFullRun7362;unsigned long long cap=viewportOnly?kADUIViewportCap7362:kADUIFullCap7362;NSString *path=ADUIProbePath7362(viewportOnly,run);NSMutableArray *webs=viewportOnly?[ADUIWebViews7362() mutableCopy]:[NSMutableArray array];if(!webs)webs=[NSMutableArray array];
     ADUIWriteState7445(viewportOnly,@"started",path);gADUIProbeActivePath7433=path;gADUIProbeActiveCap7433=cap;gADUIProbeActiveNonce7433=[NSString stringWithFormat:@"%lld-%d-%lu",(long long)(NSDate.date.timeIntervalSince1970*1000.0),getpid(),(unsigned long)run];if(gADUniversalUIBridge7433)[gADUniversalUIBridge7433.pending removeAllObjects];
-    NSString *header=[NSString stringWithFormat:@"AMAZONDARK v7.449 UNIVERSAL %@ UI FORENSICS PROBE\nversion=%s\ncategory=%@\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\ncontract=screenshot captures FULL SWEEP; scripts/ui-probe.sh arm is consumed at the next WillResignActive boundary to freeze VIEWPORT before background export\nbackground_boundary=%d\nroute_policy=universal: no tab/menu/product/cart/person/alexa dispatcher; every current on-screen WKWebView, every injected child/SafeFrame document, plus every eligible current native scroll renderer is discovered dynamically\nprivacy=no visible text strings, accessibilityLabel/value strings, URL/src/href values, network payloads or clipboard data; text is length+hash only; frame origin/path/referrer are hash-only; technical class/id/testid/component paint metadata retained\ncrossframe=all-frame documentStart bridge; child frames self-inspect their own DOM and computed paint, then send chunked sanitized results to native; main frame never attempts cross-origin contentDocument access\nweb=%@\nnative=%@\nnormal_runtime=single screenshot notification + one next-background lifecycle observer + optional foreground SIGUSR2 compatibility dispatch source + one inert message listener per web document frame; FULL traversal is cooperative and opt-in; no production MutationObserver/timer/RAF/web-scroll listener/polling/recurring hierarchy scan\nwebviews=%@\n\n===== NATIVE INITIAL %@ SNAPSHOT =====\n",
+    NSString *header=[NSString stringWithFormat:@"AMAZONDARK v7.450 UNIVERSAL %@ UI FORENSICS PROBE\nversion=%s\ncategory=%@\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\ncontract=screenshot captures FULL SWEEP; scripts/ui-probe.sh arm is consumed at the next WillResignActive boundary to freeze VIEWPORT before background export\nbackground_boundary=%d\nroute_policy=universal: no tab/menu/product/cart/person/alexa dispatcher; every current on-screen WKWebView, every injected child/SafeFrame document, plus every eligible current native scroll renderer is discovered dynamically\nprivacy=no visible text strings, accessibilityLabel/value strings, URL/src/href values, network payloads or clipboard data; text is length+hash only; frame origin/path/referrer are hash-only; technical class/id/testid/component paint metadata retained\ncrossframe=all-frame documentStart bridge; child frames self-inspect their own DOM and computed paint, then send chunked sanitized results to native; main frame never attempts cross-origin contentDocument access\nweb=%@\nnative=%@\nnormal_runtime=single screenshot notification + one next-background lifecycle observer + optional foreground SIGUSR2 compatibility dispatch source + one inert message listener per web document frame; FULL traversal is cooperative and opt-in; no production MutationObserver/timer/RAF/web-scroll listener/polling/recurring hierarchy scan\nwebviews=%@\n\n===== NATIVE INITIAL %@ SNAPSHOT =====\n",
         viewportOnly?@"VIEWPORT":@"FULL-SWEEP",AD_VERSION,viewportOnly?@"viewport":@"full-web-native-sweep",trigger?:@"unknown",[NSDate date],path.lastPathComponent,cap,backgroundBoundary?1:0,
-        viewportOnly?@"current visual viewport of every on-screen WKWebView plus every visible child/SafeFrame document; no offset mutation":@"root-first lightweight lazy-load drive; one cooperative final full mounted-DOM inventory after stable bottom; nested overflow sweep; unseen-node catch-up; offsets restored; no scroll lock",
-        viewportOnly?@"current screen-intersecting UIKit/React hierarchy only":@"cooperative initial/final hierarchy batches plus cooperative non-WebKit scroll discovery/sweeps; original offsets restored",
+        viewportOnly?@"current visual viewport of every on-screen WKWebView plus every visible child/SafeFrame document; no offset mutation":@"PDP #dp: read-only cooperative mounted-DOM inventory + passive catch-up with zero Web/native scroll mutation; non-PDP: inherited cooperative root/overflow sweep",
+        viewportOnly?@"current screen-intersecting UIKit/React hierarchy only":@"read-only initial/final hierarchy batches; PDP sessions skip native scroll discovery/sweep entirely; non-PDP keeps inherited cooperative native scroll diagnostics",
         viewportOnly?[NSString stringWithFormat:@"%lu",(unsigned long)webs.count]:@"pending-cooperative-discovery",viewportOnly?@"VIEWPORT":@"FULL"];
     ADUIAppend7362(path,header,cap);
     if(viewportOnly){ADUIAppend7362(path,ADUINativeSnapshot7362(YES),cap);ADUIProcessWebViews7364(webs,0,YES,path,cap,^{ADUIFinishCapture7364(YES,webs,path,cap);});return;}
     ADUINativeSnapshotAsync7449(nil,NO,30000,28000,@"initial-full",path,cap,webs,^{
         ADUIAppend7362(path,[NSString stringWithFormat:@"WEBVIEWS_DISCOVERED cooperative=1 count=%lu\n",(unsigned long)webs.count],cap);
+        ADUIDetectPDPSession7450(webs,^{
+        ADUIAppend7362(path,[NSString stringWithFormat:@"FULL_ROUTE_POLICY pdpReadOnly=%d webviews=%lu\n",gADUIFullHasPDP7450?1:0,(unsigned long)webs.count],cap);
         ADUIProcessWebViews7364(webs,0,NO,path,cap,^{
+            if(gADUIFullHasPDP7450){
+                ADUIAppend7362(path,@"\n===== NATIVE SCROLL DISCOVERY / SWEEP =====\nPDP_READONLY_NATIVE_SCROLL policy=skipped reason=product-renderer-must-not-be-driven\n",cap);
+                ADUIFinishCapture7364(NO,webs,path,cap);
+                return;
+            }
             ADUIAppend7362(path,@"\n===== NATIVE SCROLL DISCOVERY / SWEEP (cooperative) =====\n",cap);
             ADUINativeScrollCandidatesAsync7449(path,cap,^(NSArray *native){ADUIProcessNativeCandidates7364(native,0,path,cap,^{ADUIFinishCapture7364(NO,webs,path,cap);});});
+        });
         });
     });
 }
 
-static NSString *ADUIViewportArmPath7362(void){ return [ADUIDocuments7362() stringByAppendingPathComponent:@"AmazonDark-v7.449-ui-viewport.arm"]; }
+static NSString *ADUIViewportArmPath7362(void){ return [ADUIDocuments7362() stringByAppendingPathComponent:@"AmazonDark-v7.450-ui-viewport.arm"]; }
 static BOOL ADUIConsumeViewportArm7362(void){
     NSString *p=ADUIViewportArmPath7362(); NSFileManager *fm=NSFileManager.defaultManager; if(![fm fileExistsAtPath:p])return NO;
     BOOL ok=NO; @try {

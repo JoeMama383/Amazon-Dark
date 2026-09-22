@@ -1,8 +1,9 @@
 {
-  "version": "7.449~full-probe-nonblocking",
-  "direct_parent": "7.448~performance-consolidation",
-  "source": "AmazonDark-v7.448-performance-consolidation-source.zip",
-  "parent_sha256": "c775f123a1f2254d9fb2a94b851443ec0f8db219452b41f899751be35c520f28",
-  "scope": "FULL diagnostic architecture correction only: replace synchronous native hierarchy dumps and repeated whole-document per-scroll Web walks with cooperative native batches, lightweight root lazy-load driving, post-convergence full-DOM inventory, nested-owner sweep, unseen-node catch-up and one root-growth reconciliation. Preserve v7.448 production theming/performance behavior plus v7.447 VIEWPORT/TAR contracts.",
-  "validation": "127 regression files pass in bounded chunks; generated main/cross-frame, scroll-command and viewport-sample JavaScript compile/parse gates pass; device validation pending Actions build."
+  "version": "7.450~pdp-readonly-full",
+  "direct_parent": "7.449~full-probe-nonblocking",
+  "source": "AmazonDark-v7.449-full-probe-nonblocking-source.zip",
+  "parent_sha256": "6ca3e5366c9a63f590c201eb480f1ecb0d9db88e1ec928514b5f27058eae4887",
+  "scope": "PDP-only FULL correction. Exact #dp / product-route WebViews are captured read-only: no WKScrollView mutation, no JS scroll command, no nested overflow sweep, and no native scroll sweep for that FULL session. Non-PDP FULL, VIEWPORT, TRANSITION, production theming and v7.448 performance consolidation remain inherited.",
+  "historical_evidence": "Three v7.435 PDP FULL captures had 7,530/7,546/9,074 mounted nodes over 11,341/11,341/13,076 px before sweep; after the probe drove the product scroll owner each collapsed to a 779 px WebKit content height.",
+  "device_validation": "Pending installed GitHub Actions build."
 }
