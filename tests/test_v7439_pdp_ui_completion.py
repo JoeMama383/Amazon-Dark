@@ -6,12 +6,12 @@ UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
-assert 'Version: 7.447~probe-responsiveness' in C
-assert '#define AD_VERSION "v7.447-probe-responsiveness"' in S
-assert 'VER=7.447' in UI
-assert 'AD_PROBE_VERSION=7.447' in SK and 'AD_PROBE_NAME=AmazonDark-v7.447' in SK
-assert '7.447~*)' in SK and 'Install the v7.447 Actions package first.' in SK
-assert 'AmazonDark-v7.447-probe-responsiveness-source.zip' in CMD
+assert 'Version: 7.448~performance-consolidation' in C
+assert '#define AD_VERSION "v7.448-performance-consolidation"' in S
+assert 'VER=7.448' in UI
+assert 'AD_PROBE_VERSION=7.448' in SK and 'AD_PROBE_NAME=AmazonDark-v7.448' in SK
+assert '7.448~*)' in SK and 'Install the v7.448 Actions package first.' in SK
+assert 'AmazonDark-v7.448-performance-consolidation-source.zip' in CMD
 assert 'sh scripts/validate.sh' in CMD
 
 # New main-frame completion is injected into the core script.
@@ -39,7 +39,7 @@ for tok in [
 for tok in [
     "[data-csa-c-painter='sb-collections-ilm-mobile']",
     '[class*=_c2ItY_cardWrapper_]', '[class*=_c2ItY_container_]', '[class*=_c2ItY_containerInner_]',
-    'background:#000!important;background-color:#000!important;background-image:none!important',
+    'background:#000!important',  # shorthand also resets background image/color
     ':not(.a-color-link):not(.a-color-price):not([class*=prime]):not([class*=star]):not([class*=rating])',
     'color:#fff!important;-webkit-text-fill-color:#fff!important',
     '-webkit-text-fill-color:currentColor!important',

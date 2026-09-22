@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.447~probe-responsiveness' in C
-assert '#define AD_VERSION "v7.447-probe-responsiveness"' in S
+assert 'Version: 7.448~performance-consolidation' in C
+assert '#define AD_VERSION "v7.448-performance-consolidation"' in S
 
 # v7.400 FULL r1 proves the Delivery Instructions key/fob row becomes stock light via .a-touch-press.
 block=S.split('// v7.401 interaction-state policy:',1)[1].split('// v7.395 re-audit:',1)[0]
@@ -14,7 +14,7 @@ for token in [
     '.ma-attribute-group-expander>.a-expander-section-header.a-touch-press',
     '.ma-attribute-group-expander>.a-expander-section-header:active',
 ]: assert token in block, token
-assert '{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}' in block
+assert '{background:#000!important;box-shadow:none!important;}' in block  # shorthand owns color and clears image
 # Label subplanes cannot remain stock white when the parent is held.
 assert '.a-touch-press>label' in block and '>label.a-touch-press' in block
 assert 'background:transparent!important' in block

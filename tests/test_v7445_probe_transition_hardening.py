@@ -4,8 +4,8 @@ R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); INC=(R/'src/ADUniversalUIProbe7362.inc').read_text(); SKH=(R/'src/ADSkeletonProbe7339.h').read_text()
 UI=(R/'scripts/ui-probe.sh').read_text(); SK=(R/'scripts/skeleton-probe.sh').read_text(); C=(R/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.447~probe-responsiveness' in C
-assert '#define AD_VERSION "v7.447-probe-responsiveness"' in S
+assert 'Version: 7.448~performance-consolidation' in C
+assert '#define AD_VERSION "v7.448-performance-consolidation"' in S
 # FULL remains screenshot-triggered. VIEWPORT is one-shot and normally consumed at
 # WillResignActive so it freezes the last foreground scene before NewTerm export.
 assert 'if([trigger isEqualToString:@"screenshot"]){ ADSkelTrigger7339(trigger); ADCaptureUniversalUIProbe7362(NO,trigger); return; }' in INC
@@ -48,13 +48,13 @@ with tempfile.TemporaryDirectory(prefix='ad-v7447-ui-') as t:
     (amazon/'.com.apple.mobile_container_manager.metadata.plist').write_bytes(plistlib.dumps({'MCMMetadataIdentifier':'com.amazon.Amazon'},fmt=plistlib.FMT_XML))
     docs=amazon/'Documents'; docs.mkdir()
     now=int(time.time())
-    full='AmazonDark-v7.447-ui-full-probe-20260921-000000-000-r1.txt'; view='AmazonDark-v7.447-ui-viewport-probe-20260921-000001-000-r1.txt'
+    full='AmazonDark-v7.448-ui-full-probe-20260921-000000-000-r1.txt'; view='AmazonDark-v7.448-ui-viewport-probe-20260921-000001-000-r1.txt'
     (docs/full).write_text('FULL\n================ END RUN ================\n'); (docs/view).write_text('VIEWPORT\n================ END RUN ================\n')
-    (docs/'AmazonDark-v7.447-ui-full.state').write_text(f'completed {now} {full}\n'); (docs/'AmazonDark-v7.447-ui-viewport.state').write_text(f'completed {now} {view}\n')
+    (docs/'AmazonDark-v7.448-ui-full.state').write_text(f'completed {now} {full}\n'); (docs/'AmazonDark-v7.448-ui-viewport.state').write_text(f'completed {now} {view}\n')
     b=root/'bin'; b.mkdir(); (b/'plutil').write_text(PLUTIL); (b/'plutil').chmod(0o755)
     # A fake zip binary proves neither helper can silently drift back to ZIP.
     (b/'zip').write_text('#!/bin/sh\nexit 97\n'); (b/'zip').chmod(0o755)
-    (b/'dpkg-query').write_text("#!/bin/sh\nprintf '7.447~probe-responsiveness'\n"); (b/'dpkg-query').chmod(0o755)
+    (b/'dpkg-query').write_text("#!/bin/sh\nprintf '7.448~performance-consolidation'\n"); (b/'dpkg-query').chmod(0o755)
     env=dict(os.environ,PATH=str(b)+':'+os.environ['PATH'],AD_UI_ROOT=str(mobile),AD_UI_CONTAINERS=str(cont),AD_UI_SHARED=str(shared))
     def run(*a,ok=True):
         q=subprocess.run(['sh',str(R/'scripts/ui-probe.sh'),*a],env=env,text=True,capture_output=True)
@@ -70,12 +70,12 @@ with tempfile.TemporaryDirectory(prefix='ad-v7447-ui-') as t:
         names={n.lstrip('./') for n in x.getnames()}
         assert view in names and full not in names and 'manifest.txt' in names
     # Partial evidence remains exportable; repeated export replaces the same TAR.
-    (docs/'AmazonDark-v7.447-ui-full.state').write_text(f'partial {now} {full}\n')
+    (docs/'AmazonDark-v7.448-ui-full.state').write_text(f'partial {now} {full}\n')
     before=set(shared.glob('*.tar'))
     assert 'exactly one partial' in run('export','full')
     assert set(shared.glob('*.tar'))==before
     run('export',ok=False)
-    (docs/'AmazonDark-v7.447-ui-full.state').write_text(f'started {now} {full}\n')
+    (docs/'AmazonDark-v7.448-ui-full.state').write_text(f'started {now} {full}\n')
     assert 'still running or incomplete' in run('export','full',ok=False)
 
-print('PASS: v7.447 freezes armed VIEWPORT at background, uses TAR for all probe exports, preserves bounded FULL, and retains the scale-normalized transition fix')
+print('PASS: v7.448 freezes armed VIEWPORT at background, uses TAR for all probe exports, preserves bounded FULL, and retains the scale-normalized transition fix')

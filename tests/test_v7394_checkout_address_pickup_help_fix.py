@@ -8,8 +8,8 @@ INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JSINC=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.447~probe-responsiveness' in C
-assert '#define AD_VERSION "v7.447-probe-responsiveness"' in S
+assert 'Version: 7.448~performance-consolidation' in C
+assert '#define AD_VERSION "v7.448-performance-consolidation"' in S
 
 # Add-address: exact stable AUI ids only, standard controls, visible raster glyphs.
 for token in [
@@ -48,7 +48,7 @@ assert 'hubUseLowerLockerPrefBottomSheetTriggerButtonId' not in twb
 # Delivery/Pickup toggle: OLED for both; gray edge only for unselected; selected blue edge not overwritten.
 tog=S.split('// v7.394 FULL r1 (17:28):',1)[1].split('// v7.394 FULL r1 (17:38):',1)[0]
 assert '.edg-delivery-type-toggle-button:not(.a-button-selected)' in tog
-assert 'border-color:#747a7c' in tog
+assert 'border:1px solid #747a7c!important' in tog  # shorthand owns the same gray edge
 assert '.edg-delivery-type-toggle-button.a-button-selected' not in tog
 assert '.a-button-inner' in tog and '#e8e6e3' in tog
 
@@ -80,8 +80,8 @@ for forbidden in ['new MutationObserver(', 'setInterval(', 'requestAnimationFram
     assert forbidden not in new
 
 # Probe identities all roll together.
-assert 'VER=7.447' in UI and 'AD_PROBE_VERSION=7.447' in SK and 'AD_PROBE_NAME=AmazonDark-v7.447' in SK
-assert 'AMAZONDARK v7.447 UNIVERSAL' in INC
-assert "version:'7.447'" in JSINC
-assert 'AmazonDark-v7.447-launch-sb-probe.txt' in SB
+assert 'VER=7.448' in UI and 'AD_PROBE_VERSION=7.448' in SK and 'AD_PROBE_NAME=AmazonDark-v7.448' in SK
+assert 'AMAZONDARK v7.448 UNIVERSAL' in INC
+assert "version:'7.448'" in JSINC
+assert 'AmazonDark-v7.448-launch-sb-probe.txt' in SB
 print('PASS: v7.394 covers add-address, pickup/map/card, delivery/pickup toggle and suggested-help/WebKit keyboard accessory with exact probe-backed ownership')

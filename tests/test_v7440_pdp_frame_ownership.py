@@ -4,16 +4,18 @@ S=(R/'src/Tweak.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
-assert 'Version: 7.447~probe-responsiveness' in C
-assert '#define AD_VERSION "v7.447-probe-responsiveness"' in S
-assert 'VER=7.447' in UI
-assert 'AD_PROBE_VERSION=7.447' in SK and 'AD_PROBE_NAME=AmazonDark-v7.447' in SK
+assert 'Version: 7.448~performance-consolidation' in C
+assert '#define AD_VERSION "v7.448-performance-consolidation"' in S
+assert 'VER=7.448' in UI
+assert 'AD_PROBE_VERSION=7.448' in SK and 'AD_PROBE_NAME=AmazonDark-v7.448' in SK
 # The correction changes delivery, not just selectors: enumerate WebKit child frames and evaluate in their page world.
 for tok in ['NSSelectorFromString(@"_frames:")','evaluateJavaScript:inFrame:inContentWorld:completionHandler:','NSClassFromString(@"WKContentWorld")','NSSelectorFromString(@"pageWorld")','ADInjectFrameNode7440','ADForceChildFrameTheme7440']:
     assert tok in S,tok
 # Event-driven reinjection catches initial, lazy, and navigated iframe loads with no recurring machinery.
 bridge=S[S.index('static NSString *ADFrameOwnerTriggerJS7440'):S.index('static id ADPageWorld7440')]
-for tok in ['adFrameOwner7440',"addEventListener('load'","tagName||''","'IFRAME'","DOMContentLoaded","pageshow","document-start"]: assert tok in bridge,tok
+for tok in ['adFrameOwner7440',"addEventListener('load'","tagName||''","'IFRAME'","DOMContentLoaded","pageshow","getElementById('dp')","document-ready"]: assert tok in bridge,tok
+assert 'window-load' in bridge
+assert 'document-start' not in bridge
 for bad in ['MutationObserver','setInterval(','requestAnimationFrame(',"addEventListener('scroll'"]:
     assert bad not in bridge,bad
 # Child stylesheet is persistent/inert until an ad marker matches and owns the requested visual contract.
@@ -34,4 +36,7 @@ for tok in ["[data-csa-c-painter='sb-collections-ilm-mobile']",'[class*=_c2ItY_c
 # Existing successful/required fixes remain.
 for tok in ['#product-image-gallery .a-truncate-cut','img.p13n-product-image',".s-widget-container[class*='widgetId=container-search-results_sponsored']>.s-container-results",'[data-component-type=s-tiles-carousel-component-brand_logo]']:
     assert tok in S,tok
-print('PASS: v7.447 owns PDP ad child frames natively and closes current main-document residuals without recurring scans')
+# v7.448 performance pass makes repeated page/frame events cheap without reducing ownership.
+for tok in ['gADForcedPDPFrameThemeCached7448','gADForcedPDPFrameThemeStrength7448','__ad7440FrameOwnerKey','ad7440-already','dispatch_once']:
+    assert tok in S,tok
+print('PASS: v7.448 retains PDP child-frame ownership with an idempotent cached delivery path and no recurring scans')

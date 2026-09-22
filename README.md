@@ -1,15 +1,32 @@
-# AmazonDark v7.447 — background-safe VIEWPORT + unified TAR probes
+# AmazonDark v7.448 — performance consolidation
 
-Direct parent: **v7.446~probe-responsiveness**. Production theming and the v7.446 bounded FULL / scale-aware Search → Product transition work are otherwise unchanged.
+Direct parent: **v7.447~probe-responsiveness**. This is a dedicated performance pass. It does not intentionally change the accepted visual theme, preference behavior, FULL/VIEWPORT/TRANSITION capture contract, or the v7.447 plain-TAR export workflow.
 
-The VIEWPORT phone workflow is corrected. `scripts/ui-probe.sh arm` now writes only a one-shot arm file; it does not look up Amazon's PID and does not signal a backgrounded process. After arming, return to Amazon, leave the exact target scene visible, and background Amazon once. The app consumes the arm at `UIApplicationWillResignActiveNotification`, takes the initial native VIEWPORT snapshot at that foreground→inactive boundary, and uses a finite iOS background task only to finish its asynchronous WebKit/frame capture. The completed capture can then be exported from NewTerm while Amazon remains backgrounded.
+## Production runtime changes
 
-A foreground-only SIGUSR2 receiver is retained for remote/SSH compatibility, but it cannot consume the arm while Amazon is inactive. The old wait-for-Amazon-to-return-foreground path is removed, so a background trigger cannot accidentally capture the app-switcher/privacy hierarchy instead of the requested scene.
+- Compacts only the later/post-v7.388 CSS additions where a shorthand declaration already makes an immediately repeated longhand declaration redundant. The legacy v7.386/v7.387 semantic-golden programs are left structurally intact and remain regression-checked.
+- Makes forced PDP child-frame delivery idempotent per document and per white-tame strength. Repeated lifecycle/frame events now return immediately when the same owner program is already installed.
+- Caches the strength-dependent forced-frame JavaScript instead of rebuilding the large program on every frame-owner delivery.
+- Gates the main-document frame-owner trigger on an actual `#dp` root, so ordinary Home/Search/Cart/etc. documents do not traverse their iframe tree for PDP ownership.
+- Removes the ineffective early `document-start` frame-tree ping while retaining DOM-ready, iframe-load, one gated `window.load`, and `pageshow` coverage.
+- Caches `WKContentWorld.pageWorld` with `dispatch_once`. The WebKit message handler deliberately keeps the v7.447 defensive remove/re-add behavior so Amazon-side handler removal cannot strand the frame owner.
 
-FULL keeps the v7.446 bounded implementation: cooperative main-document batches, lazy document/overflow-owner traversal, finite native scroll sweeps, offset restoration, no scroll disabling, 4-second WebKit callback timeouts, explicit partial-coverage receipts, and no recurring production scan machinery.
+## Explicit probe efficiency
 
-FULL, VIEWPORT, and TRANSITION now use the same export policy: **plain `.tar`, no gzip and no ZIP fallback**. FULL and VIEWPORT export exactly the current state-selected capture; TRANSITION exports only the newest current-version recording from the current arm. Historical transition recordings are never wildcarded into a new archive.
+Large native diagnostic breadth-first walks now use cursor queues instead of repeatedly removing index zero from mutable arrays. This removes avoidable array shifting during FULL/VIEWPORT/transition/launch diagnostics. Probe traversal remains opt-in, finite, bounded, and separate from normal app browsing.
 
-No production UI family is claimed fixed by v7.447. Outstanding visual work remains separate from this probe-workflow correction.
+## Static payload comparison vs v7.447
 
-See `COMMANDS.md` for the push and three separate capture workflows.
+- `src/Tweak.xm`: **861,712 → 853,010 bytes** (-8,702 / -1.01%).
+- Core document-start Web program: **208,738 → 205,874 bytes** (-2,864 / -1.37%).
+- Checkout floor program: **69,983 → 63,571 bytes** (-6,412 / -9.16%).
+- Default installed Web payload: **280,135 → 270,859 bytes** (-9,276 / -3.31%).
+- All-feature Web payload: **313,468 → 304,192 bytes** (-9,276 / -2.96%).
+
+These are static program-size/runtime-architecture measurements, not a claim of measured device FPS, launch time, energy use, or battery improvement. On-device performance still requires device timing if we want quantitative real-world numbers.
+
+## Performance invariants
+
+Normal production theming still has no `MutationObserver`, Web scroll listener, `setInterval`, `requestAnimationFrame` loop, `TreeWalker`, polling loop, or recurring hierarchy scanner. Expensive FULL/VIEWPORT traversal remains manual/armed and bounded.
+
+See `AUDIT-v7.448.md`, `VALIDATION-v7.448.md`, and `COMMANDS.md`.

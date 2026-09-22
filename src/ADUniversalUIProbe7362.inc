@@ -1,4 +1,4 @@
-// v7.447 universal cross-frame UI probe architecture: FULL/VIEWPORT cover native, main Web DOM, and every injected child/SafeFrame DOM.
+// v7.448 universal cross-frame UI probe architecture: FULL/VIEWPORT cover native, main Web DOM, and every injected child/SafeFrame DOM.
 // Exactly two UI forensics categories remain:
 //   1) screenshot -> FULL finite Web/native renderer sweep + final full inventories
 //   2) scripts/ui-probe.sh arm -> one VIEWPORT capture at Amazon's next WillResignActive boundary
@@ -163,9 +163,9 @@ static NSString *ADUINativeSnapshot7362(BOOL viewportOnly){
     @try {
         for(UIWindow *w in UIApplication.sharedApplication.windows){
             if(!w||w.hidden||w.alpha<0.005)continue; windows++;
-            NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"v":w,@"d":@0 }];
-            while(q.count&&visited<(viewportOnly?9000:26000)&&logged<(viewportOnly?7000:24000)){
-                NSDictionary *it=q.firstObject;[q removeObjectAtIndex:0]; UIView *v=it[@"v"]; NSUInteger d=[it[@"d"] unsignedIntegerValue]; if(!v)continue; visited++;
+            NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"v":w,@"d":@0 }]; NSUInteger qi=0;
+            while(qi<q.count&&visited<(viewportOnly?9000:26000)&&logged<(viewportOnly?7000:24000)){
+                NSDictionary *it=q[qi++]; UIView *v=it[@"v"]; NSUInteger d=[it[@"d"] unsignedIntegerValue]; if(!v)continue; visited++;
                 CGRect wr=CGRectZero; @try{wr=[v convertRect:v.bounds toView:nil];}@catch(...){}
                 BOOL on=!v.hidden&&v.alpha>=0.005&&wr.size.width>=0.1&&wr.size.height>=0.1&&CGRectIntersectsRect(wr,screen);
                 if(!viewportOnly||on){
@@ -186,8 +186,8 @@ static NSArray *ADUIWebViews7362(void){
     NSMutableArray *out=[NSMutableArray array]; NSMutableSet *seen=[NSMutableSet set]; CGRect screen=UIScreen.mainScreen.bounds;
     @try {
         for(UIWindow *w in UIApplication.sharedApplication.windows){
-            if(!w||w.hidden||w.alpha<0.005)continue; NSMutableArray *q=[NSMutableArray arrayWithObject:w]; NSUInteger n=0;
-            while(q.count&&n++<12000){ UIView *v=q.firstObject;[q removeObjectAtIndex:0]; if(!v)continue;
+            if(!w||w.hidden||w.alpha<0.005)continue; NSMutableArray *q=[NSMutableArray arrayWithObject:w]; NSUInteger n=0,qi=0;
+            while(qi<q.count&&n++<12000){ UIView *v=q[qi++]; if(!v)continue;
                 if([v isKindOfClass:[WKWebView class]]&&ADUIViewActuallyVisible7362(v)){
                     NSString *key=[NSString stringWithFormat:@"%p",v]; if(![seen containsObject:key]){[seen addObject:key];[out addObject:v];}
                 }
@@ -206,13 +206,13 @@ static NSString *ADUIProbePath7362(BOOL viewportOnly,NSUInteger run){
         static NSDateFormatter *f=nil;static dispatch_once_t once;dispatch_once(&once,^{f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";});
         NSString *stamp=nil;@synchronized(f){f.timeZone=[NSTimeZone localTimeZone];stamp=[f stringFromDate:[NSDate date]];}
         NSString *stem=viewportOnly?@"ui-viewport-probe":@"ui-full-probe";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.447-%@-%@-r%lu.txt",stem,stamp?:@"unknown",(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.448-%@-%@-r%lu.txt",stem,stamp?:@"unknown",(unsigned long)run];
         return [ADUIDocuments7362() stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.447-ui-probe.txt"]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.448-ui-probe.txt"]; }
 }
 
 static NSString *ADUIStatePath7445(BOOL viewportOnly){
-    NSString *name=viewportOnly?@"AmazonDark-v7.447-ui-viewport.state":@"AmazonDark-v7.447-ui-full.state";
+    NSString *name=viewportOnly?@"AmazonDark-v7.448-ui-viewport.state":@"AmazonDark-v7.448-ui-full.state";
     return [ADUIDocuments7362() stringByAppendingPathComponent:name];
 }
 static void ADUIWriteState7445(BOOL viewportOnly,NSString *state,NSString *path){
@@ -349,9 +349,9 @@ static NSString *ADUINativeSubtreeSnapshot7364(UIView *root,NSString *phase,NSUI
     @try {
         CGRect rr=[root convertRect:root.bounds toView:nil];
         [m appendFormat:@"\n===== NATIVE SWEEP SNAPSHOT phase=%@ root=%p cls=%@ aid=\"%@\" frame=%@ =====\n",phase?:@"?",root,NSStringFromClass(root.class)?:@"?",ADUISafe7362(root.accessibilityIdentifier),ADUIRect7362(rr)];
-        NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"v":root,@"d":@0 }];
-        while(q.count&&visited<maxLogged+1200&&logged<maxLogged){
-            NSDictionary *it=q.firstObject;[q removeObjectAtIndex:0];UIView *v=it[@"v"];NSUInteger d=[it[@"d"] unsignedIntegerValue];if(!v)continue;visited++;
+        NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"v":root,@"d":@0 }]; NSUInteger qi=0;
+        while(qi<q.count&&visited<maxLogged+1200&&logged<maxLogged){
+            NSDictionary *it=q[qi++];UIView *v=it[@"v"];NSUInteger d=[it[@"d"] unsignedIntegerValue];if(!v)continue;visited++;
             CGRect wr=CGRectZero;@try{wr=[v convertRect:v.bounds toView:nil];}@catch(...){}
             BOOL on=!v.hidden&&v.alpha>=0.005&&wr.size.width>=0.1&&wr.size.height>=0.1&&CGRectIntersectsRect(wr,screen);if(on)onscreen++;
             CGAffineTransform t=v.transform;
@@ -369,9 +369,9 @@ static NSArray *ADUINativeScrollCandidates7364(NSString *path,unsigned long long
     NSMutableArray *all=[NSMutableArray array];CGRect screen=UIScreen.mainScreen.bounds;NSUInteger index=0;
     @try {
         for(UIWindow *w in UIApplication.sharedApplication.windows){
-            if(!w||w.hidden||w.alpha<0.005)continue;NSMutableArray *q=[NSMutableArray arrayWithObject:w];NSUInteger seen=0;
-            while(q.count&&seen++<18000){
-                UIView *v=q.firstObject;[q removeObjectAtIndex:0];if(!v)continue;
+            if(!w||w.hidden||w.alpha<0.005)continue;NSMutableArray *q=[NSMutableArray arrayWithObject:w];NSUInteger seen=0,qi=0;
+            while(qi<q.count&&seen++<18000){
+                UIView *v=q[qi++];if(!v)continue;
                 if([v isKindOfClass:[UIScrollView class]]){
                     UIScrollView *sv=(UIScrollView *)v;CGRect wr=CGRectZero;@try{wr=[sv convertRect:sv.bounds toView:nil];}@catch(...){}
                     BOOL web=ADUIAncestorClassContains7364(sv,@"WKWebView")||ADUIAncestorClassContains7364(sv,@"WKScroll")||[NSStringFromClass(sv.class) rangeOfString:@"WK" options:NSCaseInsensitiveSearch].location!=NSNotFound;
@@ -567,7 +567,7 @@ static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){
     NSUInteger run=viewportOnly?++gADUIViewportRun7362:++gADUIFullRun7362;unsigned long long cap=viewportOnly?kADUIViewportCap7362:kADUIFullCap7362;NSString *path=ADUIProbePath7362(viewportOnly,run);NSArray *webs=ADUIWebViews7362();
     ADUIWriteState7445(viewportOnly,@"started",path);
     gADUIProbeActivePath7433=path;gADUIProbeActiveCap7433=cap;gADUIProbeActiveNonce7433=[NSString stringWithFormat:@"%lld-%d-%lu",(long long)(NSDate.date.timeIntervalSince1970*1000.0),getpid(),(unsigned long)run];if(gADUniversalUIBridge7433)[gADUniversalUIBridge7433.pending removeAllObjects];
-    NSString *header=[NSString stringWithFormat:@"AMAZONDARK v7.447 UNIVERSAL %@ UI FORENSICS PROBE\nversion=%s\ncategory=%@\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\ncontract=screenshot captures FULL SWEEP; scripts/ui-probe.sh arm is consumed at the next WillResignActive boundary to freeze VIEWPORT before background export\nbackground_boundary=%d\nroute_policy=universal: no tab/menu/product/cart/person/alexa dispatcher; every current on-screen WKWebView, every injected child/SafeFrame document, plus every eligible current native scroll renderer is discovered dynamically\nprivacy=no visible text strings, accessibilityLabel/value strings, URL/src/href values, network payloads or clipboard data; text is length+hash only; frame origin/path/referrer are hash-only; technical class/id/testid/component paint metadata retained\ncrossframe=all-frame documentStart bridge; child frames self-inspect their own DOM and computed paint, then send chunked sanitized results to native; main frame never attempts cross-origin contentDocument access\nweb=%@\nnative=%@\nnormal_runtime=single screenshot notification + one next-background lifecycle observer + optional foreground SIGUSR2 compatibility dispatch source + one inert message listener per web document frame; all scanning/traversal is finite and exists only after an explicit trigger/arm; no MutationObserver/timer/RAF/web-scroll listener/polling/recurring hierarchy scan\nwebviews=%lu\n\n===== NATIVE INITIAL %@ SNAPSHOT =====\n",
+    NSString *header=[NSString stringWithFormat:@"AMAZONDARK v7.448 UNIVERSAL %@ UI FORENSICS PROBE\nversion=%s\ncategory=%@\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\ncontract=screenshot captures FULL SWEEP; scripts/ui-probe.sh arm is consumed at the next WillResignActive boundary to freeze VIEWPORT before background export\nbackground_boundary=%d\nroute_policy=universal: no tab/menu/product/cart/person/alexa dispatcher; every current on-screen WKWebView, every injected child/SafeFrame document, plus every eligible current native scroll renderer is discovered dynamically\nprivacy=no visible text strings, accessibilityLabel/value strings, URL/src/href values, network payloads or clipboard data; text is length+hash only; frame origin/path/referrer are hash-only; technical class/id/testid/component paint metadata retained\ncrossframe=all-frame documentStart bridge; child frames self-inspect their own DOM and computed paint, then send chunked sanitized results to native; main frame never attempts cross-origin contentDocument access\nweb=%@\nnative=%@\nnormal_runtime=single screenshot notification + one next-background lifecycle observer + optional foreground SIGUSR2 compatibility dispatch source + one inert message listener per web document frame; all scanning/traversal is finite and exists only after an explicit trigger/arm; no MutationObserver/timer/RAF/web-scroll listener/polling/recurring hierarchy scan\nwebviews=%lu\n\n===== NATIVE INITIAL %@ SNAPSHOT =====\n",
         viewportOnly?@"VIEWPORT":@"FULL-SWEEP",AD_VERSION,viewportOnly?@"viewport":@"full-web-native-sweep",trigger?:@"unknown",[NSDate date],path.lastPathComponent,cap,backgroundBoundary?1:0,
         viewportOnly?@"current visual viewport of every on-screen WKWebView plus every visible child/SafeFrame document; no offset mutation":@"batched mounted DOM + finite document/large-overflow-owner sweep with lazy-growth viewport snapshots; original offsets restored; scrolling is never disabled",
         viewportOnly?@"current screen-intersecting UIKit/React hierarchy only":@"initial/final full visible-window hierarchy + dynamically discovered non-WebKit scroll candidates swept across every scrollable axis with per-step subtree snapshots; original offsets restored; scrolling is never disabled",
@@ -579,7 +579,7 @@ static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){
     });
 }
 
-static NSString *ADUIViewportArmPath7362(void){ return [ADUIDocuments7362() stringByAppendingPathComponent:@"AmazonDark-v7.447-ui-viewport.arm"]; }
+static NSString *ADUIViewportArmPath7362(void){ return [ADUIDocuments7362() stringByAppendingPathComponent:@"AmazonDark-v7.448-ui-viewport.arm"]; }
 static BOOL ADUIConsumeViewportArm7362(void){
     NSString *p=ADUIViewportArmPath7362(); NSFileManager *fm=NSFileManager.defaultManager; if(![fm fileExistsAtPath:p])return NO;
     BOOL ok=NO; @try {

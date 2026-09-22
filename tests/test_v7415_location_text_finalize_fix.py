@@ -3,7 +3,7 @@ import json
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7415-location-text-good-bad-diff.json').read_text())
-assert 'Version: 7.447~probe-responsiveness' in C
+assert 'Version: 7.448~performance-consolidation' in C
 assert F['same_renderer']
 assert F['header']['hash']=='f1c585fa' and F['header']['bad_fg'][0]<0.1 and F['header']['good_fg'][0]>0.9
 assert F['semantic_blue']['bad_fg']==F['semantic_blue']['good_fg']

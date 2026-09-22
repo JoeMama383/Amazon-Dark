@@ -6,8 +6,8 @@ UI=(ROOT/'scripts/ui-probe.sh').read_text()
 SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
-assert 'Version: 7.447~probe-responsiveness' in C
-assert '#define AD_VERSION "v7.447-probe-responsiveness"' in S
+assert 'Version: 7.448~performance-consolidation' in C
+assert '#define AD_VERSION "v7.448-performance-consolidation"' in S
 # latent help typed-query list
 assert '#help_srch_sggst' in S and '#suggested-help-topics-wrapper' in S
 # add-address latent location feedback/error states
@@ -18,10 +18,10 @@ seg=S.split('// v7.395 re-audit: Bolt also pre-mounts zero-rect success/error al
 assert '.a-alert-success' in seg and '.a-alert-error' in seg
 assert 'border-color:' not in seg
 # Current probe identity aligned
-assert 'VER=7.447' in UI
-assert 'AD_PROBE_VERSION=7.447' in SK and 'AD_PROBE_NAME=AmazonDark-v7.447' in SK
-assert 'AMAZONDARK v7.447 UNIVERSAL' in INC
-assert "version:'7.447'" in JS
+assert 'VER=7.448' in UI
+assert 'AD_PROBE_VERSION=7.448' in SK and 'AD_PROBE_NAME=AmazonDark-v7.448' in SK
+assert 'AMAZONDARK v7.448 UNIVERSAL' in INC
+assert "version:'7.448'" in JS
 # Architecture remains static/event-driven
 new=S.split('// v7.395 re-audit:',1)[1]
 for bad in ['MutationObserver(', 'setInterval(', 'requestAnimationFrame(']:

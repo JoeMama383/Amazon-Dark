@@ -4,9 +4,9 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
-assert 'Version: 7.447~probe-responsiveness' in C
-assert '#define AD_VERSION "v7.447-probe-responsiveness"' in S
-assert 'VER=7.447' in UI and 'AD_PROBE_VERSION=7.447' in SK and 'AD_PROBE_NAME=AmazonDark-v7.447' in SK
+assert 'Version: 7.448~performance-consolidation' in C
+assert '#define AD_VERSION "v7.448-performance-consolidation"' in S
+assert 'VER=7.448' in UI and 'AD_PROBE_VERSION=7.448' in SK and 'AD_PROBE_NAME=AmazonDark-v7.448' in SK
 
 pdp=S[S.index('static NSString *ADPDPCompletionJS7405'):S.index('static NSString *ADPDPCompletionTWBJS7405')]
 twb=S[S.index('static NSString *ADPDPCompletionTWBJS7405'):S.index('// v7.432: PDP APE/SafeFrame', S.index('static NSString *ADPDPCompletionTWBJS7405'))]
@@ -46,7 +46,7 @@ for tok in ['#dynamic-bb','[data-testid=gridContainer]','[data-acei-id=prod-img]
     assert tok in sf,tok
 # OLED floors, neutral text, existing border recolor, semantic preservation, and raster taming are all present.
 for tok in [
-    'background:#000!important;background-color:#000!important',
+    'background:#000!important',  # shorthand owns the same OLED fill
     'border-color:#494d4d!important',
     'color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important',
     '[data-testid=formatted-price]',

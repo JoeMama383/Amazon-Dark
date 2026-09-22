@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.447~probe-responsiveness' in C
-assert '#define AD_VERSION "v7.447-probe-responsiveness"' in S
+assert 'Version: 7.448~performance-consolidation' in C
+assert '#define AD_VERSION "v7.448-performance-consolidation"' in S
 f=S[S.index('static NSString *ADPDPCompletionJS7405'):S.index('static NSString *ADPDPCompletionTWBJS7405')]
 # r2: live header is an AUI expander, not h2/h3; hero quick-promo is a separate APE iframe.
 for tok in [
@@ -20,7 +20,7 @@ assert 'body a:not(.a-color-link):not(.a-link-normal):not([style*=color]):not([d
 swatch='#twister-plus-mobile-inline-twister-container .image-swatch-button.sml-image-swatch-button'
 assert swatch in f
 sw=f[f.index(swatch):f.index(swatch)+850]
-assert 'background:#000!important' in sw and 'background-color:#000!important' in sw
+assert 'background:#000!important' in sw  # shorthand owns the OLED fill
 assert 'border:' not in sw and 'border-color:' not in sw
 # r5: the $59.97 placement is the lower btf2 APE iframe, and Similar Brands owns the multi-brand family.
 for tok in [

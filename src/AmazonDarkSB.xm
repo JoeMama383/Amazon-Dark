@@ -79,7 +79,7 @@ static void ADLaunchLog7337(NSString *event,NSString *detail){
         NSString *line=[NSString stringWithFormat:@"%.6f up=%.6f pid=%d event=%@ %@\n",
             CFAbsoluteTimeGetCurrent(),NSProcessInfo.processInfo.systemUptime,getpid(),event,detail?:@""];
         dispatch_async(queue,^{@autoreleasepool{@try{
-            NSString *path=@"/var/mobile/AmazonDark-v7.447-launch-sb-probe.txt";
+            NSString *path=@"/var/mobile/AmazonDark-v7.448-launch-sb-probe.txt";
             NSFileManager *fm=NSFileManager.defaultManager;
             if(![fm fileExistsAtPath:path])[fm createFileAtPath:path contents:nil attributes:@{NSFilePosixPermissions:@0666}];
             NSFileHandle *file=[NSFileHandle fileHandleForWritingAtPath:path];
@@ -112,9 +112,9 @@ static void ADObservePlaceholder7379(id application,id original){
         if(!root){if(ADLaunchProbeArmed7351()) ADLaunchLog7337(@"xib.observe",@"return=nil-or-nonview");return;}
         NSMutableArray *parts=[NSMutableArray array];
         NSMutableArray *queue=[NSMutableArray arrayWithObject:root];
-        NSUInteger visited=0;
-        while(queue.count&&visited++<24){
-            UIView *v=queue.firstObject;[queue removeObjectAtIndex:0];
+        NSUInteger visited=0,qi=0;
+        while(qi<queue.count&&visited++<24){
+            UIView *v=queue[qi++];
             UIColor *layerColor=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
             [parts addObject:[NSString stringWithFormat:@"d=%lu cls=%@ f=%@ b=%@ bg=%@ lbg=%@ a=%.3f h=%d sub=%lu",
                 (unsigned long)visited-1,NSStringFromClass(v.class),NSStringFromCGRect(v.frame),NSStringFromCGRect(v.bounds),

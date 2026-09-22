@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
-assert 'Version: 7.447~probe-responsiveness' in C
-assert '#define AD_VERSION "v7.447-probe-responsiveness"' in S
+assert 'Version: 7.448~performance-consolidation' in C
+assert '#define AD_VERSION "v7.448-performance-consolidation"' in S
 canon=S[S.index('// v7.416: canonical ownership for Search'):S.index('static int ADReactSurface7226',S.index('// v7.416: canonical ownership for Search'))]
 # Exact visible tree contract: full-screen root + lower 394pt scroll, no route strings or sibling Nile tree.
 for tok in ('ADLocationSheetRoot7196(v)','RCTScrollView','r.size.width>=388.0','r.size.width<=402.0','CGRectGetMinX(r)>=12.0','r.size.height>=100.0','r.size.height<=560.0'):
@@ -36,8 +36,8 @@ assert 'ADInLocationCanonical7416(v)' in field and 'setAttributedPlaceholder:' i
 # No recurring location mechanism and old competing systems are gone.
 for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener('scroll'"):
     assert bad not in canon,bad
-assert 'VER=7.447' in UI
-assert 'AD_PROBE_VERSION=7.447' in SK and 'AD_PROBE_NAME=AmazonDark-v7.447' in SK
-assert 'AMAZONDARK v7.447 UNIVERSAL' in INC and 'AmazonDark-v7.447-ui-viewport.arm' in INC
-assert "version:'7.447'" in JS
+assert 'VER=7.448' in UI
+assert 'AD_PROBE_VERSION=7.448' in SK and 'AD_PROBE_NAME=AmazonDark-v7.448' in SK
+assert 'AMAZONDARK v7.448 UNIVERSAL' in INC and 'AmazonDark-v7.448-ui-viewport.arm' in INC
+assert "version:'7.448'" in JS
 print('PASS: v7.418 uses one event-driven full-screen location owner for main/ZIP/country/current-location screens')

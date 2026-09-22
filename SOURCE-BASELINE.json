@@ -1,7 +1,17 @@
 {
-  "version": "7.447~probe-responsiveness",
-  "direct_parent": "7.446~probe-responsiveness",
-  "source": "AmazonDark-v7.446-probe-responsiveness-source.zip",
-  "parent_sha256": "637763e24cf093b208b61ff406bebe7889c5653923b8e0d9cd437a1c8588cbce",
-  "scope": "Probe workflow correction only: armed VIEWPORT freezes at the next foreground-to-background boundary and can be exported while Amazon remains backgrounded; FULL, VIEWPORT, and TRANSITION use isolated current-session plain-TAR exports. Production theming remains v7.446."
+  "version": "7.448~performance-consolidation",
+  "direct_parent": "7.447~probe-responsiveness",
+  "source": "AmazonDark-v7.447-probe-responsiveness-source.zip",
+  "parent_sha256": "afd681677a1292e596e10234c525da689e36416424e086a6b8b878b2613205cc",
+  "scope": "Dedicated performance pass: preserve v7.447 visual/probe behavior while compacting post-v7.388 CSS payloads, making PDP child-frame delivery cached/idempotent and PDP-gated, caching WKContentWorld/handler setup, and replacing probe front-removal BFS queues with cursor queues. No recurring production traversal machinery is introduced.",
+  "performance_baseline": {
+    "parent_tweak_bytes": 861712,
+    "current_tweak_bytes": 853010,
+    "parent_core_web_bytes": 208738,
+    "current_core_web_bytes": 205874,
+    "parent_default_web_bytes": 280135,
+    "current_default_web_bytes": 270859,
+    "parent_all_feature_web_bytes": 313468,
+    "current_all_feature_web_bytes": 304192
+  }
 }
