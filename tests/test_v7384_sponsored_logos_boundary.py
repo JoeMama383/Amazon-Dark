@@ -5,8 +5,8 @@ A=(ROOT/'src/ADSponsored.m').read_text()
 H=(ROOT/'src/ADSponsored.h').read_text()
 M=(ROOT/'Makefile').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.450~pdp-readonly-full' in C
-assert '#define AD_VERSION "v7.450-pdp-readonly-full"' in S
+assert 'Version: 7.451~pdp-streaming-full' in C
+assert '#define AD_VERSION "v7.451-pdp-streaming-full"' in S
 assert 'AmazonDark_FILES      = src/Tweak.xm src/ADSponsored.m' in M
 assert '#import "ADSponsored.h"' in S
 assert 'extern "C" {' in H

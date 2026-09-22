@@ -1,35 +1,39 @@
-# AmazonDark v7.450 — PDP read-only FULL
+# AmazonDark v7.451 — PDP streaming FULL
 
-Direct parent: **v7.449~full-probe-nonblocking**. This release corrects only the Product Detail FULL diagnostic path. Production theming, the v7.448 performance consolidation, non-PDP FULL behavior, VIEWPORT, TRANSITION, and plain-TAR exports are preserved.
+Direct parent: **v7.450~pdp-readonly-full** (`AmazonDark-v7.450-pdp-readonly-full-source.zip`, SHA-256 `5e27eeacc4e2ee562e25f211395fcf6ad8fea8540b0f67badff4c25a2068235b`). Production theming, v7.448 performance consolidation, non-PDP FULL behavior, VIEWPORT, TRANSITION, and plain-TAR exports are preserved.
 
-## Probe-backed diagnosis
+## Exact v7.450 device failure
 
-The generic FULL architecture was not the primary problem. FULL works on the other Amazon menus. Three known-good v7.435 Product Detail captures show that the full mounted `#dp` document was already available **before** the probe tried to drive it:
+The supplied failed v7.450 PDP FULL archive proves the no-scroll routing worked, but the serializer did not:
 
-- 7,530 nodes over 11,341 px;
-- 7,546 nodes over 11,341 px;
-- 9,074 nodes over 13,076 px.
+- PDP was correctly classified before the Web pass.
+- WebKit content started at one viewport and passively grew to **14,175 px** without any probe scroll mutation.
+- `PDP_READONLY_FULL_DOM` reached **chunk 199** but only **927 elements**.
+- The native wrapper then emitted `WEB_TIMEOUT ... after=4.0s`.
+- The delayed catch-up was skipped after the interface became inactive/detached.
+- Native scroll discovery was correctly skipped.
 
-After the old FULL probe changed the Product Detail scroll owner, all three captures collapsed to a WebKit content height of about **779 px**. The active sweep added little diagnostic coverage while destabilizing the product renderer. Later attempts to make that sweep more bounded or cooperative did not remove the fundamental PDP-specific side effect.
+The freeze therefore comes from the v7.450 rich serializer/transport itself. Each tiny batch returned through a new `evaluateJavaScript` continuation. On the PDP, expensive computed-style, pseudo-style, geometry and contrast work meant only a few elements advanced per continuation, causing hundreds of WebKit round-trips and eventually a callback timeout.
 
-## v7.450 correction
+## v7.451 correction
 
-An exact Product Detail WebView is identified first from the native WebView URL (`/dp/`, `/gp/product/`, `/gp/aw/d/`) and then, only as a fallback, from the exact DOM root `#dp`. Once any current WebView is classified as Product Detail, the **entire FULL Web session** is read-only so an auxiliary/ad WebView cannot be driven first:
+PDP FULL remains completely read-only, but the serialization transport is replaced:
 
-- no `scrollEnabled` changes;
-- no `setContentOffset:`;
-- no JavaScript `scrollTo` / scroll command;
-- no nested overflow-owner sweep;
-- no native scroll-candidate discovery or sweep for a FULL session containing the PDP.
+- native starts the PDP scan **once**;
+- the page performs finite 4 ms time-sliced batches;
+- batches yield with probe-only `setTimeout`;
+- payloads are streamed through the existing `WKScriptMessageHandler`;
+- there is **no per-chunk `evaluateJavaScript` continuation**;
+- the scan walks the complete mounted main-document tree, including shadow roots;
+- a second cheap WeakSet-backed tree pass captures nodes mounted while the first pass was running;
+- technical paint, geometry, style, media, pseudo-element and contrast metadata remain available;
+- child/SafeFrame capture remains best-effort through the existing bridge;
+- PDP Web/native scroll mutation remains prohibited.
 
-Every WebView in that PDP FULL session receives one cooperative complete mounted-DOM inventory, followed by a passive 750 ms unseen-node catch-up. These passes inspect DOM state without changing scroll state. Native initial/final hierarchy snapshots remain read-only, and the native scroll-candidate phase is skipped entirely for the PDP session.
+The streaming scanner is created only after an explicit FULL screenshot. It is not installed as production polling/observation machinery.
 
-All non-PDP menus retain the v7.449 generic FULL implementation unchanged.
+## Other menus
 
-## Coverage boundary
+Non-PDP FULL remains the inherited v7.449 cooperative root/overflow sweep. VIEWPORT and TRANSITION are unchanged.
 
-This captures the entire **currently mounted** PDP DOM. Historical PDP evidence shows that was already the full 11–13k px document on the affected renderer. If Amazon introduces content that literally does not exist until a human scrolls to it, v7.450 will report the mounted document rather than forcing the renderer to scroll and risking the collapse again.
-
-No production `MutationObserver`, Web scroll listener, interval, RAF loop, polling loop, or recurring hierarchy scan is introduced.
-
-See `AUDIT-v7.450.md`, `VALIDATION-v7.450.md`, and `COMMANDS.md`.
+See `AUDIT-v7.451.md`, `VALIDATION-v7.451.md`, and `COMMANDS.md`.

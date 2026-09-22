@@ -4,9 +4,9 @@ S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.450~pdp-readonly-full' in C
-assert '#define AD_VERSION "v7.450-pdp-readonly-full"' in S
-assert "version:'7.450'" in UI
+assert 'Version: 7.451~pdp-streaming-full' in C
+assert '#define AD_VERSION "v7.451-pdp-streaming-full"' in S
+assert "version:'7.451'" in UI
 
 new=S.split('// v7.397 FULL r1/r2 (20:17/20:18):',1)[1].split('// v7.398 FULL r1 audit:',1)[0]
 

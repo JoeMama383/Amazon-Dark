@@ -5,8 +5,8 @@ S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text(
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7420-cart-topnav-payment-divider.json').read_text())
-assert 'Version: 7.450~pdp-readonly-full' in C
-assert '#define AD_VERSION "v7.450-pdp-readonly-full"' in S
+assert 'Version: 7.451~pdp-streaming-full' in C
+assert '#define AD_VERSION "v7.451-pdp-streaming-full"' in S
 # Cart FULL r1 exact evidence: plain full-width tab-root child carries Amazon tan.
 cart=F['cart_topnav_tan']
 assert cart['view_class']=='UIView' and cart['parent_owner']=='ANXTabRootViewController'
@@ -38,10 +38,10 @@ for token in ['display:none!important','height:0!important','background:transpar
 assert "[data-testid='input-claim-code-wrapper']{background:#181a1b!important" in S
 assert ":is([data-testid='selected-balance-pm-giftcard'],[data-testid='unselected-balance-pm-giftcard']) [data-testid='art']{filter:brightness(%.3f)!important" in S
 # Probe identities are all current.
-assert 'AMAZONDARK v7.450 UNIVERSAL' in INC and 'AmazonDark-v7.450-ui-viewport.arm' in INC
-assert "version:'7.450'" in JS
-assert 'VER=7.450' in UI
-assert 'AD_PROBE_VERSION=7.450' in SK and 'AD_PROBE_NAME=AmazonDark-v7.450' in SK
+assert 'AMAZONDARK v7.451 UNIVERSAL' in INC and 'AmazonDark-v7.451-ui-viewport.arm' in INC
+assert "version:'7.451'" in JS
+assert 'VER=7.451' in UI
+assert 'AD_PROBE_VERSION=7.451' in SK and 'AD_PROBE_NAME=AmazonDark-v7.451' in SK
 # The delta must stay event/static: no recurring work in the new owner.
 for bad in ('dispatch_after(', 'NSTimer', 'CADisplayLink', 'new MutationObserver(', 'setInterval(', 'requestAnimationFrame('):
     assert bad not in block,bad

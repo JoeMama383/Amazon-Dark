@@ -1,9 +1,9 @@
 {
-  "version": "7.450~pdp-readonly-full",
-  "direct_parent": "7.449~full-probe-nonblocking",
-  "source": "AmazonDark-v7.449-full-probe-nonblocking-source.zip",
-  "parent_sha256": "6ca3e5366c9a63f590c201eb480f1ecb0d9db88e1ec928514b5f27058eae4887",
-  "scope": "PDP-only FULL correction. Exact #dp / product-route WebViews are captured read-only: no WKScrollView mutation, no JS scroll command, no nested overflow sweep, and no native scroll sweep for that FULL session. Non-PDP FULL, VIEWPORT, TRANSITION, production theming and v7.448 performance consolidation remain inherited.",
-  "historical_evidence": "Three v7.435 PDP FULL captures had 7,530/7,546/9,074 mounted nodes over 11,341/11,341/13,076 px before sweep; after the probe drove the product scroll owner each collapsed to a 779 px WebKit content height.",
+  "version": "7.451~pdp-streaming-full",
+  "direct_parent": "7.450~pdp-readonly-full",
+  "source": "AmazonDark-v7.450-pdp-readonly-full-source.zip",
+  "parent_sha256": "5e27eeacc4e2ee562e25f211395fcf6ad8fea8540b0f67badff4c25a2068235b",
+  "scope": "PDP-only serializer correction. Product FULL remains zero-scroll-mutation, but its rich DOM capture changes from recursive native evaluateJavaScript continuations to one page-side finite time-sliced stream through the existing WKScriptMessageHandler. Non-PDP FULL, VIEWPORT, TRANSITION and production theming remain inherited.",
+  "device_evidence": "Failed v7.450 PDP archive: route correctly entered read-only mode; document passively grew to 14,175 px; serializer reached chunk 199 with only 927 elements, then WEB_TIMEOUT after 4 seconds.",
   "device_validation": "Pending installed GitHub Actions build."
 }
