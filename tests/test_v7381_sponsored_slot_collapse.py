@@ -4,8 +4,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.452~probe-recovery' in C
-assert '#define AD_VERSION "v7.452-probe-recovery"' in S
+assert 'Version: 7.453~isolated-probe' in C
+assert '#define AD_VERSION "v7.453-isolated-probe"' in S
 
 # Preserve the successful v7.381 first-paint repair: the Home dashboard shell
 # itself owns the stock white loading floor, and that floor remains OLED at

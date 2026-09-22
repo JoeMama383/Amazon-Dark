@@ -6,12 +6,12 @@ UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
-assert 'Version: 7.452~probe-recovery' in C
-assert '#define AD_VERSION "v7.452-probe-recovery"' in S
-assert 'VER=7.452' in UI
-assert 'AD_PROBE_VERSION=7.452' in SK and 'AD_PROBE_NAME=AmazonDark-v7.452' in SK
-assert '7.452~*)' in SK and 'Install the v7.452 Actions package first.' in SK
-assert 'AmazonDark-v7.452-probe-recovery-source.zip' in CMD
+assert 'Version: 7.453~isolated-probe' in C
+assert '#define AD_VERSION "v7.453-isolated-probe"' in S
+assert 'VER=7.453' in UI
+assert 'AD_PROBE_VERSION=7.453' in SK and 'AD_PROBE_NAME=AmazonDark-v7.453' in SK
+assert '7.453~*)' in SK and 'Install the v7.453 Actions package first.' in SK
+assert 'AmazonDark-v7.453-isolated-probe-source.zip' in CMD
 assert 'sh scripts/validate.sh' in CMD
 
 # New main-frame completion is injected into the core script.

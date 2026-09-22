@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.452~probe-recovery' in C
-assert '#define AD_VERSION "v7.452-probe-recovery"' in S
+assert 'Version: 7.453~isolated-probe' in C
+assert '#define AD_VERSION "v7.453-isolated-probe"' in S
 
 # Probe-proven incoming checkout child: plain UIView root directly owned by AMIWebViewController.
 for token in [

@@ -1,0 +1,10 @@
+{
+  "passed": 128,
+  "failed": [],
+  "blocked_missing_clang": [
+    "test_v7385_sponsored_c_linkage.py",
+    "test_v7388_native_work.py",
+    "test_v7427_native_ai_fixture.py"
+  ],
+  "note": "Previously failing historical comment assertion corrected; test_v7450_pdp_readonly_full.py rerun successfully. Strict gate blocked by missing clang; no iOS build."
+}

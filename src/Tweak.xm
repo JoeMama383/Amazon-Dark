@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.452 — PDP streaming FULL correction
+ * AmazonDark v7.453 — PDP streaming FULL correction
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.452-probe-recovery"
+#define AD_VERSION "v7.453-isolated-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2528,8 +2528,9 @@ static NSString *ADPDPMainResidualJS7440(void){
         "#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement [data-csa-c-painter='sb-collections-ilm-mobile'] :is(button,[role=button],[class*=arrow]){background:#303335!important;border-color:#747a7c!important;color:#fff!important;box-shadow:none!important;}"
         "#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement [data-csa-c-painter='sb-collections-ilm-mobile'] :is(button,[role=button],[class*=arrow]) :is(svg,path,polyline,line){stroke:#fff!important;color:#fff!important;}"
         "#dp#dp #sims-substitutes_feature_div_0 [class*=_rufus-comparison-card_style_insightText_],#dp#dp #sims-substitutes_feature_div_0 [class*=_rufus-comparison-card_style_insightText_]>.a-size-small{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+        "#dp#dp #newerVersionFeature .nevaMobImage img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}"
         "#dp#dp #sims-substitutes_feature_div_0 [class*=_rufus-comparison-card_style_insightDot_]{background-color:rgb(11,123,60)!important;-webkit-text-fill-color:currentColor!important;}"
-        "`;return 'ad7440-main-installed';}catch(e){return 'ad7440-main-error:'+String(e&&e.message||e);}})();",factor,factor];
+        "`;return 'ad7440-main-installed';}catch(e){return 'ad7440-main-error:'+String(e&&e.message||e);}})();",factor,factor,factor,factor];
 }
 
 // v7.412 FULL r1 (20:26): Your Addresses is a standalone AUI account page,
