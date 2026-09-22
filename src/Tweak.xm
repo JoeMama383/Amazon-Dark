@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.451 — PDP streaming FULL correction
+ * AmazonDark v7.452 — PDP streaming FULL correction
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.451-pdp-streaming-full"
+#define AD_VERSION "v7.452-probe-recovery"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;

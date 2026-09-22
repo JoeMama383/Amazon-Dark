@@ -6,8 +6,8 @@ M=''.join(json.loads(x) for x in (R/'src/ADUniversalUIProbe7362.js.inc').read_te
 SC=''.join(json.loads(x) for x in (R/'src/ADUIProbeScroll7446.js.inc').read_text().splitlines())
 SAMPLE=''.join(json.loads(x) for x in (R/'src/ADUIProbeViewportSample7449.js.inc').read_text().splitlines())
 C=(R/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.451~pdp-streaming-full' in C
-assert '#define AD_VERSION "v7.451-pdp-streaming-full"' in S
+assert 'Version: 7.452~probe-recovery' in C
+assert '#define AD_VERSION "v7.452-probe-recovery"' in S
 # Screenshot FULL may not synchronously format a full native hierarchy anymore.
 cap=I[I.index('static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){'):I.index('static NSString *ADUIViewportArmPath7362')]
 assert 'ADUINativeSnapshot7362(viewportOnly)' not in cap
@@ -49,4 +49,4 @@ with tempfile.TemporaryDirectory(prefix='ad7449-') as td:
     subprocess.run(['c++','-std=gnu++98','-Wall','-Wextra','-Werror','-I',str(R/'src'),str(cpp),'-o',str(exe)],check=True)
     emitted=subprocess.check_output([str(exe)]).decode(); assert emitted==SAMPLE
     subprocess.run(['node','--check'],input=emitted,text=True,check=True)
-print('PASS: v7.451 FULL is cooperative, post-lazy-load complete, and does not rewalk the entire DOM per scroll step')
+print('PASS: v7.452 FULL is cooperative, post-lazy-load complete, and does not rewalk the entire DOM per scroll step')

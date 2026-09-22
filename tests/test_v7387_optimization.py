@@ -69,7 +69,7 @@ assert digest(json.dumps(rules,separators=(',',':')))==golden['sponsored_rules_s
 for name,h in golden['probe_sha256'].items():
     data=(ROOT/'src'/name).read_bytes()
     if name=='ADUniversalUIProbe7362.js.inc':
-        # Probe payload intentionally changed to bounded diagnostic batches in v7.451.
+        # Probe payload intentionally changed to bounded diagnostic batches in v7.452.
         assert b'__adUIProbeContinue7446' in data and b'count' in data
         continue
     assert hashlib.sha256(data).hexdigest()==h, name

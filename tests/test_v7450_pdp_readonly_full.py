@@ -6,10 +6,10 @@ C=(R/'layout/DEBIAN/control').read_text()
 UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
 
-assert 'Version: 7.451~pdp-streaming-full' in C
-assert '#define AD_VERSION "v7.451-pdp-streaming-full"' in T
-assert 'VER=7.451' in UI
-assert 'AD_PROBE_VERSION=7.451' in SK and 'AD_PROBE_NAME=AmazonDark-v7.451' in SK
+assert 'Version: 7.452~probe-recovery' in C
+assert '#define AD_VERSION "v7.452-probe-recovery"' in T
+assert 'VER=7.452' in UI
+assert 'AD_PROBE_VERSION=7.452' in SK and 'AD_PROBE_NAME=AmazonDark-v7.452' in SK
 
 # Exact PDP classification is native-route first, #dp fallback second.
 classifier=S[S.index('static BOOL ADUIURLIsPDP7451'):S.index('static void ADUIScanPDPStreaming7451')]
@@ -27,7 +27,7 @@ for bad in ['setContentOffset','scrollEnabled=', 'ADUIScrollCommand7446', 'scrol
 
 # Routing is narrow: PDP takes read-only path; every other FULL WebView keeps v7.449 generic path.
 router=S[S.index('static void ADUIProcessWebViews7364'):S.index('static void ADUIScanNativeAxis7364')]
-assert 'if(gADUIFullHasPDP7451)' in router
+assert 'if(gADUIFullHasPDP7451||[gADUIFailedWebs7446 containsObject:wv])' in router
 assert 'ADUIScanPDPStreaming7451' in router
 assert 'ADUIScanWebViewFull7364' in router
 assert 'static void ADUIDetectPDPSession7451' in S
@@ -43,8 +43,8 @@ assert capture.index('if(gADUIFullHasPDP7451)') < capture.index('ADUINativeScrol
 # Existing generic machinery remains available for other menus; no production recurring Web machinery is introduced.
 for tok in ['static void ADUIScanWebViewFull7364','static void ADUINativeScrollCandidatesAsync7449','static void ADUIFinishCapture7364']:
     assert tok in S, tok
-new=S[S.index('// v7.451: PDP is a special renderer.') : S.index('static void ADUIScanNativeAxis7364')]
+new=S[S.index('// v7.452: PDP is a special renderer.') : S.index('static void ADUIScanNativeAxis7364')]
 for bad in ['new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener('scroll'"]:
     assert bad not in new, bad
 
-print('PASS: v7.451 preserves the PDP no-scroll contract while switching its full serializer to streaming delivery')
+print('PASS: v7.452 preserves the PDP no-scroll contract while switching its full serializer to streaming delivery')

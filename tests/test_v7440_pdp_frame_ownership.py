@@ -4,10 +4,10 @@ S=(R/'src/Tweak.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
-assert 'Version: 7.451~pdp-streaming-full' in C
-assert '#define AD_VERSION "v7.451-pdp-streaming-full"' in S
-assert 'VER=7.451' in UI
-assert 'AD_PROBE_VERSION=7.451' in SK and 'AD_PROBE_NAME=AmazonDark-v7.451' in SK
+assert 'Version: 7.452~probe-recovery' in C
+assert '#define AD_VERSION "v7.452-probe-recovery"' in S
+assert 'VER=7.452' in UI
+assert 'AD_PROBE_VERSION=7.452' in SK and 'AD_PROBE_NAME=AmazonDark-v7.452' in SK
 # The correction changes delivery, not just selectors: enumerate WebKit child frames and evaluate in their page world.
 for tok in ['NSSelectorFromString(@"_frames:")','evaluateJavaScript:inFrame:inContentWorld:completionHandler:','NSClassFromString(@"WKContentWorld")','NSSelectorFromString(@"pageWorld")','ADInjectFrameNode7440','ADForceChildFrameTheme7440']:
     assert tok in S,tok
@@ -36,7 +36,7 @@ for tok in ["[data-csa-c-painter='sb-collections-ilm-mobile']",'[class*=_c2ItY_c
 # Existing successful/required fixes remain.
 for tok in ['#product-image-gallery .a-truncate-cut','img.p13n-product-image',".s-widget-container[class*='widgetId=container-search-results_sponsored']>.s-container-results",'[data-component-type=s-tiles-carousel-component-brand_logo]']:
     assert tok in S,tok
-# v7.451 performance pass makes repeated page/frame events cheap without reducing ownership.
+# v7.452 performance pass makes repeated page/frame events cheap without reducing ownership.
 for tok in ['gADForcedPDPFrameThemeCached7448','gADForcedPDPFrameThemeStrength7448','__ad7440FrameOwnerKey','ad7440-already','dispatch_once']:
     assert tok in S,tok
-print('PASS: v7.451 retains PDP child-frame ownership with an idempotent cached delivery path and no recurring scans')
+print('PASS: v7.452 retains PDP child-frame ownership with an idempotent cached delivery path and no recurring scans')

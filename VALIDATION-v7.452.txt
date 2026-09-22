@@ -1,0 +1,6 @@
+## Validation
+127 runnable Python regression scripts pass, including a new executable Node fixture
+for missing transport, 400-node full/offscreen traversal on both routes, asynchronous
+yielding, preserved offsets and deadline completion. Three clang-dependent scripts
+could not run here. AD_STRICT_VALIDATE=1 sh scripts/validate.sh stops at missing clang.
+No iOS SDK/Theos build or device run was available; GitHub CI and device checks remain.

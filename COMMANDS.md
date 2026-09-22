@@ -1,4 +1,4 @@
-# AmazonDark v7.451 commands
+# AmazonDark v7.452 commands
 
 ## PUSH
 
@@ -6,12 +6,12 @@
 cd /var/mobile/Amazon-Dark-phone &&
 AD_DOCS=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents &&
 AD_STAGE=$(mktemp -d /var/mobile/ad7451.XXXXXX) &&
-unzip -q "$AD_DOCS/AmazonDark-v7.451-pdp-streaming-full-source.zip" -d "$AD_STAGE" &&
-cp -a "$AD_STAGE/AmazonDark-v7.451-pdp-streaming-full-source/." . &&
+unzip -q "$AD_DOCS/AmazonDark-v7.452-probe-recovery-source.zip" -d "$AD_STAGE" &&
+cp -a "$AD_STAGE/AmazonDark-v7.452-probe-recovery-source/." . &&
 chmod 755 layout/DEBIAN/postinst scripts/ui-probe.sh scripts/skeleton-probe.sh &&
 sh scripts/validate.sh &&
 git add -A &&
-git commit -m "v7.451: stream PDP FULL without WebKit continuation churn" &&
+git commit -m "v7.452: stream PDP FULL without WebKit continuation churn" &&
 git push origin main
 ```
 

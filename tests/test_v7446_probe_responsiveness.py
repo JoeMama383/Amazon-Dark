@@ -6,4 +6,4 @@ s=(R/'src/ADUniversalUIProbe7362.inc').read_text()
 assert 'scrollEnabled=NO' not in s
 assert 'WEB_OWNER_STALL_SKIP' in s and 'gADUIProbeDeadline7446' in s
 assert 'frameCompleteness=unverified' in s
-print('PASS: v7.451 bounded diagnostic capture and explicit incomplete coverage')
+print('PASS: v7.452 bounded diagnostic capture and explicit incomplete coverage')

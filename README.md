@@ -1,4 +1,8 @@
-# AmazonDark v7.451 — PDP streaming FULL
+# v7.452 probe recovery — current status
+
+See `AUDIT-v7.452.md` for the two capture findings, changes, validation and remaining limits. Product FULL collects the entire mounted DOM without visible scrolling; it does not guarantee unmounted lazy content. Search FULL saves the same inventory before its scroll sweep. Probe exports remain plain TAR.
+
+# AmazonDark v7.452 — PDP streaming FULL
 
 Direct parent: **v7.450~pdp-readonly-full** (`AmazonDark-v7.450-pdp-readonly-full-source.zip`, SHA-256 `5e27eeacc4e2ee562e25f211395fcf6ad8fea8540b0f67badff4c25a2068235b`). Production theming, v7.448 performance consolidation, non-PDP FULL behavior, VIEWPORT, TRANSITION, and plain-TAR exports are preserved.
 
@@ -15,7 +19,7 @@ The supplied failed v7.450 PDP FULL archive proves the no-scroll routing worked,
 
 The freeze therefore comes from the v7.450 rich serializer/transport itself. Each tiny batch returned through a new `evaluateJavaScript` continuation. On the PDP, expensive computed-style, pseudo-style, geometry and contrast work meant only a few elements advanced per continuation, causing hundreds of WebKit round-trips and eventually a callback timeout.
 
-## v7.451 correction
+## v7.452 correction
 
 PDP FULL remains completely read-only, but the serialization transport is replaced:
 
@@ -36,4 +40,4 @@ The streaming scanner is created only after an explicit FULL screenshot. It is n
 
 Non-PDP FULL remains the inherited v7.449 cooperative root/overflow sweep. VIEWPORT and TRANSITION are unchanged.
 
-See `AUDIT-v7.451.md`, `VALIDATION-v7.451.md`, and `COMMANDS.md`.
+See `AUDIT-v7.452.md`, `VALIDATION-v7.452.md`, and `COMMANDS.md`.

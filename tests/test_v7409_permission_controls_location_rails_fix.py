@@ -3,10 +3,10 @@ import re
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text(); INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
-assert 'Version: 7.451~pdp-streaming-full' in C
-assert '#define AD_VERSION "v7.451-pdp-streaming-full"' in S
-assert 'VER=7.451' in UI and 'AD_PROBE_VERSION=7.451' in SK and 'AD_PROBE_NAME=AmazonDark-v7.451' in SK
-assert 'AMAZONDARK v7.451 UNIVERSAL' in INC and 'AmazonDark-v7.451-ui-viewport.arm' in INC
+assert 'Version: 7.452~probe-recovery' in C
+assert '#define AD_VERSION "v7.452-probe-recovery"' in S
+assert 'VER=7.452' in UI and 'AD_PROBE_VERSION=7.452' in SK and 'AD_PROBE_NAME=AmazonDark-v7.452' in SK
+assert 'AMAZONDARK v7.452 UNIVERSAL' in INC and 'AmazonDark-v7.452-ui-viewport.arm' in INC
 perm=S[S.index('// v7.408 FULL r1/r2: camera and microphone permission prompts'):S.index('// v7.408 r4: the location sheet interior')]
 # Exact camera checkbox is preserved, not repainted or re-bordered.
 assert 'if(ADPermissionCameraCheckbox7408(v))return nil;' in perm

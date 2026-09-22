@@ -7,11 +7,11 @@ SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 FJS=(ROOT/'src/ADUniversalUIProbe7362.frame.js.inc').read_text()
 
-assert 'Version: 7.451~pdp-streaming-full' in C
-assert '#define AD_VERSION "v7.451-pdp-streaming-full"' in S
-assert 'VER=7.451' in UI
-assert 'AD_PROBE_VERSION=7.451' in SK and 'AD_PROBE_NAME=AmazonDark-v7.451' in SK
-assert "version:'7.451'" in JS and "version:'7.451'" in FJS
+assert 'Version: 7.452~probe-recovery' in C
+assert '#define AD_VERSION "v7.452-probe-recovery"' in S
+assert 'VER=7.452' in UI
+assert 'AD_PROBE_VERSION=7.452' in SK and 'AD_PROBE_NAME=AmazonDark-v7.452' in SK
+assert "version:'7.452'" in JS and "version:'7.452'" in FJS
 
 f=S[S.index('static NSString *ADPDPCompletionJS7405'):S.index('static NSString *ADPDPCompletionTWBJS7405')]
 for tok in [

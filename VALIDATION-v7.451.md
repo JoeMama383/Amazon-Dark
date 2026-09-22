@@ -1,4 +1,4 @@
-# AmazonDark v7.451 validation — PDP streaming FULL
+# AmazonDark v7.452 validation — PDP streaming FULL
 
 Direct parent: `v7.450~pdp-readonly-full`.
 
@@ -25,7 +25,7 @@ The failed v7.450 capture reached PDP read-only mode, passively grew to 14,175 p
 - `sh -n layout/DEBIAN/postinst`: PASS.
 - `node --check` on the reconstructed `ADPDPMainStream7451.js.inc`: PASS.
 - All **129/129** `tests/test_*.py` files: PASS in deterministic chunks, including `test_probe_handoff.py`.
-- Targeted v7.448 performance, v7.449 FULL, v7.450 no-scroll and v7.451 streaming tests: PASS.
+- Targeted v7.448 performance, v7.449 FULL, v7.450 no-scroll and v7.452 streaming tests: PASS.
 - `AD_STRICT_VALIDATE=1 sh scripts/validate.sh` advanced through the inherited production/cold-launch/UI contracts without a failure before the container execution cap stopped the monolithic process. The complete regression suite was therefore verified separately as above.
 
 No on-device responsiveness claim is made until the installed Actions build is tested.

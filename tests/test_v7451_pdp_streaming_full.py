@@ -5,11 +5,11 @@ J=(R/'src/ADPDPMainStream7451.js.inc').read_text()
 T=(R/'src/Tweak.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.451~pdp-streaming-full' in C
-assert '#define AD_VERSION "v7.451-pdp-streaming-full"' in T
+assert 'Version: 7.452~probe-recovery' in C
+assert '#define AD_VERSION "v7.452-probe-recovery"' in T
 
 # The failed v7.450 path recursively re-entered evaluateJavaScript once per tiny DOM chunk.
-# PDP v7.451 must launch exactly one finite page-side stream and finish from script messages.
+# PDP v7.452 must launch exactly one finite page-side stream and finish from script messages.
 pdp=S[S.index('static NSString *ADPDPStreamJS7451'):S.index('static void ADUIProcessWebViews7364')]
 assert '#include "ADPDPMainStream7451.js.inc"' in pdp
 assert '[wv evaluateJavaScript:ADPDPStreamJS7451(capture)' in pdp
@@ -39,4 +39,4 @@ for tok in ['getComputedStyle(el)', "getComputedStyle(el,'::before')", "getCompu
             "document.createTreeWalker(document.documentElement,1)"]:
     assert tok in J, tok
 
-print('PASS: v7.451 PDP FULL streams a finite full-document read-only scan without recursive WebKit evaluation')
+print('PASS: v7.452 PDP FULL streams a finite full-document read-only scan without recursive WebKit evaluation')
