@@ -1,40 +1,26 @@
-# AmazonDark v7.453 — isolated probe transport and guarded document walks
+# AmazonDark v7.454 — carousel correction + FULL walk-first probe
 
-Parent: v7.452-probe-recovery. This is a source handoff, not a compiled or device-verified package.
+Parent: v7.453-isolated-probe. Source handoff; device behavior still requires installation verification.
 
-## Evidence
+## What changed
 
-The supplied v7.451 110848 r4 TAR is the search menu: 13 scroll positions, then scroll-move-failed before final inventory. It does not contain the screenshot's product image.
-The newer v7.452 114915 r4 product TAR was also inspected: PDP_STREAM_START_ERROR result=pdp-stream-bridge-unavailable, zero DOM payloads, and two native hierarchy dumps. The DOM scan never started. File size is not evidence of document coverage.
-An older v7.440 product capture identifies the image as #newerVersionFeature .nevaMobImage img, with filter:none. That exact leaf receives the existing white-taming preference factor. Links, stars, red price and green stock copy are not filtered.
+- Fixes the probe-recorded PDP sponsored grid carousel with exact child-frame selectors. The outer grid shell and carousel cards are OLED black, neutral borders are standardized to `#494d4d`, and the recorded price/currency leaves are white.
+- Does **not** target the carousel arrow controls, CTA/link colors, or authored media, so their stock styling is preserved.
+- FULL now starts the guarded document/visible-panel walk before the expensive detailed DOM stream. A slow serializer can no longer block the automatic walk from ever starting.
+- Fixed-height vertical panels can be found directly from visible hit-test/ancestor geometry before DOM inventory exists. Horizontal carousels are excluded because discovery requires real vertical scroll span.
+- After the root/primary pass, FULL runs detailed mounted-DOM inventory, walks any newly discovered nested owners, then runs an incremental unseen-node catch-up and coverage check.
+- The stream keeps a per-run WeakSet so the catch-up does not serialize the same mounted elements again.
 
-## Changes
+## v7.453 device evidence that drove this build
 
-- Handler registration, all-frame document-start listener, and every UI-probe JavaScript evaluation use the same named isolated WKContentWorld. The page-world handler was unavailable even after reattachment in v7.452; this removes dependence on that page context. The precise reason for Amazon's unavailable page-world handler is not proven by the trace.
-- Every WebView gets mounted-DOM streaming inventory before a guarded root/vertical-overflow walk, with bounded viewport evidence at every step and streaming inventory afterward. Product routing no longer suppresses the Web document walk.
-- A fixed-height document can use an eligible inner vertical scroll container discovered by the inventory. Horizontal carousels are not mistaken for the vertical document owner.
-- Writes use scrollLeft/scrollTop in the isolated context. Detached roots, backgrounding, and height collapse terminate with partial coverage rather than repeated moves.
-- Scroll positions restore once at the end, not between root/owner/inventory phases. Collapsed or detached owners are not jumped into. No second native WebKit offset correction or forced layout.
-- End-of-walk coverage reports owners that grew beyond the visited extent. Deadline, transport, owner and frame failures remain partial.
-- Removed the duplicate full native hierarchy scan at completion. Initial native evidence remains. PDP still avoids a second native scroll driver; native-only menus retain the cooperative native walk.
-- Full, viewport and transition identities are v7.453, with separate plain TAR exports. The source distribution ZIP does not change probe archive format.
+The r2 FULL capture did start the PDP stream, but the document was backgrounded while the stream was still running. It ended with `document-backgrounded`; the subsequent root walk returned `root-init-failed` with `totalSteps=0`. The capture still recorded the exact ad carousel nodes that are targeted by the v7.454 UI patch.
 
-## Limits and validation
+So v7.453 was **not** a deliberate manual-scroll FULL mode. Manually scrolling while Amazon stayed foreground could expose additional virtualized content, but the intended automatic walk never got a chance to run in that capture.
 
-128 runnable Python regression entry points passed. New executable JS cases cover product/search walks, fixed-height inner owners, horizontal exclusion, growth accounting, single restoration, backgrounding, collapse and detachment. Existing streaming tests cover offscreen nodes, bridge absence, finite yielding and deadline termination.
-AD_STRICT_VALIDATE=1 sh scripts/validate.sh was attempted and stops at test_v7385_sponsored_c_linkage.py because this workspace lacks clang. Three clang-dependent test entry points could not run here. No Theos/iOS compilation or phone test was performed. CI and device validation remain required; elimination of black flashes/freezes is not claimed.
-Child frames and unmounted/virtualized content are best-effort; the final full inventory describes mounted content and bounded samples preserve intermediate visible evidence. This is finite opt-in diagnostics, not production polling or a guarantee of all possible app content.
+## FULL workflow
 
-## Outstanding UI backlog
+Take one screenshot in Amazon and keep Amazon foregrounded. v7.454 should begin moving the document/visible vertical panel automatically. Do not switch to NewTerm until the automatic movement has stopped and the view has returned to its original offset. Then run `sh scripts/ui-probe.sh status`; a successful run should report FULL `completed`, not `partial`, before export.
 
-This build changes only the verified newer-model image theme. Medium standalone ad floors/extra borders, compact ad title/info glyph, large raster/video ads, missing Customers also bought imagery, product transition skeleton, $59.97 ad carousel, color-variant floors, and Similar brands borders remain pending device/probe verification. It does not claim those fixed.
+Manual scrolling is compatible, but it is not required and is not the default contract.
 
-## Phone workflow
-
-Copy the source folder contents into /var/mobile/Amazon-Dark-phone, preserve the executable postinst bit, run strict validation, commit and push manually. Install the resulting CI package and relaunch Amazon before probing.
-
-FULL: take one screenshot in Amazon and leave it active while the walk runs. Then return to NewTerm and run sh scripts/ui-probe.sh status followed by sh scripts/ui-probe.sh export full.
-
-VIEWPORT: run sh scripts/ui-probe.sh arm, open Amazon to the target scene, then return to NewTerm and run sh scripts/ui-probe.sh export viewport. The last foreground scene is captured at the background boundary.
-
-TRANSITION: run sh scripts/skeleton-probe.sh arm transition, reproduce the transition, then run sh scripts/skeleton-probe.sh export.
+VIEWPORT and TRANSITION remain separate exports and keep their existing behavior.

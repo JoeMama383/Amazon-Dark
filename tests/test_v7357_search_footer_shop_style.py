@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.453~isolated-probe' in ctl
-assert '#define AD_VERSION "v7.453-isolated-probe"' in t
+assert 'Version: 7.454~carousel-probe-order' in ctl
+assert '#define AD_VERSION "v7.454-carousel-probe-order"' in t
 # v7.357 fixed the white autocomplete footer by removing the failed delivery-class gate.
 assert '#attach-to-me :is(div,section,article,main,footer,ul,ol,li,span):has(:is([class*=delivery],[id*=delivery])){background:#000!important' not in t
 assert 'body>:is(div,section,main,footer),#a-page>:is(div,section,main,footer),#attach-to-me>:is(div,section,main,footer)' in t

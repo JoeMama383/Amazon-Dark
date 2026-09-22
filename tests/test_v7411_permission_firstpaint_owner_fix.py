@@ -5,11 +5,11 @@ S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text(
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7411-permission-location-firstpaint.json').read_text())
-assert 'Version: 7.453~isolated-probe' in C
-assert '#define AD_VERSION "v7.453-isolated-probe"' in S
-assert 'VER=7.453' in UI and 'AD_PROBE_VERSION=7.453' in SK and 'AD_PROBE_NAME=AmazonDark-v7.453' in SK
-assert 'AMAZONDARK v7.453 UNIVERSAL' in INC and 'AmazonDark-v7.453-ui-viewport.arm' in INC
-assert "version:'7.453'" in JS
+assert 'Version: 7.454~carousel-probe-order' in C
+assert '#define AD_VERSION "v7.454-carousel-probe-order"' in S
+assert 'VER=7.454' in UI and 'AD_PROBE_VERSION=7.454' in SK and 'AD_PROBE_NAME=AmazonDark-v7.454' in SK
+assert 'AMAZONDARK v7.454 UNIVERSAL' in INC and 'AmazonDark-v7.454-ui-viewport.arm' in INC
+assert "version:'7.454'" in JS
 # The actual bad location chronology disproves the old v7.410 test assumption.
 seq=F['location_bad_sequence']
 assert seq[0]['role']=='top_rail' and seq[0]['location_child_available'] is False

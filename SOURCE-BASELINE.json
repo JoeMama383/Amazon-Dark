@@ -1,9 +1,8 @@
 {
-  "version": "7.453~isolated-probe",
-  "direct_parent": "7.450~pdp-readonly-full",
-  "source": "AmazonDark-v7.450-pdp-readonly-full-source.zip",
-  "parent_sha256": "5e27eeacc4e2ee562e25f211395fcf6ad8fea8540b0f67badff4c25a2068235b",
-  "scope": "PDP-only serializer correction. Product FULL remains zero-scroll-mutation, but its rich DOM capture changes from recursive native evaluateJavaScript continuations to one page-side finite time-sliced stream through the existing WKScriptMessageHandler. Non-PDP FULL, VIEWPORT, TRANSITION and production theming remain inherited.",
-  "device_evidence": "Failed v7.450 PDP archive: route correctly entered read-only mode; document passively grew to 14,175 px; serializer reached chunk 199 with only 927 elements, then WEB_TIMEOUT after 4 seconds.",
-  "device_validation": "Pending installed GitHub Actions build."
+  "version": "7.454~carousel-probe-order",
+  "direct_parent": "7.453~isolated-probe",
+  "source": "AmazonDark-v7.453-isolated-probe-source(1).zip",
+  "scope": "Probe-backed PDP child-frame grid carousel theming plus FULL probe execution-order correction. Exact carousel shells/price leaves are themed while arrows, CTA/link colors and media are preserved. FULL begins the guarded root/visible-panel walk before detailed inventory; fixed-height vertical panels are discoverable without inventory; post-walk inventory and unseen-node catch-up remain finite and opt-in.",
+  "device_evidence": "v7.453 r2 FULL captured exact carousel DOM but ended PDP stream with document-backgrounded; WEB_SWEEP_END reported root-init-failed totalSteps=0. UI screenshot showed white grid/card floors and thin light borders with stock arrow/media controls.",
+  "device_validation": "Pending installation of v7.454 CI package."
 }

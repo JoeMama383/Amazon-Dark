@@ -6,8 +6,8 @@ M=''.join(json.loads(x) for x in (R/'src/ADUniversalUIProbe7362.js.inc').read_te
 SC=''.join(json.loads(x) for x in (R/'src/ADUIProbeScroll7446.js.inc').read_text().splitlines())
 SAMPLE=''.join(json.loads(x) for x in (R/'src/ADUIProbeViewportSample7449.js.inc').read_text().splitlines())
 C=(R/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.453~isolated-probe' in C
-assert '#define AD_VERSION "v7.453-isolated-probe"' in S
+assert 'Version: 7.454~carousel-probe-order' in C
+assert '#define AD_VERSION "v7.454-carousel-probe-order"' in S
 # Screenshot FULL may not synchronously format a full native hierarchy anymore.
 cap=I[I.index('static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){'):I.index('static NSString *ADUIViewportArmPath7362')]
 assert 'ADUINativeSnapshot7362(viewportOnly)' not in cap
@@ -17,7 +17,7 @@ assert 'ADUINativeScrollCandidatesAsync7449' in cap
 # The old algorithm did INITIAL_FULL_DOM before lazy loading and restarted a viewport TreeWalker every sweep step.
 assert 'INITIAL_FULL_DOM' not in I
 assert 'ADUIWebJS7364(@"viewport",@"sweep-step"' not in I
-# v7.453 retains a streaming inventory before/after the universal walk.
+# v7.454 retains a streaming inventory before/after the universal walk.
 assert 'ADUIScanPDPStreaming7451(wv,index,path,cap' in I
 assert 'runCatchup' in I
 assert 'PDP_STREAM_COMPLETE' in I
@@ -50,4 +50,4 @@ with tempfile.TemporaryDirectory(prefix='ad7449-') as td:
     subprocess.run(['c++','-std=gnu++98','-Wall','-Wextra','-Werror','-I',str(R/'src'),str(cpp),'-o',str(exe)],check=True)
     emitted=subprocess.check_output([str(exe)]).decode(); assert emitted==SAMPLE
     subprocess.run(['node','--check'],input=emitted,text=True,check=True)
-print('PASS: v7.453 FULL is cooperative, post-lazy-load complete, and does not rewalk the entire DOM per scroll step')
+print('PASS: v7.454 FULL is cooperative, post-lazy-load complete, and does not rewalk the entire DOM per scroll step')

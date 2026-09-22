@@ -4,7 +4,7 @@ const code=fs.readFileSync(R+'/src/ADUIProbeScroll7446.js.inc','utf8').trim().sp
 function fixture(pdp=false,fixed=false){
  function element(h,ch,w=430){return {isConnected:true,tagName:'DIV',scrollHeight:h,clientHeight:ch,scrollWidth:w,clientWidth:w,scrollLeft:0,scrollTop:90,getBoundingClientRect:()=>({width:w,height:ch,top:0,bottom:ch})};}
  const root=element(fixed?800:6000,800),inner=element(3000,600),horizontal=element(100,100);horizontal.scrollWidth=2000;
- const c={document:{scrollingElement:root,documentElement:root,hidden:false,getElementsByTagName:()=>Array(50),getElementById:()=>pdp?root:null},innerWidth:430,innerHeight:800,__adUIProbeScrollOwners7449:[root,inner,horizontal]};c.window=c;
+ const c={document:{scrollingElement:root,documentElement:root,hidden:false,getElementsByTagName:()=>Array(50),getElementById:()=>pdp?root:null,elementsFromPoint:()=>fixed?[inner,horizontal,root]:[root]},innerWidth:430,innerHeight:800,__adUIProbeScrollOwners7449:[root,inner,horizontal]};c.window=c;
  vm.createContext(c);return {c,root,inner,cmd(x){c.__adUIWalkCommand7449=x;return vm.runInContext(code,c);}};
 }
 for(const pdp of [false,true]){

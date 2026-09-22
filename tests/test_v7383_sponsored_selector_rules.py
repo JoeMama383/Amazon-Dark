@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.453~isolated-probe' in C
-assert '#define AD_VERSION "v7.453-isolated-probe"' in S
+assert 'Version: 7.454~carousel-probe-order' in C
+assert '#define AD_VERSION "v7.454-carousel-probe-order"' in S
 block=A
 # Reconstruct adjacent Objective-C string literals and parse the injected JS.
 lits=re.findall(r'@"((?:\\.|[^"\\])*)"', block)

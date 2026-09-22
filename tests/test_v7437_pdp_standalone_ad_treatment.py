@@ -4,9 +4,9 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
-assert 'Version: 7.453~isolated-probe' in C
-assert '#define AD_VERSION "v7.453-isolated-probe"' in S
-assert 'VER=7.453' in UI and 'AD_PROBE_VERSION=7.453' in SK and 'AD_PROBE_NAME=AmazonDark-v7.453' in SK
+assert 'Version: 7.454~carousel-probe-order' in C
+assert '#define AD_VERSION "v7.454-carousel-probe-order"' in S
+assert 'VER=7.454' in UI and 'AD_PROBE_VERSION=7.454' in SK and 'AD_PROBE_NAME=AmazonDark-v7.454' in SK
 
 pdp=S[S.index('static NSString *ADPDPCompletionJS7405'):S.index('static NSString *ADPDPCompletionTWBJS7405')]
 twb=S[S.index('static NSString *ADPDPCompletionTWBJS7405'):S.index('// v7.432: PDP APE/SafeFrame', S.index('static NSString *ADPDPCompletionTWBJS7405'))]

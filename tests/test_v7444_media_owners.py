@@ -20,5 +20,5 @@ for strength in [0,100]:
  assert '#dp [class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display__] img.p13n-product-image,' in css
  assert f'background-color:rgb({factor*255:.0f},{factor*255:.0f},{factor*255:.0f})!important;background-blend-mode:multiply!important;filter:none!important;' in css
  assert f'brightness({factor:.3f})' in css
- assert 'Version: 7.453~isolated-probe' in (R/'layout/DEBIAN/control').read_text()
-print('PASS: v7.453 executes media styles at both strength bounds; wrapper blending releases loaded images and only artwork receives dimming')
+ assert 'Version: 7.454~carousel-probe-order' in (R/'layout/DEBIAN/control').read_text()
+print('PASS: v7.454 executes media styles at both strength bounds; wrapper blending releases loaded images and only artwork receives dimming')

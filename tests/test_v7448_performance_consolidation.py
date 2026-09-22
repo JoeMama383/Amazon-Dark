@@ -5,9 +5,9 @@ S=(R/'src/Tweak.xm').read_text()
 SB=(R/'src/AmazonDarkSB.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 UI=(R/'scripts/ui-probe.sh').read_text(); SK=(R/'scripts/skeleton-probe.sh').read_text()
-assert 'Version: 7.453~isolated-probe' in C
-assert '#define AD_VERSION "v7.453-isolated-probe"' in S
-assert 'VER=7.453' in UI and 'AD_PROBE_VERSION=7.453' in SK
+assert 'Version: 7.454~carousel-probe-order' in C
+assert '#define AD_VERSION "v7.454-carousel-probe-order"' in S
+assert 'VER=7.454' in UI and 'AD_PROBE_VERSION=7.454' in SK
 
 # Performance architecture: production must stay free of recurring traversal machinery.
 for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener('scroll'", 'createTreeWalker('):
@@ -58,6 +58,6 @@ for pat in (r'background:([^;]+)!important;background-color:\1!important',
 # Size gates are deliberately looser than exact values so comments/identity maintenance can change,
 # but future feature work cannot silently restore the pre-pass source footprint.
 assert len(S.encode()) < 856000, len(S.encode())
-assert len((R/'src/ADUniversalUIProbe7362.inc').read_bytes()) < 80000  # v7.453 adds PDP-only streaming control; production Tweak size gate remains unchanged
+assert len((R/'src/ADUniversalUIProbe7362.inc').read_bytes()) < 80000  # v7.454 adds PDP-only streaming control; production Tweak size gate remains unchanged
 assert len(SB.encode()) < 19200
-print('PASS: v7.453 preserves performance-consolidation recurring-work invariants, PDP frame caching, linear probe queues, and production source-size gates')
+print('PASS: v7.454 preserves performance-consolidation recurring-work invariants, PDP frame caching, linear probe queues, and production source-size gates')

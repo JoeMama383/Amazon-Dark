@@ -6,10 +6,10 @@ C=(R/'layout/DEBIAN/control').read_text()
 UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
 
-assert 'Version: 7.453~isolated-probe' in C
-assert '#define AD_VERSION "v7.453-isolated-probe"' in T
-assert 'VER=7.453' in UI
-assert 'AD_PROBE_VERSION=7.453' in SK and 'AD_PROBE_NAME=AmazonDark-v7.453' in SK
+assert 'Version: 7.454~carousel-probe-order' in C
+assert '#define AD_VERSION "v7.454-carousel-probe-order"' in T
+assert 'VER=7.454' in UI
+assert 'AD_PROBE_VERSION=7.454' in SK and 'AD_PROBE_NAME=AmazonDark-v7.454' in SK
 
 # Exact PDP classification is native-route first, #dp fallback second.
 classifier=S[S.index('static BOOL ADUIURLIsPDP7451'):S.index('static NSString *ADPDPStreamJS7451')]
@@ -25,12 +25,15 @@ for tok in ['PDP_STREAM_FULL','ADPDPStreamJS7451','WKScriptMessageHandler','PDP_
 for bad in ['setContentOffset','scrollEnabled=', 'ADUIScrollCommand7446', 'scrollTo(', '__adUIWalkCommand', 'ADUIWebJS7364(@"full"']:
     assert bad not in pdp, bad
 
-# v7.453: all WebViews stream inventory then perform the guarded universal walk.
+# v7.454: all WebViews start the guarded universal walk first; detailed streaming
+# inventory follows the root pass and still gates owner/catch-up completion on failures.
 router=S[S.index('static void ADUIProcessWebViews7364'):S.index('static void ADUIScanNativeAxis7364')]
-assert 'if([gADUIFailedWebs7446 containsObject:wv])' in router
-assert 'ADUIScanPDPStreaming7451' in router
-assert 'ADUIScanWebViewFull7364' in router
+assert 'ADUIScanPDPStreaming7451' not in router
+assert 'ADUIScanWebViewFull7364(wv,index,path,cap,nextWeb)' in router
 assert 'gADUIFullHasPDP7451' not in router
+full=S[S.index('static void ADUIScanWebViewFull7364'):S.index('static BOOL ADUIURLIsPDP7451')]
+assert 'ADUIScanPDPStreaming7451(wv,index,path,cap,^' in full
+assert 'if([gADUIFailedWebs7446 containsObject:wv])' in full
 assert 'static void ADUIDetectPDPSession7451' in S
 
 # A PDP FULL session must also skip generic native scroll driving.
@@ -48,4 +51,4 @@ new=S[S.index('static BOOL ADUIURLIsPDP7451') : S.index('static void ADUIScanNat
 for bad in ['new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener('scroll'"]:
     assert bad not in new, bad
 
-print('PASS: v7.453 keeps inventory read-only and routes PDP through the guarded universal walk')
+print('PASS: v7.454 keeps inventory read-only and routes PDP through the guarded universal walk')
