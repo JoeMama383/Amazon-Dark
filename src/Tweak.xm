@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.448 — PDP frame ownership correction
+ * AmazonDark v7.449 — FULL probe nonblocking/completeness correction
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.448-performance-consolidation"
+#define AD_VERSION "v7.449-full-probe-nonblocking"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;

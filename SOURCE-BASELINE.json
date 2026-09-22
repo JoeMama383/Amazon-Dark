@@ -1,17 +1,8 @@
 {
-  "version": "7.448~performance-consolidation",
-  "direct_parent": "7.447~probe-responsiveness",
-  "source": "AmazonDark-v7.447-probe-responsiveness-source.zip",
-  "parent_sha256": "afd681677a1292e596e10234c525da689e36416424e086a6b8b878b2613205cc",
-  "scope": "Dedicated performance pass: preserve v7.447 visual/probe behavior while compacting post-v7.388 CSS payloads, making PDP child-frame delivery cached/idempotent and PDP-gated, caching WKContentWorld/handler setup, and replacing probe front-removal BFS queues with cursor queues. No recurring production traversal machinery is introduced.",
-  "performance_baseline": {
-    "parent_tweak_bytes": 861712,
-    "current_tweak_bytes": 853010,
-    "parent_core_web_bytes": 208738,
-    "current_core_web_bytes": 205874,
-    "parent_default_web_bytes": 280135,
-    "current_default_web_bytes": 270859,
-    "parent_all_feature_web_bytes": 313468,
-    "current_all_feature_web_bytes": 304192
-  }
+  "version": "7.449~full-probe-nonblocking",
+  "direct_parent": "7.448~performance-consolidation",
+  "source": "AmazonDark-v7.448-performance-consolidation-source.zip",
+  "parent_sha256": "c775f123a1f2254d9fb2a94b851443ec0f8db219452b41f899751be35c520f28",
+  "scope": "FULL diagnostic architecture correction only: replace synchronous native hierarchy dumps and repeated whole-document per-scroll Web walks with cooperative native batches, lightweight root lazy-load driving, post-convergence full-DOM inventory, nested-owner sweep, unseen-node catch-up and one root-growth reconciliation. Preserve v7.448 production theming/performance behavior plus v7.447 VIEWPORT/TAR contracts.",
+  "validation": "127 regression files pass in bounded chunks; generated main/cross-frame, scroll-command and viewport-sample JavaScript compile/parse gates pass; device validation pending Actions build."
 }

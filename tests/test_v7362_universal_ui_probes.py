@@ -9,8 +9,8 @@ frameinc=(ROOT/'src/ADUniversalUIProbe7362.frame.js.inc').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
 helper=(ROOT/'scripts/ui-probe.sh').read_text()
 
-assert 'Version: 7.448~performance-consolidation' in ctl
-assert '#define AD_VERSION "v7.448-performance-consolidation"' in t
+assert 'Version: 7.449~full-probe-nonblocking' in ctl
+assert '#define AD_VERSION "v7.449-full-probe-nonblocking"' in t
 assert '#include "ADUniversalUIProbe7362.inc"' in t
 
 # Architectural convergence: the old per-menu capture engines and historical v7.309 output stems are removed.
@@ -33,7 +33,7 @@ assert inc.count('UIApplicationWillResignActiveNotification') == 1
 assert 'ADUIBeginViewportBackgroundTask7447' in inc and 'ADUIEndViewportBackgroundTask7447' in inc
 assert 'ADUIWaitForeground7446' not in inc
 assert 'applicationState==UIApplicationStateActive&&ADUIConsumeViewportArm7362()' in inc
-assert 'AmazonDark-v7.448-ui-viewport.arm' in inc
+assert 'AmazonDark-v7.449-ui-viewport.arm' in inc
 assert 'ADSkelTrigger7339(trigger); ADCaptureUniversalUIProbe7362(NO,trigger)' in inc  # transition marking no longer suppresses FULL
 
 # Universal scope: every current on-screen WKWebView plus native hierarchy, no tab routing.
@@ -58,18 +58,18 @@ for bad in ['setInterval(', 'requestAnimationFrame(', 'MutationObserver(', "addE
 
 # FULL screenshot mode must perform finite renderer sweeps, not merely inspect the currently mounted tree.
 for token in [
-    'ADUIScanWebViewFull7364','INITIAL_FULL_DOM','SWEEP_STEP_','WEB_DOCUMENT_SWEEP',
-    'setContentOffset:','scrollLock=none','ADUINativeScrollCandidates7364',
+    'ADUIScanWebViewFull7364','FINAL_FULL_DOM','FINAL_CATCHUP_DOM','SWEEP_SAMPLE_','WEB_DOCUMENT_SWEEP',
+    'setContentOffset:','scrollLock=none','ADUINativeScrollCandidatesAsync7449',
     'NATIVE_SCROLL_SELECTION','ADUIScanNativeAxis7364','NATIVE_SWEEP_END',
-    'NATIVE FINAL FULL SNAPSHOT','ADUIAppendTerminal7364','cap-8192ULL'
+    'NATIVE FINAL FULL SNAPSHOT (cooperative)','ADUIAppendTerminal7364','cap-8192ULL'
 ]:
     assert token in inc, token
-assert 'ADUIProcessWebViews7364(webs,0,viewportOnly' in inc
-assert 'if(viewportOnly){ADUIFinishCapture7364(YES' in inc
-assert 'ADUINativeScrollCandidates7364(path,cap)' in inc
+assert 'ADUIProcessWebViews7364(webs,0,NO' in inc and 'ADUIProcessWebViews7364(webs,0,YES' in inc
+assert 'ADUIFinishCapture7364(YES' in inc
+assert 'ADUINativeScrollCandidatesAsync7449(path,cap' in inc
 assert 'scrollEnabled=NO' not in inc
 assert 'WEB_SWEEP_END' in inc and 'restoredOffset=' in inc
-assert 'all scanning/traversal is finite and exists only after an explicit trigger' in inc
+assert 'FULL traversal is cooperative and opt-in' in inc
 
 # Cross-origin frame coverage is provided by a dormant all-frame documentStart bridge.
 framejs=''.join(json.loads(line) for line in frameinc.splitlines())
@@ -117,6 +117,6 @@ assert 'still running or incomplete' in helper
 assert 'FULL: screenshot-triggered' in helper
 subprocess.run(['sh','-n',str(ROOT/'scripts/ui-probe.sh')],check=True)
 
-print('PASS: v7.448 retains exactly two universal UI probe categories and no route-specific dispatcher')
+print('PASS: v7.449 retains exactly two universal UI probe categories and no route-specific dispatcher')
 print('PASS: screenshot -> finite native/main-Web/child-SafeFrame FULL; armed next-background lifecycle -> last-foreground VIEWPORT')
 print('PASS: main + cross-frame probe programs compile in gnu++98, parse in Node, and have no recurring scan machinery')

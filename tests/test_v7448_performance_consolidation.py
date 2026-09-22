@@ -5,9 +5,9 @@ S=(R/'src/Tweak.xm').read_text()
 SB=(R/'src/AmazonDarkSB.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 UI=(R/'scripts/ui-probe.sh').read_text(); SK=(R/'scripts/skeleton-probe.sh').read_text()
-assert 'Version: 7.448~performance-consolidation' in C
-assert '#define AD_VERSION "v7.448-performance-consolidation"' in S
-assert 'VER=7.448' in UI and 'AD_PROBE_VERSION=7.448' in SK
+assert 'Version: 7.449~full-probe-nonblocking' in C
+assert '#define AD_VERSION "v7.449-full-probe-nonblocking"' in S
+assert 'VER=7.449' in UI and 'AD_PROBE_VERSION=7.449' in SK
 
 # Performance architecture: production must stay free of recurring traversal machinery.
 for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener('scroll'", 'createTreeWalker('):
@@ -58,6 +58,6 @@ for pat in (r'background:([^;]+)!important;background-color:\1!important',
 # Size gates are deliberately looser than exact values so comments/identity maintenance can change,
 # but future feature work cannot silently restore the pre-pass source footprint.
 assert len(S.encode()) < 856000, len(S.encode())
-assert len((R/'src/ADUniversalUIProbe7362.inc').read_bytes()) < 54300
+assert len((R/'src/ADUniversalUIProbe7362.inc').read_bytes()) < 72000  # v7.449 adds cooperative probe scheduling only; production Tweak size gate remains unchanged
 assert len(SB.encode()) < 19200
-print('PASS: v7.448 performance consolidation keeps recurring-work invariants, caches PDP frame delivery, uses linear probe queues, and holds reduced source-size gates')
+print('PASS: v7.449 performance consolidation keeps recurring-work invariants, caches PDP frame delivery, uses linear probe queues, and holds reduced source-size gates')

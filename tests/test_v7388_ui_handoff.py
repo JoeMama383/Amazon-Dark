@@ -1,4 +1,4 @@
-"""Run the actual v7.448 UI helper against disposable filesystem fixtures.
+"""Run the actual v7.449 UI helper against disposable filesystem fixtures.
 
 VIEWPORT arming must be passive: it writes a one-shot next-background arm and never
 requires a process lookup or SIGUSR2. Export remains current-session and mode-specific.

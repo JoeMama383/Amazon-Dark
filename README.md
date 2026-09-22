@@ -1,32 +1,40 @@
-# AmazonDark v7.448 — performance consolidation
+# AmazonDark v7.449 — nonblocking complete FULL probe
 
-Direct parent: **v7.447~probe-responsiveness**. This is a dedicated performance pass. It does not intentionally change the accepted visual theme, preference behavior, FULL/VIEWPORT/TRANSITION capture contract, or the v7.447 plain-TAR export workflow.
+Direct parent: **v7.448~performance-consolidation**. Production theming, preferences, PDP ownership, VIEWPORT behavior, TRANSITION behavior, and the plain-TAR export contract are preserved. This release changes the explicitly triggered FULL diagnostic architecture because the v7.448 screenshot path could still freeze long Product Detail pages and could finish before the lazily growing document was fully inventoried.
 
-## Production runtime changes
+## Root cause
 
-- Compacts only the later/post-v7.388 CSS additions where a shorthand declaration already makes an immediately repeated longhand declaration redundant. The legacy v7.386/v7.387 semantic-golden programs are left structurally intact and remain regression-checked.
-- Makes forced PDP child-frame delivery idempotent per document and per white-tame strength. Repeated lifecycle/frame events now return immediately when the same owner program is already installed.
-- Caches the strength-dependent forced-frame JavaScript instead of rebuilding the large program on every frame-owner delivery.
-- Gates the main-document frame-owner trigger on an actual `#dp` root, so ordinary Home/Search/Cart/etc. documents do not traverse their iframe tree for PDP ownership.
-- Removes the ineffective early `document-start` frame-tree ping while retaining DOM-ready, iframe-load, one gated `window.load`, and `pageshow` coverage.
-- Caches `WKContentWorld.pageWorld` with `dispatch_once`. The WebKit message handler deliberately keeps the v7.447 defensive remove/re-add behavior so Amazon-side handler removal cannot strand the frame owner.
+The old FULL path was bounded in nominal node counts, but two expensive operations were still synchronous or repeatedly global:
 
-## Explicit probe efficiency
+- the screenshot trigger immediately serialized a very large native UIKit/React hierarchy on the main thread;
+- each Web scroll step restarted a document-root `TreeWalker` and ran computed-style work across large portions of the DOM merely to emit the current viewport;
+- the nominal full-DOM inventory occurred before lazy-load scrolling, so content mounted afterward was never guaranteed to appear in the final report.
 
-Large native diagnostic breadth-first walks now use cursor queues instead of repeatedly removing index zero from mutable arrays. This removes avoidable array shifting during FULL/VIEWPORT/transition/launch diagnostics. Probe traversal remains opt-in, finite, bounded, and separate from normal app browsing.
+That combination explains both symptoms: the Product Detail UI could become unresponsive during capture while the exported report could still omit the true final document.
 
-## Static payload comparison vs v7.447
+## v7.449 FULL pipeline
 
-- `src/Tweak.xm`: **861,712 → 853,010 bytes** (-8,702 / -1.01%).
-- Core document-start Web program: **208,738 → 205,874 bytes** (-2,864 / -1.37%).
-- Checkout floor program: **69,983 → 63,571 bytes** (-6,412 / -9.16%).
-- Default installed Web payload: **280,135 → 270,859 bytes** (-9,276 / -3.31%).
-- All-feature Web payload: **313,468 → 304,192 bytes** (-9,276 / -2.96%).
+FULL now uses a staged cooperative pipeline:
 
-These are static program-size/runtime-architecture measurements, not a claim of measured device FPS, launch time, energy use, or battery improvement. On-device performance still requires device timing if we want quantitative real-world numbers.
+1. **Cooperative native discovery.** The initial native hierarchy is serialized in small ~3.5 ms main-loop batches. The same walk discovers visible `WKWebView`s, avoiding an immediate second hierarchy traversal.
+2. **Root-first lazy-load drive.** The main document is scrolled using cheap height / offset / viewport / node-count metrics. It does not perform a whole-DOM `TreeWalker` at each offset. A small bounded `elementsFromPoint` sample is taken only on alternating positions to preserve evidence from virtualized/transient viewport content.
+3. **Stable-bottom proof.** FULL requires repeated stability of both maximum scroll extent and DOM node count before considering the root converged.
+4. **Final complete mounted-DOM inventory.** Only after convergence does FULL run the cooperative full collector. The main-document ceiling is raised to 120,000 elements and work is yielded in batches of at most 32 elements / roughly 3 ms.
+5. **Nested overflow-owner sweep.** Overflow containers discovered by that final inventory are driven separately and their original offsets are restored.
+6. **Unseen-node catch-up.** A `WeakSet` tracks elements already serialized. The post-owner catch-up walks the DOM cooperatively but skips already-seen elements before expensive style work, capturing only content that mounted during nested scrolling.
+7. **One growth reconciliation.** If the root document grows again after the first final inventory, FULL performs one additional root convergence pass followed by another unseen-node catch-up.
+8. **Cooperative native scroller diagnostics.** Native scroll-candidate discovery and per-candidate subtree snapshots also run in small yielded batches rather than large synchronous main-thread dumps.
 
-## Performance invariants
+Cross-origin child/SafeFrame collection remains trigger-only and finite, with higher FULL ceilings and cooperative batching. The original document and nested-scroll offsets are restored when their sweep completes.
 
-Normal production theming still has no `MutationObserver`, Web scroll listener, `setInterval`, `requestAnimationFrame` loop, `TreeWalker`, polling loop, or recurring hierarchy scanner. Expensive FULL/VIEWPORT traversal remains manual/armed and bounded.
+## Runtime contract
 
-See `AUDIT-v7.448.md`, `VALIDATION-v7.448.md`, and `COMMANDS.md`.
+No production `MutationObserver`, Web scroll listener, polling loop, recurring hierarchy scanner, `setInterval`, or RAF loop is introduced. The heavier collectors exist only after an explicit FULL/VIEWPORT trigger. v7.449 does not intentionally change any production visual rule from v7.448.
+
+## Validation
+
+All **127** `tests/test_*.py` regression files pass against the final source in bounded chunks. A new v7.449 regression explicitly rejects the old synchronous FULL native dump and the old whole-document-per-scroll-step Web collector. Universal main-frame, child-frame, scroll-command, and viewport-sample generated JavaScript compile/parse tests pass.
+
+Device responsiveness and complete real-Amazon lazy-load coverage still require the installed Actions build to confirm; this release does not claim an on-device result before that test.
+
+See `AUDIT-v7.449.md`, `VALIDATION-v7.449.md`, and `COMMANDS.md`.

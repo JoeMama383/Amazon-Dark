@@ -1,23 +1,25 @@
-# AmazonDark v7.448 commands
+# AmazonDark v7.449 commands
 
 ## PUSH
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone &&
 AD_DOCS=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents &&
-AD_STAGE=$(mktemp -d /var/mobile/ad7448.XXXXXX) &&
-unzip -q "$AD_DOCS/AmazonDark-v7.448-performance-consolidation-source.zip" -d "$AD_STAGE" &&
-cp -a "$AD_STAGE/AmazonDark-v7.448-performance-consolidation-source/." . &&
+AD_STAGE=$(mktemp -d /var/mobile/ad7449.XXXXXX) &&
+unzip -q "$AD_DOCS/AmazonDark-v7.449-full-probe-nonblocking-source.zip" -d "$AD_STAGE" &&
+cp -a "$AD_STAGE/AmazonDark-v7.449-full-probe-nonblocking-source/." . &&
 chmod 755 layout/DEBIAN/postinst scripts/ui-probe.sh scripts/skeleton-probe.sh &&
 sh scripts/validate.sh &&
 git add -A &&
-git commit -m "v7.448: consolidate runtime and probe performance" &&
+git commit -m "v7.449: make FULL probe cooperative and complete" &&
 git push origin main
 ```
 
 ## FULL
 
-Take one screenshot in Amazon and let the finite FULL sweep finish. Then switch to NewTerm and export:
+Leave the target Product Detail screen visible and take one screenshot. FULL will cooperatively auto-scroll the root document, inventory the converged DOM, sweep nested overflow owners, catch newly mounted nodes, and restore its captured scroll positions. The screen may visibly scroll during the diagnostic, but it should not remain main-thread frozen.
+
+After it finishes, switch to NewTerm and export:
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export full
