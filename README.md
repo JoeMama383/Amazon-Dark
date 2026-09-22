@@ -1,13 +1,19 @@
-# AmazonDark v7.444 — probe-confirmed media fixes
+# AmazonDark v7.445 — probe and PDP transition hardening
 
-Exact parent: v7.440, not v7.441–v7.443.
+Exact direct parent: **v7.444~pdp-proven-media**.
 
-- Restore Customers also bought images by removing multiply blending from the exact image-display wrapper. The probe shows completed 210x210 images, normal leaf blending, but multiply on the wrapper against black.
-- Apply the existing configurable image-taming strength to those images and From the brand images. Dim the portrait background artwork using background blending, so live text and controls are not dimmed with a whole-container filter.
-- Advance FULL, VIEWPORT and TRANSITION identities and export/package guards.
+This release preserves v7.444 theming and addresses the diagnostic failures seen on the Product Search / PDP interface plus the fresh Search -> PDP transition trace.
 
-Still unresolved: white medium ad internals; duplicate border within another embedded ad; compact top-ad title and info glyph; light search-to-product transition. All supplied v7.440 UI captures lack CROSS_FRAME_DOM. The transition tar is a historical export, newest actual transition recordings v7.433, despite its v7.443 archive name. No current transition fix is claimed.
+- FULL screenshots are no longer consumed by an armed TRANSITION recorder. A screenshot can feed transition evidence and still start the universal FULL capture.
+- FULL now follows lazy-growing WKWebView content to a stable bottom instead of treating the first temporary content height as the end. It requires three stable bottom holds, records content growth, restores the original offset, and has a 4-second JavaScript callback timeout.
+- The generic native-scroll phase is bounded to the four highest-value candidates, 32 vertical / 16 horizontal steps, and smaller subtree snapshots so the diagnostic pass cannot spend minutes walking unrelated native scrollers after the PDP Web sweep.
+- FULL and VIEWPORT use independent state receipts and explicit exports: `export full` and `export viewport`. Each export contains exactly one completed current capture in its own ZIP.
+- TRANSITION export is current-arm/current-version only. Historical v7.x recordings are never bundled into a new archive.
+- Transition traces now record logical image size, image scale, and backing CGImage pixels separately.
+- The exact `IESSkeletonView -> AWLoadingIndicatorFullScreenModalBar` Search -> PDP image owner is matched using logical/scale-normalized geometry. This covers the fresh v7.444 460x1036-point trace without depending on @1x backing pixels, while retaining the narrow native owner chain and one-time image transform.
 
-Runtime: only additions to two existing stylesheets; no additional scripts, observers, callbacks, frame walks, scans or timers. The inherited v7.440 frame-ownership implementation is unchanged; this release does not claim that the entire parent is walker-free or stock-performance verified.
+No production MutationObserver, polling loop, requestAnimationFrame loop, Web scroll listener, or recurring hierarchy scanner was added. The expanded walking remains opt-in probe-only work.
 
-Build/install through your existing Actions workflow. See COMMANDS.md. On-device visual acceptance is required.
+Still outstanding for a later probe-backed pass: the white medium standalone-ad interior, the separate medium ad family's outer duplicate square border, the compact top-ad title/sponsored-info treatment, and verification of the large Easter/media family. v7.445 intentionally does not broaden those ad selectors without a reliable post-fix FULL capture.
+
+See `COMMANDS.md` for the phone workflow.

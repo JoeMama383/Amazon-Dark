@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.444 — PDP frame ownership correction
+ * AmazonDark v7.445 — PDP frame ownership correction
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.444-pdp-proven-media"
+#define AD_VERSION "v7.445-probe-transition-hardening"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2411,7 +2411,7 @@ static NSString *ADPDPUICompletionJS7439(void){
 
 
 
-// v7.444: The v7.435 FULL captures never emitted a CROSS_FRAME_DOM section even
+// v7.445: The v7.435 FULL captures never emitted a CROSS_FRAME_DOM section even
 // though the offending APE/SafeFrame iframe was present. Do not rely on all-frame
 // WKUserScript delivery for those renderer processes. Instead, use WebKit's frame
 // tree and frame-targeted JavaScript evaluation to install one persistent, inert-
@@ -2502,7 +2502,7 @@ static void ADFrameOwnerAttach7440(WKUserContentController *ucc){
     } @catch(...) {}
 }
 
-// v7.444 main-document residue proven by the v7.435 probes and current device shots:
+// v7.445 main-document residue proven by the v7.435 probes and current device shots:
 // the ILM lightAds carousel is main-document content, while Rufus comparison insight
 // copy was still rgb(86,89,89) on OLED. Own those exact families without touching
 // green insight dots, stars, Prime, links, deal colors, or other semantic accents.
@@ -2578,7 +2578,7 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
     ADSkelAttach7339(ucc); // v7.339 diagnostic integration
     ADUIProbeAttach7362(ucc); // universal FULL/VIEWPORT bridge
-    ADFrameOwnerAttach7440(ucc); // v7.444 event-driven child-frame ownership bridge
+    ADFrameOwnerAttach7440(ucc); // v7.445 event-driven child-frame ownership bridge
     @try {
         if(!objc_getAssociatedObject(ucc,kADCoreWebUS7271)){
             WKUserScript *us=ADSharedUserScript7387(0,ADCoreWebJS7271,NO,YES);
@@ -4407,13 +4407,24 @@ static BOOL ADPDPTransitionSkeletonImage7407(UIImageView *iv){
     if(!iv||!ADPDPTransitionSkeletonView7407(iv.superview)||!iv.image)return NO;
     @try {
         UIImage *im=iv.image;
+        CGFloat scale=im.scale>0.01?im.scale:1.0;
+        CGFloat iw=im.size.width,ih=im.size.height;
         size_t pw=im.CGImage?CGImageGetWidth(im.CGImage):0;
         size_t ph=im.CGImage?CGImageGetHeight(im.CGImage):0;
-        // Exact v7.406 transition capture: 448x1024. Keep a modest density tolerance
-        // for equivalent Amazon assets without claiming arbitrary full-screen media.
-        if(pw<400||pw>560||ph<880||ph>1200)return NO;
-        CGFloat ar=(ph>0)?((CGFloat)pw/(CGFloat)ph):0.0;
-        return ar>0.36&&ar<0.50;
+        CGFloat nw=pw?((CGFloat)pw/scale):iw;
+        CGFloat nh=ph?((CGFloat)ph/scale):ih;
+        // v7.406 captured 448x1024 logical points; the fresh v7.444 transition
+        // captured the same exact owner at 460x1036 logical points. The prior test
+        // compared raw CGImage pixels, so @2x/@3x copies could miss this family.
+        // Match logical/scale-normalized geometry under the already exact
+        // IESSkeletonView -> AWLoadingIndicatorFullScreenModalBar owner chain.
+        BOOL logical=(iw>=420.0&&iw<=520.0&&ih>=940.0&&ih<=1120.0);
+        BOOL normalized=(nw>=420.0&&nw<=520.0&&nh>=940.0&&nh<=1120.0);
+        CGFloat ar=(nh>0.0)?(nw/nh):0.0;
+        UIView *parent=iv.superview;
+        CGFloat pwv=parent.bounds.size.width,phv=parent.bounds.size.height;
+        BOOL fillsOwner=pwv>0.0&&phv>0.0&&iv.bounds.size.width>=pwv*0.94&&iv.bounds.size.height>=phv*0.94;
+        return (logical||normalized)&&ar>0.38&&ar<0.50&&fillsOwner;
     } @catch(...) { return NO; }
 }
 static UIImage *ADPDPDarkSkeletonRaster7407(UIImage *im){

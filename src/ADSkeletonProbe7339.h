@@ -241,7 +241,16 @@ static ADSkeletonProbe7339 *ADSkelProbe7339=nil;
                     @"layerName":l.name?:@"",@"layerZ":@(l.zPosition),@"sublayerCount":@(l.sublayers.count),
                     @"parentClass":v.superview?NSStringFromClass(v.superview.class):@"",@"parentID":ADSkelName7339(v.superview.accessibilityIdentifier)} mutableCopy];
                 if(gradient){NSMutableArray *colors=[NSMutableArray array];for(id c in [(CAGradientLayer *)l colors])if(colors.count<12)[colors addObject:ADSkelColor7339((__bridge CGColorRef)c)];node[@"gradient"]=colors;}
-                if([v isKindOfClass:UIImageView.class]){UIImage *i=[(UIImageView *)v image];node[@"imageSize"]=@[@(i.size.width),@(i.size.height)];}
+                if([v isKindOfClass:UIImageView.class]){
+                    UIImageView *iv=(UIImageView *)v;UIImage *i=iv.image;
+                    if(i){
+                        node[@"imageSize"]=@[@(i.size.width),@(i.size.height)];
+                        node[@"imageScale"]=@(i.scale);
+                        node[@"imagePixels"]=@[@(i.CGImage?CGImageGetWidth(i.CGImage):0),@(i.CGImage?CGImageGetHeight(i.CGImage):0)];
+                        node[@"imageRenderingMode"]=@(i.renderingMode);
+                    }
+                    node[@"imageContentMode"]=@(iv.contentMode);
+                }
                 if(launchDetail){
                     node[@"presentationOpacity"]=present?(id)@(present.opacity):[NSNull null];
                     node[@"presentationFrame"]=present?ADSkelRect7339(present.frame):(id)[NSNull null];
@@ -285,8 +294,8 @@ static void ADSkelInstall7339(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(!docs.length)return;
-        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.444-probe.arm"];
-        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.444-probe-status.json"];
+        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.445-probe.arm"];
+        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.445-probe-status.json"];
         NSError *error=nil;
         NSString *arm=[NSString stringWithContentsOfFile:ADSkelArmPath7339 encoding:NSUTF8StringEncoding error:&error];
         if(!arm){
@@ -306,7 +315,7 @@ static void ADSkelInstall7339(void){
         ADSkelTransition7339=[label isEqualToString:@"transition"];
         ADSkelUntil7339=MIN(expiry,now+(ADSkelLaunchOnly7339?20:(ADSkelTransition7339?120:120)));
         ADSkelSession7339=[NSString stringWithFormat:@"%.0f-%d-%@",now*1000,getpid(),label];
-        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.444-skeleton-%@.jsonl",ADSkelSession7339]];
+        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.445-skeleton-%@.jsonl",ADSkelSession7339]];
         int fd=open(ADSkelPath7339.fileSystemRepresentation,O_WRONLY|O_CREAT|O_EXCL,0600);
         if(fd<0){ADSkelStatus7339(@"capture-create-failed",errno);ADSkelUntil7339=0;return;}
         close(fd);ADSkelStatus7339(@"capture-started",0);

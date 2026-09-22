@@ -5,8 +5,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
-assert 'Version: 7.444~pdp-proven-media' in C
-assert '#define AD_VERSION "v7.444-pdp-proven-media"' in S
+assert 'Version: 7.445~probe-transition-hardening' in C
+assert '#define AD_VERSION "v7.445-probe-transition-hardening"' in S
 
 # r2 proves two distinct PDP APE placements. All three known PDP APE frames now get a black main-frame backing.
 pdp=S[S.index('static NSString *ADPDPCompletionJS7405'):S.index('static NSString *ADPDPCompletionTWBJS7405')]
@@ -67,8 +67,8 @@ Path(path).unlink(missing_ok=True)
 assert r.returncode==0,r.stderr
 
 # Probe identities are regenerated for this release.
-assert 'VER=7.444' in UI
-assert 'AD_PROBE_VERSION=7.444' in SK and 'AD_PROBE_NAME=AmazonDark-v7.444' in SK
-assert 'AMAZONDARK v7.444 UNIVERSAL' in INC and 'AmazonDark-v7.444-ui-viewport.arm' in INC
-assert "version:'7.444'" in JS
+assert 'VER=7.445' in UI
+assert 'AD_PROBE_VERSION=7.445' in SK and 'AD_PROBE_NAME=AmazonDark-v7.445' in SK
+assert 'AMAZONDARK v7.445 UNIVERSAL' in INC and 'AmazonDark-v7.445-ui-viewport.arm' in INC
+assert "version:'7.445'" in JS
 print('PASS: v7.437 themes hydrated PDP SafeFrame ad floors/text/media without a referrer dependency or recurring runtime work')

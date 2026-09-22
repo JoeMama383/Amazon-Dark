@@ -4,8 +4,8 @@ import hashlib,re,subprocess,tempfile
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.444~pdp-proven-media' in CTRL
-assert '#define AD_VERSION "v7.444-pdp-proven-media"' in S
+assert 'Version: 7.445~probe-transition-hardening' in CTRL
+assert '#define AD_VERSION "v7.445-probe-transition-hardening"' in S
 
 from cart7423_delta import strip_cart7423
 from video7425_delta import strip_video7425

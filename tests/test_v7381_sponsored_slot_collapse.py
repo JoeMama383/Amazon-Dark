@@ -4,8 +4,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.444~pdp-proven-media' in C
-assert '#define AD_VERSION "v7.444-pdp-proven-media"' in S
+assert 'Version: 7.445~probe-transition-hardening' in C
+assert '#define AD_VERSION "v7.445-probe-transition-hardening"' in S
 
 # Preserve the successful v7.381 first-paint repair: the Home dashboard shell
 # itself owns the stock white loading floor, and that floor remains OLED at

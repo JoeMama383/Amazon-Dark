@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 M=(ROOT/'Makefile').read_text()
-assert 'Version: 7.444~pdp-proven-media' in C
-assert '#define AD_VERSION "v7.444-pdp-proven-media"' in S
+assert 'Version: 7.445~probe-transition-hardening' in C
+assert '#define AD_VERSION "v7.445-probe-transition-hardening"' in S
 assert '@interface IESSkeletonView : UIView @end' in S
 assert '"AWLoadingIndicatorFullScreenModalBar","AWLoadingIndicatorWidgets_BkgView","IESSkeletonView"' in S
 for fn in ['ADPDPTransitionSkeletonView7407','ADPDPTransitionSkeletonImage7407','ADPDPDarkSkeletonRaster7407','ADOwnPDPTransitionSkeletonImage7407','ADOwnPDPTransitionSkeletonView7407']:
@@ -15,8 +15,13 @@ view=re.search(r'static BOOL ADPDPTransitionSkeletonView7407\(UIView \*v\)\{(.*?
 assert 'IESSkeletonView' in view and 'AWLoadingIndicatorFullScreenModalBar' in view and 'AppCXWindow' in view
 assert 'r.size.width>=sw*0.95' in view and 'r.size.height>=sh*0.72' in view
 img=re.search(r'static BOOL ADPDPTransitionSkeletonImage7407\(UIImageView \*iv\)\{(.*?)\n\}',S,re.S).group(1)
-assert 'pw<400||pw>560||ph<880||ph>1200' in img
-assert 'ar>0.36&&ar<0.50' in img
+assert 'im.size.width' in img and 'im.size.height' in img
+assert 'im.scale>0.01?im.scale:1.0' in img
+assert 'CGImageGetWidth(im.CGImage)' in img and 'CGImageGetHeight(im.CGImage)' in img
+assert 'nw=pw?((CGFloat)pw/scale):iw' in img and 'nh=ph?((CGFloat)ph/scale):ih' in img
+assert 'iw>=420.0&&iw<=520.0&&ih>=940.0&&ih<=1120.0' in img
+assert 'nw>=420.0&&nw<=520.0&&nh>=940.0&&nh<=1120.0' in img
+assert 'ar>0.38&&ar<0.50' in img
 # White raster is inverted, then attenuated to Home-like dark gray skeleton bars.
 raster=re.search(r'static UIImage \*ADPDPDarkSkeletonRaster7407\(UIImage \*im\)\{(.*?)\n\}',S,re.S).group(1)
 assert 'kCGBlendModeDifference' in raster

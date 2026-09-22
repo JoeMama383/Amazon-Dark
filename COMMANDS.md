@@ -1,47 +1,63 @@
-# AmazonDark v7.444 commands
+# AmazonDark v7.445 commands
 
 ## PUSH
+
+Copy the v7.445 source ZIP into the shared Documents folder, then run:
 
 ```zsh
 cd /var/mobile/Amazon-Dark-phone &&
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents &&
-rm -rf /var/mobile/t7444 &&
-mkdir -p /var/mobile/t7444 &&
-unzip -oq "$D/AmazonDark-v7.444-pdp-proven-media-source.zip" -d /var/mobile/t7444 &&
-cp -a /var/mobile/t7444/AmazonDark-v7.444-pdp-proven-media-source/. . &&
-rm -f tests/test_v7441_pdp_site_isolated_frames.py tests/test_v7442_user_style_ad_ownership.py tests/test_v7443_core_concat_validation_fix.py &&
-chmod 755 layout/DEBIAN/postinst &&
+rm -rf /var/mobile/t7445 &&
+mkdir -p /var/mobile/t7445 &&
+unzip -oq "$D/AmazonDark-v7.445-probe-transition-hardening-source.zip" -d /var/mobile/t7445 &&
+find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} + &&
+cp -a /var/mobile/t7445/AmazonDark-v7.445-probe-transition-hardening-source/. . &&
+chmod 755 layout/DEBIAN/postinst scripts/ui-probe.sh scripts/skeleton-probe.sh &&
 sh scripts/validate.sh &&
 git add -A &&
-git commit -m "v7.444: restore bundle images and tame brand artwork" &&
+git commit -m "v7.445: harden probes and fix PDP transition skeleton" &&
 git push origin main
 ```
 
 ## FULL
-Take the screenshot that triggers FULL, then:
+
+Leave the target Amazon screen visible and take one iOS screenshot. Wait for the sweep to finish, then export only FULL:
+
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
-sh scripts/ui-probe.sh export
+sh scripts/ui-probe.sh export full
 ```
 
 ## VIEWPORT
+
+Leave the target UI visible and arm one viewport capture:
+
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/ui-probe.sh arm
 ```
-With the target UI visible, then:
+
+Then export only VIEWPORT:
+
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
-sh scripts/ui-probe.sh export
+sh scripts/ui-probe.sh export viewport
 ```
 
 ## TRANSITION
+
+Arm the lifecycle/transition recorder:
+
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/skeleton-probe.sh arm transition
 ```
-Reproduce the transition, then:
+
+Reproduce the target transition, then export only the newest capture from that arm:
+
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/skeleton-probe.sh export
 ```
+
+Each export is a separate ZIP. FULL, VIEWPORT, and TRANSITION do not re-export one another.

@@ -3,7 +3,7 @@
 Only package/process discovery is stubbed; no Amazon app or UIKit is simulated.
 """
 from pathlib import Path
-import json, os, re, selectors, subprocess, sys, tempfile
+import json, os, re, selectors, subprocess, sys, tempfile, time, zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
 HELPER=ROOT/'scripts/ui-probe.sh'
@@ -35,9 +35,9 @@ with tempfile.TemporaryDirectory(prefix='ad-ui-handoff-') as td:
         output('ready')
         env=dict(os.environ,PATH=str(bin)+':'+os.environ['PATH'],AD_UI_ROOT=str(root),AD_UI_CONTAINERS=str(containers),
                  AD_UI_SHARED=str(shared),AD_TEST_INSTALLED=version,AD_TEST_PID=str(child.pid))
-        def run(mode,ok=True,**extra):
-            r=subprocess.run(['sh',str(HELPER),mode],env=dict(env,**extra),capture_output=True,text=True,timeout=10)
-            assert (r.returncode==0)==ok,(mode,r.returncode,r.stdout,r.stderr)
+        def run(*args,ok=True,**extra):
+            r=subprocess.run(['sh',str(HELPER),*args],env=dict(env,**extra),capture_output=True,text=True,timeout=10)
+            assert (r.returncode==0)==ok,(args,r.returncode,r.stdout,r.stderr)
             return r.stdout+r.stderr
         arm=amazon/(name+'-ui-viewport.arm')
         # The current installed package must be accepted; old packages must not be signalled.
@@ -58,18 +58,39 @@ with tempfile.TemporaryDirectory(prefix='ad-ui-handoff-') as td:
         bad=amazon/'AmazonDark-v7.391-probe-status.json';receipt(bad,'com.amazon.Amazon','7.390~checkout-ui-completion')
         run('arm',ok=False);assert not arm.exists();bad.unlink()
         receipt(amazon/(name+'-probe-status.json'),'com.amazon.Amazon')
-        assert 'v'+short in run('export',ok=False)
+        # Export is intentionally mode-specific; a bare export must fail rather than mixing FULL/VIEWPORT.
+        assert 'exactly one mode' in run('export',ok=False)
         terminal='================ END RUN ================\n'
         full=amazon/(name+'-ui-full-probe-001-r1.txt');full.write_text('FULL\n'+terminal)
         viewport=amazon/(name+'-ui-viewport-probe-001-r1.txt');viewport.write_text('VIEWPORT\n'+terminal)
         partial=amazon/(name+'-ui-full-probe-002-r1.txt');partial.write_text('INCOMPLETE\n')
         (other/full.name).write_text('UNRELATED\n'+terminal)
-        run('export')
-        assert (shared/full.name).read_bytes()==full.read_bytes()
-        assert (shared/viewport.name).read_bytes()==viewport.read_bytes()
-        assert not (shared/partial.name).exists()
-        full.unlink();viewport.unlink()
-        assert 'still sweeping' in run('export',ok=False)
+        now=int(time.time())
+        (amazon/(name+'-ui-full.state')).write_text(f'completed {now} {full.name}\n')
+        (amazon/(name+'-ui-viewport.state')).write_text(f'completed {now} {viewport.name}\n')
+
+        text=run('export','full')
+        full_zip=Path(text.strip().splitlines()[-1])
+        assert full_zip.parent==shared and full_zip.suffix=='.zip'
+        with zipfile.ZipFile(full_zip) as z:
+            names=set(z.namelist())
+            assert full.name in names
+            assert viewport.name not in names
+            assert partial.name not in names
+            assert 'manifest.txt' in names
+
+        text=run('export','viewport')
+        viewport_zip=Path(text.strip().splitlines()[-1])
+        assert viewport_zip.parent==shared and viewport_zip.suffix=='.zip'
+        with zipfile.ZipFile(viewport_zip) as z:
+            names=set(z.namelist())
+            assert viewport.name in names
+            assert full.name not in names
+            assert 'manifest.txt' in names
+
+        # A started/incomplete session must never fall back to an older completed file.
+        (amazon/(name+'-ui-full.state')).write_text(f'started {now} {partial.name}\n')
+        assert 'still running or incomplete' in run('export','full',ok=False)
     finally:
         child.terminate();child.wait(timeout=5);sel.close();child.stdout.close()
-print('PASS: actual viewport arm/SIGUSR2, package gate, upgrade discovery, unarmed status and completed-only full/viewport export')
+print('PASS: actual viewport arm/SIGUSR2, package gate, upgrade discovery, unarmed status and isolated current-session FULL/VIEWPORT ZIP export')

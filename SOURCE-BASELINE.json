@@ -1,6 +1,7 @@
 {
-  "version": "7.444~pdp-proven-media",
-  "parent": "7.440~pdp-frame-ownership",
-  "parent_sha256": "218e0f24847ac034ffddb3c9cd6ad746a467b85870bc50f8bef849190fa808d3",
-  "scope": "Two probe-confirmed media fixes only; standalone ad interiors and current transition remain unresolved."
+  "version": "7.445~probe-transition-hardening",
+  "direct_parent": "7.444~pdp-proven-media",
+  "source": "AmazonDark-v7.444-pdp-proven-media-source.zip",
+  "parent_sha256": "5cb14618c396f14e9c0529992b0658957616a6d7496f1a0dd30f9d2a80bae623",
+  "scope": "Preserve v7.444 theming. Isolate and harden FULL/VIEWPORT/TRANSITION probes, make exports current-session ZIPs, make PDP FULL lazy-growth-safe and bounded, and scale-normalize the exact probe-confirmed Search-to-PDP skeleton raster matcher."
 }

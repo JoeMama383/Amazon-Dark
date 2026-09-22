@@ -6,12 +6,12 @@ UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
-assert 'Version: 7.444~pdp-proven-media' in C
-assert '#define AD_VERSION "v7.444-pdp-proven-media"' in S
-assert 'VER=7.444' in UI
-assert 'AD_PROBE_VERSION=7.444' in SK and 'AD_PROBE_NAME=AmazonDark-v7.444' in SK
-assert '7.444~*)' in SK and 'Install the v7.444 Actions package first.' in SK
-assert 'AmazonDark-v7.444-pdp-proven-media-source.zip' in CMD
+assert 'Version: 7.445~probe-transition-hardening' in C
+assert '#define AD_VERSION "v7.445-probe-transition-hardening"' in S
+assert 'VER=7.445' in UI
+assert 'AD_PROBE_VERSION=7.445' in SK and 'AD_PROBE_NAME=AmazonDark-v7.445' in SK
+assert '7.445~*)' in SK and 'Install the v7.445 Actions package first.' in SK
+assert 'AmazonDark-v7.445-probe-transition-hardening-source.zip' in CMD
 assert 'sh scripts/validate.sh' in CMD
 
 # New main-frame completion is injected into the core script.
