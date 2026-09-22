@@ -1,9 +1,11 @@
 #!/bin/sh
-# AmazonDark v7.446 universal UI probe helper.
-# FULL: screenshot-triggered. VIEWPORT: one-shot arm + SIGUSR2.
-# Exports are deliberately mode-specific and contain exactly one current capture.
+# AmazonDark v7.447 universal UI probe helper.
+# FULL: screenshot-triggered while Amazon stays foregrounded.
+# VIEWPORT: arm once, show the target in Amazon, then background Amazon once.
+# The app captures the last foreground scene at WillResignActive; export runs afterward.
+# FULL, VIEWPORT, and TRANSITION all export one current capture as plain .tar.
 set -eu
-VER=7.446
+VER=7.447
 CUR=${VER#7.}
 NAME=AmazonDark-v$VER
 ROOT=${AD_UI_ROOT:-/var/mobile}
@@ -36,26 +38,12 @@ for p in "$CONTAINERS"/*/.com.apple.mobile_container_manager.metadata.plist; do
 done
 
 installed=$(dpkg-query -W -f='${Version}' com.joemama383.amazondark 2>/dev/null || true)
-find_pid(){
-  line=$(ps -A -o pid=,comm= 2>/dev/null | grep '/Amazon[.]app/Amazon' | head -1 || true)
-  set -- $line
-  if [ -n "${1:-}" ]; then printf '%s\n' "$1"; return 0; fi
-  pgrep -x Amazon 2>/dev/null | head -1 || true
-}
 
-make_zip(){
-  out=$1; stage=$2; base=${out##*/}; tmp="$SHARED/.${base%.zip}.partial.zip"
+make_tar(){
+  out=$1; stage=$2; base=${out##*/}; tmp="$SHARED/.${base%.tar}.partial.tar"
   rm -f "$tmp"
-  if command -v zip >/dev/null 2>&1; then
-    (cd "$stage" && zip -q -r "$tmp" .)
-  elif command -v bsdtar >/dev/null 2>&1; then
-    bsdtar --format zip -cf "$tmp" -C "$stage" .
-  elif tar --help 2>&1 | grep -q -- '--format'; then
-    tar --format=zip -cf "$tmp" -C "$stage" .
-  else
-    printf 'No ZIP-capable archiver found (need zip or bsdtar).\n' >&2
-    return 1
-  fi
+  command -v tar >/dev/null 2>&1 || { printf 'tar is required for probe export.\n' >&2; return 1; }
+  (cd "$stage" && tar -cf "$tmp" .)
   mv "$tmp" "$out"
   chmod 666 "$out" 2>/dev/null || true
 }
@@ -77,7 +65,7 @@ find_capture(){
   done < "$TARGETS"
   [ "$BEST_TS" -gt 0 ] 2>/dev/null || return 2
   age=$((now-BEST_TS))
-  if [ "$age" -lt -5 ]; then return 3; fi
+  [ "$age" -ge -5 ] || return 3
   case "$BEST_STATE" in completed|partial) ;; *) return 4;; esac
   [ -f "$BEST_FILE" ] || return 5
   grep -q '================ END RUN ================' "$BEST_FILE" 2>/dev/null || return 4
@@ -88,15 +76,16 @@ case "${1:-}" in
   arm)
     case "$installed" in "$VER"~*) ;; *) printf 'Install/open the v%s package first. Installed: %s\n' "$VER" "$installed" >&2; exit 1;; esac
     [ -s "$TARGETS" ] || { printf 'Amazon Documents not found. Open Amazon once, then rerun.\n' >&2; exit 1; }
-    pid=$(find_pid); [ -n "$pid" ] || { printf 'Amazon is not running. Leave the target screen open, then rerun.\n' >&2; exit 1; }
+    now=$(date +%s)
     while IFS= read -r d; do
       mkdir -p "$d"
+      # Never let an old VIEWPORT state masquerade as the capture requested by this arm.
       rm -f "$d/$NAME-ui-viewport.state"
-      printf 'viewport %s\n' "$(date +%s)" > "$d/$NAME-ui-viewport.arm"
+      printf 'viewport %s\n' "$now" > "$d/$NAME-ui-viewport.arm"
       chmod 600 "$d/$NAME-ui-viewport.arm" 2>/dev/null || true
     done < "$TARGETS"
-    kill -USR2 "$pid"
-    printf 'Triggered one v%s universal VIEWPORT capture in Amazon PID %s. No scrolling is performed.\n' "$VER" "$pid"
+    printf 'Armed one v%s VIEWPORT capture for Amazon\047s next background transition.\n' "$VER"
+    printf 'Return to Amazon, leave the exact target scene visible, then background Amazon once. The capture freezes that last foreground scene; export from NewTerm afterward.\n'
     ;;
   export)
     mode=${2:-}
@@ -105,9 +94,21 @@ case "${1:-}" in
     rc=0; find_capture "$mode" || rc=$?
     case "$rc" in
       0) ;;
-      2) printf 'No current v%s %s capture state found. %s\n' "$VER" "$mode" "$( [ "$mode" = full ] && printf 'Take a screenshot first.' || printf 'Run arm with the target visible first.' )" >&2; exit 1;;
-      3) printf 'The newest v%s %s capture timestamp is in the future. Check the clock before triggering another %s capture.\n' "$VER" "$mode" "$mode" >&2; exit 1;;
-      4) printf 'The current v%s %s capture is still running or incomplete. Keep Amazon foregrounded, then retry this same export. Use status for the exact state.\n' "$VER" "$mode" >&2; exit 1;;
+      2)
+        if [ "$mode" = full ]; then
+          printf 'No current v%s FULL capture state found. Take one screenshot in Amazon and let FULL complete before exporting.\n' "$VER" >&2
+        else
+          printf 'No current v%s VIEWPORT capture state found. Arm it, show the target in Amazon, then background Amazon once before exporting.\n' "$VER" >&2
+        fi
+        exit 1;;
+      3) printf 'The newest v%s %s capture timestamp is in the future. Check the clock before triggering another capture.\n' "$VER" "$mode" >&2; exit 1;;
+      4)
+        if [ "$mode" = full ]; then
+          printf 'The current v%s FULL capture is still running or incomplete. Return to Amazon so the finite FULL sweep can finish, then export again.\n' "$VER" >&2
+        else
+          printf 'The current v%s VIEWPORT background capture did not reach a terminal state. Re-arm it and background Amazon again.\n' "$VER" >&2
+        fi
+        exit 1;;
       *) printf 'The current v%s %s capture file is missing. Trigger a fresh capture.\n' "$VER" "$mode" >&2; exit 1;;
     esac
     stage=$(mktemp -d)
@@ -119,12 +120,13 @@ case "${1:-}" in
       printf 'source=%s\n' "${BEST_FILE##*/}"
       printf 'state=%s\n' "$BEST_STATE"
       printf 'finished_epoch=%s\n' "$BEST_TS"
+      printf 'archive=plain-tar\n'
       printf 'exported_utc='; date -u '+%Y-%m-%dT%H:%M:%SZ'
     } > "$stage/manifest.txt"
     archive="$SHARED/${BEST_FILE##*/}"
-    archive="${archive%.txt}.zip"
-    make_zip "$archive" "$stage"
-    printf 'Exported exactly one %s v%s %s capture:\n%s\n' "$BEST_STATE" "$VER" "$mode" "$archive"
+    archive="${archive%.txt}.tar"
+    make_tar "$archive" "$stage"
+    printf 'Exported exactly one %s v%s %s capture as TAR:\n%s\n' "$BEST_STATE" "$VER" "$mode" "$archive"
     ;;
   status)
     printf 'Installed: %s\n' "$installed"
@@ -134,16 +136,16 @@ case "${1:-}" in
         state="$d/$NAME-ui-$mode.state"
         if [ -f "$state" ]; then printf '%s state: ' "$mode"; cat "$state"; else printf '%s state: none\n' "$mode"; fi
       done
-      if [ -f "$d/$NAME-ui-viewport.arm" ]; then printf 'Viewport arm: '; cat "$d/$NAME-ui-viewport.arm"; fi
+      if [ -f "$d/$NAME-ui-viewport.arm" ]; then printf 'Viewport next-background arm: '; cat "$d/$NAME-ui-viewport.arm"; fi
     done < "$TARGETS"
     ;;
   disarm)
     while IFS= read -r d; do rm -f "$d/$NAME-ui-viewport.arm"; done < "$TARGETS"
-    printf 'Viewport UI probe disarmed. FULL remains screenshot-triggered only.\n'
+    printf 'VIEWPORT next-background arm cleared. FULL remains screenshot-triggered only.\n'
     ;;
   *)
     printf 'Usage: sh scripts/ui-probe.sh arm | export full | export viewport | status | disarm\n' >&2
-    printf 'FULL: take one screenshot, then export full. VIEWPORT: arm, then export viewport.\n' >&2
+    printf 'FULL: screenshot in Amazon, let it finish, then export full. VIEWPORT: arm, show target in Amazon, background once, then export viewport.\n' >&2
     exit 1
     ;;
 esac

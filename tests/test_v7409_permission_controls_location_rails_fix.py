@@ -3,10 +3,10 @@ import re
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text(); INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
-assert 'Version: 7.446~probe-responsiveness' in C
-assert '#define AD_VERSION "v7.446-probe-responsiveness"' in S
-assert 'VER=7.446' in UI and 'AD_PROBE_VERSION=7.446' in SK and 'AD_PROBE_NAME=AmazonDark-v7.446' in SK
-assert 'AMAZONDARK v7.446 UNIVERSAL' in INC and 'AmazonDark-v7.446-ui-viewport.arm' in INC
+assert 'Version: 7.447~probe-responsiveness' in C
+assert '#define AD_VERSION "v7.447-probe-responsiveness"' in S
+assert 'VER=7.447' in UI and 'AD_PROBE_VERSION=7.447' in SK and 'AD_PROBE_NAME=AmazonDark-v7.447' in SK
+assert 'AMAZONDARK v7.447 UNIVERSAL' in INC and 'AmazonDark-v7.447-ui-viewport.arm' in INC
 perm=S[S.index('// v7.408 FULL r1/r2: camera and microphone permission prompts'):S.index('// v7.408 r4: the location sheet interior')]
 # Exact camera checkbox is preserved, not repainted or re-bordered.
 assert 'if(ADPermissionCameraCheckbox7408(v))return nil;' in perm

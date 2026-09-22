@@ -1,13 +1,14 @@
 #!/bin/sh
 # AmazonDark opt-in transition/lifecycle probe helper.
-# v7.446 export is current-session-only and ZIP-compressed; historical captures are never bundled.
+# v7.447 export is current-session-only and plain TAR; historical captures are never bundled.
+# FULL, VIEWPORT, and TRANSITION deliberately share the same archive format.
 set -eu
-AD_PROBE_VERSION=7.446
+AD_PROBE_VERSION=7.447
 AD_PROBE_CUR=${AD_PROBE_VERSION#7.}
 AD_PROBE_ROOT=${AD_PROBE_ROOT:-/var/mobile}
 AD_PROBE_CONTAINERS=${AD_PROBE_CONTAINERS:-$AD_PROBE_ROOT/Containers/Data/Application}
 AD_PROBE_DOCS=${AD_PROBE_DOCS:-/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents}
-AD_PROBE_NAME=AmazonDark-v7.446
+AD_PROBE_NAME=AmazonDark-v7.447
 AD_PROBE_TARGETS=$(mktemp)
 AD_PROBE_LAUNCH_ARM="$AD_PROBE_ROOT/AmazonDark-launch-probe.arm"
 trap 'rm -f "$AD_PROBE_TARGETS"' EXIT HUP INT TERM
@@ -76,23 +77,14 @@ ad_report(){
     else printf 'missing\n'; fi
 }
 
-make_zip(){
-    out=$1; stage=$2; base=${out##*/}; tmp="$AD_PROBE_DOCS/.${base%.zip}.partial.zip"
+make_tar(){
+    out=$1; stage=$2; base=${out##*/}; tmp="$AD_PROBE_DOCS/.${base%.tar}.partial.tar"
     rm -f "$tmp"
-    if command -v zip >/dev/null 2>&1; then
-        (cd "$stage" && zip -q -r "$tmp" .)
-    elif command -v bsdtar >/dev/null 2>&1; then
-        bsdtar --format zip -cf "$tmp" -C "$stage" .
-    elif tar --help 2>&1 | grep -q -- '--format'; then
-        tar --format=zip -cf "$tmp" -C "$stage" .
-    else
-        printf 'No ZIP-capable archiver found (need zip or bsdtar).\n' >&2
-        return 1
-    fi
+    command -v tar >/dev/null 2>&1 || { printf 'tar is required for probe export.\n' >&2; return 1; }
+    (cd "$stage" && tar -cf "$tmp" .)
     mv "$tmp" "$out"
     chmod 666 "$out" 2>/dev/null || true
 }
-
 pick_current_capture(){
     BEST_MS=0; BEST_FILE=""; BEST_DIR=""; BEST_LABEL=""; BEST_ARM=0
     while IFS= read -r AD_PROBE_DIR; do
@@ -128,7 +120,7 @@ case "${1:-}" in
     case "$AD_PROBE_LABEL" in home|cart|both|launch|transition) ;; *) printf 'Use arm home, cart, both, launch, or transition.\n' >&2; exit 1;; esac
     [ -s "$AD_PROBE_TARGETS" ] || { ad_report; printf 'Cannot identify Amazon data container. Open Amazon once, then retry; send this output if still missing.\n' >&2; exit 1; }
     AD_PROBE_INSTALLED=$(dpkg-query -W -f='${Version}' com.joemama383.amazondark 2>/dev/null || true)
-    case "$AD_PROBE_INSTALLED" in 7.446~*) ;; *) printf 'Install the v7.446 Actions package first. Installed: %s\n' "$AD_PROBE_INSTALLED" >&2; exit 1;; esac
+    case "$AD_PROBE_INSTALLED" in 7.447~*) ;; *) printf 'Install the v7.447 Actions package first. Installed: %s\n' "$AD_PROBE_INSTALLED" >&2; exit 1;; esac
     AD_PROBE_NOW=$(date +%s); AD_PROBE_EXPIRY=$((AD_PROBE_NOW+300)); umask 077
     while IFS= read -r AD_PROBE_DIR; do
         mkdir -p "$AD_PROBE_DIR"
@@ -167,18 +159,20 @@ case "${1:-}" in
             printf 'armed_epoch=%s\n' "$BEST_ARM"
             printf 'session_ms=%s\n' "$BEST_MS"
             printf 'source=%s\n' "${BEST_FILE##*/}"
+            printf 'archive=plain-tar\n'
             printf 'exported_utc='; date -u '+%Y-%m-%dT%H:%M:%SZ'
         } > "$AD_PROBE_STAGE/manifest.txt"
-        archive="$AD_PROBE_DOCS/$AD_PROBE_NAME-$BEST_LABEL-probe-$(date +%Y%m%d-%H%M%S)-$$.zip"
+        archive="$AD_PROBE_DOCS/$AD_PROBE_NAME-$BEST_LABEL-probe-$(date +%Y%m%d-%H%M%S)-$$.tar"
     else
         {
             printf 'AmazonDark v%s transition/lifecycle probe\n' "$AD_PROBE_VERSION"
             printf 'capture=missing\nreason_code=%s\n' "$rc"
+            printf 'archive=plain-tar\n'
             printf 'exported_utc='; date -u '+%Y-%m-%dT%H:%M:%SZ'
         } > "$AD_PROBE_STAGE/manifest.txt"
-        archive="$AD_PROBE_DOCS/$AD_PROBE_NAME-transition-diagnostic-$(date +%Y%m%d-%H%M%S)-$$.zip"
+        archive="$AD_PROBE_DOCS/$AD_PROBE_NAME-transition-diagnostic-$(date +%Y%m%d-%H%M%S)-$$.tar"
     fi
-    make_zip "$archive" "$AD_PROBE_STAGE"
+    make_tar "$archive" "$AD_PROBE_STAGE"
     while IFS= read -r AD_PROBE_DIR; do rm -f "$AD_PROBE_DIR/$AD_PROBE_NAME-probe.arm"; done < "$AD_PROBE_TARGETS"
     rm -f "$AD_PROBE_LAUNCH_ARM"
     if [ "$rc" -eq 0 ]; then

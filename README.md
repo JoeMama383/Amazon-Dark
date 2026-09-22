@@ -1,15 +1,15 @@
-# AmazonDark v7.446 — probe responsiveness
+# AmazonDark v7.447 — background-safe VIEWPORT + unified TAR probes
 
-Direct parent: v7.445 probe-transition-hardening. This includes its scale-aware Search → Product skeleton fix and separate compressed exports. Production theming is otherwise unchanged.
+Direct parent: **v7.446~probe-responsiveness**. Production theming and the v7.446 bounded FULL / scale-aware Search → Product transition work are otherwise unchanged.
 
-FULL inspects the main document in batches of at most 128 elements with an 8 ms cooperative batch budget, then scans document scrolling and up to eight large overflow containers. It reads actual offsets and waits for three stable bottom observations. Child-frame captures also yield between batches. Deep subtree text hashing and the redundant full-document scrollable pass are removed.
+The VIEWPORT phone workflow is corrected. `scripts/ui-probe.sh arm` now writes only a one-shot arm file; it does not look up Amazon's PID and does not signal a backgrounded process. After arming, return to Amazon, leave the exact target scene visible, and background Amazon once. The app consumes the arm at `UIApplicationWillResignActiveNotification`, takes the initial native VIEWPORT snapshot at that foreground→inactive boundary, and uses a finite iOS background task only to finish its asynchronous WebKit/frame capture. The completed capture can then be exported from NewTerm while Amazon remains backgrounded.
 
-Scrolling is never disabled. Evaluation timeouts, a 240-second FULL deadline, stalled owners, backgrounding, node/step/output limits, missing frame responses and unfinished frame batches yield partial coverage reports. VIEWPORT has a 45-second deadline. A terminal VIEWPORT arm waits up to 30 seconds for Amazon to return to the foreground. Explicit UI capture ends an active transition recording so two heavy diagnostics do not run together.
+A foreground-only SIGUSR2 receiver is retained for remote/SSH compatibility, but it cannot consume the arm while Amazon is inactive. The old wait-for-Amazon-to-return-foreground path is removed, so a background trigger cannot accidentally capture the app-switcher/privacy hierarchy instead of the requested scene.
 
-FULL and VIEWPORT exports are mode-specific ZIPs. Partial captures are exportable, completed captures do not expire after 15 minutes, and exporting the same capture again replaces its same ZIP rather than creating duplicates. TRANSITION includes only the newest current-version recording from the current arm, not historical sessions.
+FULL keeps the v7.446 bounded implementation: cooperative main-document batches, lazy document/overflow-owner traversal, finite native scroll sweeps, offset restoration, no scroll disabling, 4-second WebKit callback timeouts, explicit partial-coverage receipts, and no recurring production scan machinery.
 
-These are bounded best-effort diagnostics, not a guarantee of every lazy-loaded or inaccessible frame. Reports explicitly leave cross-frame completeness unverified. Child frames are inspected but their internal scrolling is not driven; dynamically created overflow owners after the initial inventory may require a targeted VIEWPORT. No iPhone responsiveness or visual success is claimed until device testing.
+FULL, VIEWPORT, and TRANSITION now use the same export policy: **plain `.tar`, no gzip and no ZIP fallback**. FULL and VIEWPORT export exactly the current state-selected capture; TRANSITION exports only the newest current-version recording from the current arm. Historical transition recordings are never wildcarded into a new archive.
 
-Outstanding UI: white medium standalone ad; duplicate outer square ad border; compact top-ad title and sponsored info glyph; untamed large brand raster; missing Customers also bought artwork. The last two retain the earlier v7.444 source fixes, awaiting device confirmation. Other previously reported UI issues remain unverified, not closed.
+No production UI family is claimed fixed by v7.447. Outstanding visual work remains separate from this probe-workflow correction.
 
-See COMMANDS.md for push and three separate capture workflows.
+See `COMMANDS.md` for the push and three separate capture workflows.

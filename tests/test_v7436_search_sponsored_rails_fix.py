@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.446~probe-responsiveness' in C
-assert '#define AD_VERSION "v7.446-probe-responsiveness"' in S
+assert 'Version: 7.447~probe-responsiveness' in C
+assert '#define AD_VERSION "v7.447-probe-responsiveness"' in S
 needle=".s-widget-container[class*=\'widgetId=container-search-results_sponsored\']>.s-container-results"
 assert needle in S
 seg=S[S.index(needle):S.index(needle)+1000]

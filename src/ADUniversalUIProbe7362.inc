@@ -1,13 +1,15 @@
-// v7.439 universal cross-frame UI probe architecture: FULL/VIEWPORT cover native, main Web DOM, and every injected child/SafeFrame DOM.
+// v7.447 universal cross-frame UI probe architecture: FULL/VIEWPORT cover native, main Web DOM, and every injected child/SafeFrame DOM.
 // Exactly two UI forensics categories remain:
 //   1) screenshot -> FULL finite Web/native renderer sweep + final full inventories
-//   2) scripts/ui-probe.sh arm -> current VIEWPORT only, then one SIGUSR2
+//   2) scripts/ui-probe.sh arm -> one VIEWPORT capture at Amazon's next WillResignActive boundary
+// VIEWPORT therefore freezes the scene that was visible immediately before Amazon backgrounds;
+// the user can export it from NewTerm while Amazon remains backgrounded. A foreground SIGUSR2
+// remains a compatibility trigger for remote/SSH use, but the phone workflow no longer depends on it.
 // Both categories are route/tab agnostic. They inspect every on-screen WKWebView, every
 // document frame (including cross-origin SafeFrames through a dormant all-frame bridge),
 // and the current UIKit/React hierarchy instead of dispatching to menu-specific scanners.
-// Normal runtime adds only one inert message listener per Web document frame; there is no
-// MutationObserver, timer, RAF, web-scroll listener, polling loop, or recurring hierarchy walk.
-// The screenshot notification and armed SIGUSR2 remain the only capture triggers.
+// Normal runtime adds one inert message listener per Web document frame plus one lifecycle observer;
+// there is no MutationObserver, timer, RAF, web-scroll listener, polling loop, or recurring hierarchy walk.
 
 static dispatch_source_t gADThreeTabProbeSignal7254=nil; // retained symbol name; now universal
 static BOOL gADUIProbeBusy7362=NO;
@@ -20,6 +22,7 @@ static NSMutableSet *gADUIFrameBatches7446=nil;
 static BOOL ADUIExpired7446(void){return NSDate.date.timeIntervalSince1970>gADUIProbeDeadline7446;}
 static NSUInteger gADUIFullRun7362=0;
 static NSUInteger gADUIViewportRun7362=0;
+static UIBackgroundTaskIdentifier gADUIViewportBackgroundTask7447=UIBackgroundTaskInvalid;
 static const unsigned long long kADUIFullCap7362=192ULL*1024ULL*1024ULL;
 static const unsigned long long kADUIViewportCap7362=48ULL*1024ULL*1024ULL;
 
@@ -203,13 +206,13 @@ static NSString *ADUIProbePath7362(BOOL viewportOnly,NSUInteger run){
         static NSDateFormatter *f=nil;static dispatch_once_t once;dispatch_once(&once,^{f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";});
         NSString *stamp=nil;@synchronized(f){f.timeZone=[NSTimeZone localTimeZone];stamp=[f stringFromDate:[NSDate date]];}
         NSString *stem=viewportOnly?@"ui-viewport-probe":@"ui-full-probe";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.446-%@-%@-r%lu.txt",stem,stamp?:@"unknown",(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.447-%@-%@-r%lu.txt",stem,stamp?:@"unknown",(unsigned long)run];
         return [ADUIDocuments7362() stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.446-ui-probe.txt"]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.447-ui-probe.txt"]; }
 }
 
 static NSString *ADUIStatePath7445(BOOL viewportOnly){
-    NSString *name=viewportOnly?@"AmazonDark-v7.446-ui-viewport.state":@"AmazonDark-v7.446-ui-full.state";
+    NSString *name=viewportOnly?@"AmazonDark-v7.447-ui-viewport.state":@"AmazonDark-v7.447-ui-full.state";
     return [ADUIDocuments7362() stringByAppendingPathComponent:name];
 }
 static void ADUIWriteState7445(BOOL viewportOnly,NSString *state,NSString *path){
@@ -218,6 +221,13 @@ static void ADUIWriteState7445(BOOL viewportOnly,NSString *state,NSString *path)
         NSString *line=[NSString stringWithFormat:@"%@ %.0f %@\n",state?:@"unknown",NSDate.date.timeIntervalSince1970,name];
         [line writeToFile:ADUIStatePath7445(viewportOnly) atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
+}
+
+static void ADUIEndViewportBackgroundTask7447(void){
+    if(gADUIViewportBackgroundTask7447==UIBackgroundTaskInvalid)return;
+    UIBackgroundTaskIdentifier task=gADUIViewportBackgroundTask7447;
+    gADUIViewportBackgroundTask7447=UIBackgroundTaskInvalid;
+    @try { [UIApplication.sharedApplication endBackgroundTask:task]; } @catch(...) {}
 }
 
 static void ADUIAppend7362(NSString *path,NSString *text,unsigned long long cap){
@@ -233,6 +243,19 @@ static void ADUIAppend7362(NSString *path,NSString *text,unsigned long long cap)
 static NSString *gADUIProbeActivePath7433=nil;
 static unsigned long long gADUIProbeActiveCap7433=0;
 static NSString *gADUIProbeActiveNonce7433=nil;
+static void ADUIBeginViewportBackgroundTask7447(void){
+    if(gADUIViewportBackgroundTask7447!=UIBackgroundTaskInvalid)return;
+    @try {
+        UIApplication *app=UIApplication.sharedApplication;
+        gADUIViewportBackgroundTask7447=[app beginBackgroundTaskWithName:@"AmazonDarkViewportProbe7447" expirationHandler:^{
+            dispatch_async(dispatch_get_main_queue(),^{
+                gADUIProbePartial7446=YES;
+                if(gADUIProbeActivePath7433.length)ADUIAppend7362(gADUIProbeActivePath7433,@"VIEWPORT_BACKGROUND_BUDGET_EXPIRED\n",gADUIProbeActiveCap7433);
+                ADUIEndViewportBackgroundTask7447();
+            });
+        }];
+    } @catch(...) { gADUIViewportBackgroundTask7447=UIBackgroundTaskInvalid; }
+}
 
 @interface ADUniversalUIBridge7433 : NSObject <WKScriptMessageHandler>
 @property(nonatomic,strong) NSMutableDictionary *pending;
@@ -523,32 +546,29 @@ static void ADUIFinishCapture7364(BOOL viewportOnly,NSArray *webs,NSString *path
         ADUIAppendTerminal7364(path,[NSString stringWithFormat:@"COVERAGE state=%@ framePayloads=%lu frameCompleteness=unverified\n",gADUIProbePartial7446?@"partial":@"completed",(unsigned long)gADUIFramePayloads7446],cap);
         ADUIWriteState7445(viewportOnly,gADUIProbePartial7446?@"partial":@"completed",path);
         gADUIProbeActivePath7433=nil;gADUIProbeActiveNonce7433=nil;gADUIProbeActiveCap7433=0;if(gADUniversalUIBridge7433)[gADUniversalUIBridge7433.pending removeAllObjects];gADUIProbeBusy7362=NO;
+        if(viewportOnly)ADUIEndViewportBackgroundTask7447();
     });
 }
 
 static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger);
-static BOOL gADUIWaitingForeground7446=NO;
-static void ADUIWaitForeground7446(BOOL viewportOnly,NSString *trigger,NSUInteger attempts){
-    if(UIApplication.sharedApplication.applicationState==UIApplicationStateActive){gADUIWaitingForeground7446=NO;ADCaptureUniversalUIProbe7362(viewportOnly,trigger);return;}
-    if(attempts==0){gADUIWaitingForeground7446=NO;ADUIWriteState7445(viewportOnly,@"foreground-timeout",@"no-capture");return;}
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.5*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ADUIWaitForeground7446(viewportOnly,trigger,attempts-1);});
-}
 
 static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){
     if(!gP.enabled)return;
-    if(UIApplication.sharedApplication.applicationState!=UIApplicationStateActive){
-        if(!gADUIWaitingForeground7446){gADUIWaitingForeground7446=YES;ADUIWriteState7445(viewportOnly,@"waiting-foreground",@"no-capture");ADUIWaitForeground7446(viewportOnly,trigger,60);}return;
+    BOOL backgroundBoundary=viewportOnly&&[trigger isEqualToString:@"armed-will-resign-active"];
+    if(UIApplication.sharedApplication.applicationState!=UIApplicationStateActive&&!backgroundBoundary){
+        ADUIWriteState7445(viewportOnly,@"inactive-trigger-rejected",@"no-capture");
+        return;
     }
     if(gADUIProbeBusy7362){ADUIAppend7362(gADUIProbeActivePath7433,@"TRIGGER_REJECTED reason=capture-already-running\n",gADUIProbeActiveCap7433);return;}
     if(ADSkelProbe7339&&!ADSkelProbe7339.finished)[ADSkelProbe7339 finish];
     gADUIProbeBusy7362=YES;gADUIProbePartial7446=NO;gADUIFramePayloads7446=0;gADUIExpectedFrames7446=NO;gADUIFrameBatches7446=[NSMutableSet set];
-    gADUIProbeDeadline7446=NSDate.date.timeIntervalSince1970+(viewportOnly?45.0:240.0);
+    gADUIProbeDeadline7446=NSDate.date.timeIntervalSince1970+(viewportOnly?(backgroundBoundary?20.0:45.0):240.0);
     gADUIFailedWebs7446=[NSHashTable weakObjectsHashTable];
     NSUInteger run=viewportOnly?++gADUIViewportRun7362:++gADUIFullRun7362;unsigned long long cap=viewportOnly?kADUIViewportCap7362:kADUIFullCap7362;NSString *path=ADUIProbePath7362(viewportOnly,run);NSArray *webs=ADUIWebViews7362();
     ADUIWriteState7445(viewportOnly,@"started",path);
     gADUIProbeActivePath7433=path;gADUIProbeActiveCap7433=cap;gADUIProbeActiveNonce7433=[NSString stringWithFormat:@"%lld-%d-%lu",(long long)(NSDate.date.timeIntervalSince1970*1000.0),getpid(),(unsigned long)run];if(gADUniversalUIBridge7433)[gADUniversalUIBridge7433.pending removeAllObjects];
-    NSString *header=[NSString stringWithFormat:@"AMAZONDARK v7.446 UNIVERSAL %@ UI FORENSICS PROBE\nversion=%s\ncategory=%@\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\ncontract=screenshot always captures FULL SWEEP; scripts/ui-probe.sh arm captures VIEWPORT via one-shot SIGUSR2\nroute_policy=universal: no tab/menu/product/cart/person/alexa dispatcher; every current on-screen WKWebView, every injected child/SafeFrame document, plus every eligible current native scroll renderer is discovered dynamically\nprivacy=no visible text strings, accessibilityLabel/value strings, URL/src/href values, network payloads or clipboard data; text is length+hash only; frame origin/path/referrer are hash-only; technical class/id/testid/component paint metadata retained\ncrossframe=all-frame documentStart bridge; child frames self-inspect their own DOM and computed paint, then send chunked sanitized results to native; main frame never attempts cross-origin contentDocument access\nweb=%@\nnative=%@\nnormal_runtime=single screenshot notification + single SIGUSR2 dispatch source + one inert message listener per web document frame; all scanning/traversal is finite and exists only after an explicit trigger; no MutationObserver/timer/RAF/web-scroll listener/polling/recurring hierarchy scan\nwebviews=%lu\n\n===== NATIVE INITIAL %@ SNAPSHOT =====\n",
-        viewportOnly?@"VIEWPORT":@"FULL-SWEEP",AD_VERSION,viewportOnly?@"viewport":@"full-web-native-sweep",trigger?:@"unknown",[NSDate date],path.lastPathComponent,cap,
+    NSString *header=[NSString stringWithFormat:@"AMAZONDARK v7.447 UNIVERSAL %@ UI FORENSICS PROBE\nversion=%s\ncategory=%@\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\ncontract=screenshot captures FULL SWEEP; scripts/ui-probe.sh arm is consumed at the next WillResignActive boundary to freeze VIEWPORT before background export\nbackground_boundary=%d\nroute_policy=universal: no tab/menu/product/cart/person/alexa dispatcher; every current on-screen WKWebView, every injected child/SafeFrame document, plus every eligible current native scroll renderer is discovered dynamically\nprivacy=no visible text strings, accessibilityLabel/value strings, URL/src/href values, network payloads or clipboard data; text is length+hash only; frame origin/path/referrer are hash-only; technical class/id/testid/component paint metadata retained\ncrossframe=all-frame documentStart bridge; child frames self-inspect their own DOM and computed paint, then send chunked sanitized results to native; main frame never attempts cross-origin contentDocument access\nweb=%@\nnative=%@\nnormal_runtime=single screenshot notification + one next-background lifecycle observer + optional foreground SIGUSR2 compatibility dispatch source + one inert message listener per web document frame; all scanning/traversal is finite and exists only after an explicit trigger/arm; no MutationObserver/timer/RAF/web-scroll listener/polling/recurring hierarchy scan\nwebviews=%lu\n\n===== NATIVE INITIAL %@ SNAPSHOT =====\n",
+        viewportOnly?@"VIEWPORT":@"FULL-SWEEP",AD_VERSION,viewportOnly?@"viewport":@"full-web-native-sweep",trigger?:@"unknown",[NSDate date],path.lastPathComponent,cap,backgroundBoundary?1:0,
         viewportOnly?@"current visual viewport of every on-screen WKWebView plus every visible child/SafeFrame document; no offset mutation":@"batched mounted DOM + finite document/large-overflow-owner sweep with lazy-growth viewport snapshots; original offsets restored; scrolling is never disabled",
         viewportOnly?@"current screen-intersecting UIKit/React hierarchy only":@"initial/final full visible-window hierarchy + dynamically discovered non-WebKit scroll candidates swept across every scrollable axis with per-step subtree snapshots; original offsets restored; scrolling is never disabled",
         (unsigned long)webs.count,viewportOnly?@"VIEWPORT":@"FULL"];
@@ -559,7 +579,7 @@ static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){
     });
 }
 
-static NSString *ADUIViewportArmPath7362(void){ return [ADUIDocuments7362() stringByAppendingPathComponent:@"AmazonDark-v7.446-ui-viewport.arm"]; }
+static NSString *ADUIViewportArmPath7362(void){ return [ADUIDocuments7362() stringByAppendingPathComponent:@"AmazonDark-v7.447-ui-viewport.arm"]; }
 static BOOL ADUIConsumeViewportArm7362(void){
     NSString *p=ADUIViewportArmPath7362(); NSFileManager *fm=NSFileManager.defaultManager; if(![fm fileExistsAtPath:p])return NO;
     BOOL ok=NO; @try {
@@ -568,12 +588,24 @@ static BOOL ADUIConsumeViewportArm7362(void){
     } @catch(...) {} [fm removeItemAtPath:p error:nil]; return ok;
 }
 
+static void ADUIHandleWillResignActive7447(void){
+    if(!gP.enabled||gADUIProbeBusy7362)return;
+    if(!ADUIConsumeViewportArm7362())return;
+    ADUIBeginViewportBackgroundTask7447();
+    ADCaptureUniversalUIProbe7362(YES,@"armed-will-resign-active");
+}
+
 static void ADCaptureThreeTabProbe7254(NSString *trigger){
-    // Function name retained only so ctor/prefs wiring stays byte-small. The old route-specific
-    // dispatcher is gone: screenshot means full; an armed SIGUSR2 means viewport.
+    // Function name retained only so ctor/prefs wiring stays byte-small. Screenshot means FULL.
+    // VIEWPORT normally consumes its one-shot arm at WillResignActive; foreground SIGUSR2 is
+    // retained only for remote/SSH compatibility and never captures an already-backgrounded shield.
     if(!gP.enabled)return;
     if([trigger isEqualToString:@"screenshot"]){ ADSkelTrigger7339(trigger); ADCaptureUniversalUIProbe7362(NO,trigger); return; }
-    if([trigger isEqualToString:@"SIGUSR2"]){ ADSkelTrigger7339(trigger); if(ADUIConsumeViewportArm7362())ADCaptureUniversalUIProbe7362(YES,@"armed-SIGUSR2"); return; }
+    if([trigger isEqualToString:@"SIGUSR2"]){
+        ADSkelTrigger7339(trigger);
+        if(UIApplication.sharedApplication.applicationState==UIApplicationStateActive&&ADUIConsumeViewportArm7362())ADCaptureUniversalUIProbe7362(YES,@"armed-SIGUSR2");
+        return;
+    }
 }
 
 static void ADInstallThreeTabProbes7254(void){
@@ -583,5 +615,6 @@ static void ADInstallThreeTabProbes7254(void){
         gADThreeTabProbeSignal7254=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
         if(gADThreeTabProbeSignal7254){ dispatch_source_set_event_handler(gADThreeTabProbeSignal7254,^{ ADCaptureThreeTabProbe7254(@"SIGUSR2"); }); dispatch_resume(gADThreeTabProbeSignal7254); }
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureThreeTabProbe7254(@"screenshot"); }];
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillResignActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADUIHandleWillResignActive7447(); }];
     });
 }

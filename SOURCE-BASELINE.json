@@ -1,7 +1,7 @@
 {
-  "version": "7.446~probe-responsiveness",
-  "direct_parent": "7.445~probe-transition-hardening",
-  "source": "AmazonDark-v7.445-probe-transition-hardening-source.zip",
-  "parent_sha256": "c049acef67394600228b1ba6c1dbf9583c87655f3d3646610710b4b33e28bd62",
-  "scope": "Diagnostic responsiveness and truthful coverage. Production UI/transition policy identical to v7.445."
+  "version": "7.447~probe-responsiveness",
+  "direct_parent": "7.446~probe-responsiveness",
+  "source": "AmazonDark-v7.446-probe-responsiveness-source.zip",
+  "parent_sha256": "637763e24cf093b208b61ff406bebe7889c5653923b8e0d9cd437a1c8588cbce",
+  "scope": "Probe workflow correction only: armed VIEWPORT freezes at the next foreground-to-background boundary and can be exported while Amazon remains backgrounded; FULL, VIEWPORT, and TRANSITION use isolated current-session plain-TAR exports. Production theming remains v7.446."
 }

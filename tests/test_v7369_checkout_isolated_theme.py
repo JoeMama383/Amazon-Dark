@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.446~probe-responsiveness' in CTRL
-assert '#define AD_VERSION "v7.446-probe-responsiveness"' in S
+assert 'Version: 7.447~probe-responsiveness' in CTRL
+assert '#define AD_VERSION "v7.447-probe-responsiveness"' in S
 
 from cart7423_delta import strip_cart7423
 from video7425_delta import strip_video7425
