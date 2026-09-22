@@ -1,4 +1,4 @@
-"""Exercise the v7.445 transition helper boundary with real ZIP output.
+"""Exercise the v7.446 transition helper boundary with real ZIP output.
 
 The helper must identify only Amazon, remember the current arm epoch/mode, and export
 one current-session capture instead of every historical probe on the phone.
@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 HELPER=ROOT/'scripts/skeleton-probe.sh'
-VERSION='7.445~probe-transition-hardening'
+VERSION='7.446~probe-responsiveness'
 
 ZIP_SHIM=r'''#!/usr/bin/env python3
 import os,sys,zipfile
@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix='ad-v7445-transition-') as temp:
     bindir=root/'bin'; bindir.mkdir()
     (bindir/'plutil').write_text(PLUTIL_SHIM); (bindir/'plutil').chmod(0o755)
     (bindir/'zip').write_text(ZIP_SHIM); (bindir/'zip').chmod(0o755)
-    (bindir/'dpkg-query').write_text("#!/bin/sh\nprintf '%s' \"${AD_INSTALLED:-7.445~probe-transition-hardening}\"\n"); (bindir/'dpkg-query').chmod(0o755)
+    (bindir/'dpkg-query').write_text("#!/bin/sh\nprintf '%s' \"${AD_INSTALLED:-7.446~probe-responsiveness}\"\n"); (bindir/'dpkg-query').chmod(0o755)
     env=dict(os.environ,PATH=str(bindir)+':'+os.environ['PATH'],AD_PROBE_ROOT=str(mobile),AD_PROBE_CONTAINERS=str(containers),AD_PROBE_DOCS=str(shared))
     def run(*args,ok=True,**extra):
         r=subprocess.run(['sh',str(HELPER),*args],env=dict(env,**extra),text=True,capture_output=True)
@@ -54,7 +54,7 @@ with tempfile.TemporaryDirectory(prefix='ad-v7445-transition-') as temp:
 
     # Package mismatch is rejected before arming.
     run('arm','transition',ok=False,AD_INSTALLED='7.444~pdp-proven-media')
-    docs=amazon/'Documents'; arm=docs/'AmazonDark-v7.445-probe.arm'; state=docs/'AmazonDark-v7.445-probe-export.state'
+    docs=amazon/'Documents'; arm=docs/'AmazonDark-v7.446-probe.arm'; state=docs/'AmazonDark-v7.446-probe-export.state'
     assert not arm.exists()
 
     run('arm','transition')
@@ -64,14 +64,14 @@ with tempfile.TemporaryDirectory(prefix='ad-v7445-transition-') as temp:
     assert not (other/'Documents').exists()
 
     # Historical and pre-arm files must never be exported.
-    old=docs/f'AmazonDark-v7.445-skeleton-{(armed-10)*1000}-111-transition.jsonl'; old.write_text('{"event":"SESSION_START","label":"transition"}\nOLD\n')
+    old=docs/f'AmazonDark-v7.446-skeleton-{(armed-10)*1000}-111-transition.jsonl'; old.write_text('{"event":"SESSION_START","label":"transition"}\nOLD\n')
     hist=docs/f'AmazonDark-v7.444-skeleton-{(armed+1)*1000}-222-transition.jsonl'; hist.write_text('{"event":"SESSION_START","label":"transition"}\nHIST\n')
-    fresh=docs/f'AmazonDark-v7.445-skeleton-{(armed+2)*1000}-333-transition.jsonl'; fresh.write_text('{"event":"SESSION_START","label":"transition"}\nFRESH\n')
-    (docs/'AmazonDark-v7.445-probe-status.json').write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','version':'v7.445-probe-transition-hardening','reason':'capture-started'}))
-    (mobile/'AmazonDark-v7.445-launch-sb-probe.txt').write_text('switcher evidence\n')
+    fresh=docs/f'AmazonDark-v7.446-skeleton-{(armed+2)*1000}-333-transition.jsonl'; fresh.write_text('{"event":"SESSION_START","label":"transition"}\nFRESH\n')
+    (docs/'AmazonDark-v7.446-probe-status.json').write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','version':'v7.446-probe-responsiveness','reason':'capture-started'}))
+    (mobile/'AmazonDark-v7.446-launch-sb-probe.txt').write_text('switcher evidence\n')
 
     text=run('export')
-    assert 'Exported exactly one current v7.445 transition capture' in text
+    assert 'Exported exactly one current v7.446 transition capture' in text
     archive=Path(text.strip().splitlines()[-1]); assert archive.suffix=='.zip' and archive.exists()
     with zipfile.ZipFile(archive) as z:
         names=z.namelist(); skeletons=[n for n in names if '-skeleton-' in n and n.endswith('.jsonl')]
@@ -94,11 +94,11 @@ with tempfile.TemporaryDirectory(prefix='ad-v7445-transition-') as temp:
 
     # Receipt discovery still works when every plutil route fails.
     (amazon/'.com.apple.mobile_container_manager.metadata.plist').unlink()
-    receipt=docs/'AmazonDark-v7.445-probe-status.json'
-    receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','version':'v7.445-probe-transition-hardening','reason':'arm-missing-or-unreadable'}))
+    receipt=docs/'AmazonDark-v7.446-probe-status.json'
+    receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','version':'v7.446-probe-responsiveness','reason':'arm-missing-or-unreadable'}))
     run('arm','transition',AD_PLUTIL_STYLE='unavailable')
     assert arm.exists()
     run('disarm',AD_PLUTIL_STYLE='unavailable')
     assert not arm.exists() and state.exists()
 
-print('PASS: v7.445 transition helper exports one current armed session as ZIP and never bundles historical captures')
+print('PASS: v7.446 transition helper exports one current armed session as ZIP and never bundles historical captures')

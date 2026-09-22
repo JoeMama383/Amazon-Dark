@@ -9,8 +9,8 @@ frameinc=(ROOT/'src/ADUniversalUIProbe7362.frame.js.inc').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
 helper=(ROOT/'scripts/ui-probe.sh').read_text()
 
-assert 'Version: 7.445~probe-transition-hardening' in ctl
-assert '#define AD_VERSION "v7.445-probe-transition-hardening"' in t
+assert 'Version: 7.446~probe-responsiveness' in ctl
+assert '#define AD_VERSION "v7.446-probe-responsiveness"' in t
 assert '#include "ADUniversalUIProbe7362.inc"' in t
 
 # Architectural convergence: the old per-menu capture engines and historical v7.309 output stems are removed.
@@ -29,7 +29,7 @@ assert inc.count('UIApplicationUserDidTakeScreenshotNotification') == 1
 assert inc.count('dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2') == 1
 assert 'ADCaptureUniversalUIProbe7362(NO,trigger)' in inc
 assert 'ADUIConsumeViewportArm7362()' in inc and 'ADCaptureUniversalUIProbe7362(YES,@"armed-SIGUSR2")' in inc
-assert 'AmazonDark-v7.445-ui-viewport.arm' in inc
+assert 'AmazonDark-v7.446-ui-viewport.arm' in inc
 assert 'ADSkelTrigger7339(trigger); ADCaptureUniversalUIProbe7362(NO,trigger)' in inc  # transition marking no longer suppresses FULL
 
 # Universal scope: every current on-screen WKWebView plus native hierarchy, no tab routing.
@@ -41,12 +41,12 @@ for token in ['meTab','cartTab','menuTab','rufusTab','ADProbeTabSelected7254','A
 # Viewport mode stays current-frame only. FULL restores the old finite sweep behavior universally.
 js=''.join(json.loads(line) for line in jsinc.splitlines())
 assert "viewportOnly=mode==='viewport'" in js
-assert 'walkRoot(document.documentElement' in js
+assert 'document.createTreeWalker(document.documentElement' in js
 assert 'if(!viewportOnly||(visible&&intersects(r)))' in js
 assert 'elementsFromPoint' in js
 assert 'shadowRoot' in js and 'contentDocument' not in js
 assert 'broadcastFrames' in js and '__adUIProbe7433' in js and 'window.__adUIProbeNonce7433' in js
-assert 'textContent' in js and 'ownHash' in js and 'allHash' in js
+assert 'textContent' in js and 'ownHash' in js and 'boundedOwnText' in js
 assert 'paintRisk' in js and 'dark-on-dark' in js and 'effectiveBg' in js
 for bad in ['setInterval(', 'requestAnimationFrame(', 'MutationObserver(', "addEventListener('scroll'", 'scrollTo(', 'scrollBy(']:
     assert bad not in js, bad
@@ -54,8 +54,8 @@ for bad in ['setInterval(', 'requestAnimationFrame(', 'MutationObserver(', "addE
 
 # FULL screenshot mode must perform finite renderer sweeps, not merely inspect the currently mounted tree.
 for token in [
-    'ADUIScanWebViewFull7364','INITIAL_FULL_DOM','SWEEP_STEP_','POST_SWEEP_FULL_DOM',
-    'setContentOffset:','originalScroll','ADUINativeScrollCandidates7364',
+    'ADUIScanWebViewFull7364','INITIAL_FULL_DOM','SWEEP_STEP_','WEB_DOCUMENT_SWEEP',
+    'setContentOffset:','scrollLock=none','ADUINativeScrollCandidates7364',
     'NATIVE_SCROLL_SELECTION','ADUIScanNativeAxis7364','NATIVE_SWEEP_END',
     'NATIVE FINAL FULL SNAPSHOT','ADUIAppendTerminal7364','cap-8192ULL'
 ]:
@@ -63,7 +63,7 @@ for token in [
 assert 'ADUIProcessWebViews7364(webs,0,viewportOnly' in inc
 assert 'if(viewportOnly){ADUIFinishCapture7364(YES' in inc
 assert 'ADUINativeScrollCandidates7364(path,cap)' in inc
-assert 'sv.scrollEnabled=originalScroll' in inc
+assert 'scrollEnabled=NO' not in inc
 assert 'WEB_SWEEP_END' in inc and 'restoredOffset=' in inc
 assert 'all scanning/traversal is finite and exists only after an explicit trigger' in inc
 
@@ -75,7 +75,7 @@ for token in ['adUniversalUI7433','window.addEventListener(\'message\'','forMain
     elif token=='frame origin/path/referrer are hash-only': assert token in inc
     else: assert token in framejs, token
 assert 'contentDocument' not in framejs
-assert 'textContent' in framejs and 'ownHash' in framejs and 'allHash' in framejs
+assert 'textContent' in framejs and 'ownHash' in framejs and 'boundedOwnText' in framejs
 assert 'paintRisk' in framejs and 'dark-on-dark' in framejs and 'light-on-light' in framejs
 assert 'originHash' in framejs and 'pathHash' in framejs and 'referrerHash' in framejs
 assert 'payload.slice' in framejs and 'chunkSize=96000' in framejs
@@ -111,6 +111,6 @@ assert 'still running or incomplete' in helper
 assert 'FULL: screenshot-triggered' in helper
 subprocess.run(['sh','-n',str(ROOT/'scripts/ui-probe.sh')],check=True)
 
-print('PASS: v7.445 retains exactly two universal UI probe categories and no route-specific dispatcher')
+print('PASS: v7.446 retains exactly two universal UI probe categories and no route-specific dispatcher')
 print('PASS: screenshot -> finite native/main-Web/child-SafeFrame full sweep; armed SIGUSR2 -> universal viewport only')
 print('PASS: main + cross-frame probe programs compile in gnu++98, parse in Node, and have no recurring scan machinery')

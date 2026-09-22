@@ -1,19 +1,15 @@
-# AmazonDark v7.445 — probe and PDP transition hardening
+# AmazonDark v7.446 — probe responsiveness
 
-Exact direct parent: **v7.444~pdp-proven-media**.
+Direct parent: v7.445 probe-transition-hardening. This includes its scale-aware Search → Product skeleton fix and separate compressed exports. Production theming is otherwise unchanged.
 
-This release preserves v7.444 theming and addresses the diagnostic failures seen on the Product Search / PDP interface plus the fresh Search -> PDP transition trace.
+FULL inspects the main document in batches of at most 128 elements with an 8 ms cooperative batch budget, then scans document scrolling and up to eight large overflow containers. It reads actual offsets and waits for three stable bottom observations. Child-frame captures also yield between batches. Deep subtree text hashing and the redundant full-document scrollable pass are removed.
 
-- FULL screenshots are no longer consumed by an armed TRANSITION recorder. A screenshot can feed transition evidence and still start the universal FULL capture.
-- FULL now follows lazy-growing WKWebView content to a stable bottom instead of treating the first temporary content height as the end. It requires three stable bottom holds, records content growth, restores the original offset, and has a 4-second JavaScript callback timeout.
-- The generic native-scroll phase is bounded to the four highest-value candidates, 32 vertical / 16 horizontal steps, and smaller subtree snapshots so the diagnostic pass cannot spend minutes walking unrelated native scrollers after the PDP Web sweep.
-- FULL and VIEWPORT use independent state receipts and explicit exports: `export full` and `export viewport`. Each export contains exactly one completed current capture in its own ZIP.
-- TRANSITION export is current-arm/current-version only. Historical v7.x recordings are never bundled into a new archive.
-- Transition traces now record logical image size, image scale, and backing CGImage pixels separately.
-- The exact `IESSkeletonView -> AWLoadingIndicatorFullScreenModalBar` Search -> PDP image owner is matched using logical/scale-normalized geometry. This covers the fresh v7.444 460x1036-point trace without depending on @1x backing pixels, while retaining the narrow native owner chain and one-time image transform.
+Scrolling is never disabled. Evaluation timeouts, a 240-second FULL deadline, stalled owners, backgrounding, node/step/output limits, missing frame responses and unfinished frame batches yield partial coverage reports. VIEWPORT has a 45-second deadline. A terminal VIEWPORT arm waits up to 30 seconds for Amazon to return to the foreground. Explicit UI capture ends an active transition recording so two heavy diagnostics do not run together.
 
-No production MutationObserver, polling loop, requestAnimationFrame loop, Web scroll listener, or recurring hierarchy scanner was added. The expanded walking remains opt-in probe-only work.
+FULL and VIEWPORT exports are mode-specific ZIPs. Partial captures are exportable, completed captures do not expire after 15 minutes, and exporting the same capture again replaces its same ZIP rather than creating duplicates. TRANSITION includes only the newest current-version recording from the current arm, not historical sessions.
 
-Still outstanding for a later probe-backed pass: the white medium standalone-ad interior, the separate medium ad family's outer duplicate square border, the compact top-ad title/sponsored-info treatment, and verification of the large Easter/media family. v7.445 intentionally does not broaden those ad selectors without a reliable post-fix FULL capture.
+These are bounded best-effort diagnostics, not a guarantee of every lazy-loaded or inaccessible frame. Reports explicitly leave cross-frame completeness unverified. Child frames are inspected but their internal scrolling is not driven; dynamically created overflow owners after the initial inventory may require a targeted VIEWPORT. No iPhone responsiveness or visual success is claimed until device testing.
 
-See `COMMANDS.md` for the phone workflow.
+Outstanding UI: white medium standalone ad; duplicate outer square ad border; compact top-ad title and sponsored info glyph; untamed large brand raster; missing Customers also bought artwork. The last two retain the earlier v7.444 source fixes, awaiting device confirmation. Other previously reported UI issues remain unverified, not closed.
+
+See COMMANDS.md for push and three separate capture workflows.

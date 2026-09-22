@@ -4,10 +4,10 @@ S=(R/'src/Tweak.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
-assert 'Version: 7.445~probe-transition-hardening' in C
-assert '#define AD_VERSION "v7.445-probe-transition-hardening"' in S
-assert 'VER=7.445' in UI
-assert 'AD_PROBE_VERSION=7.445' in SK and 'AD_PROBE_NAME=AmazonDark-v7.445' in SK
+assert 'Version: 7.446~probe-responsiveness' in C
+assert '#define AD_VERSION "v7.446-probe-responsiveness"' in S
+assert 'VER=7.446' in UI
+assert 'AD_PROBE_VERSION=7.446' in SK and 'AD_PROBE_NAME=AmazonDark-v7.446' in SK
 # The correction changes delivery, not just selectors: enumerate WebKit child frames and evaluate in their page world.
 for tok in ['NSSelectorFromString(@"_frames:")','evaluateJavaScript:inFrame:inContentWorld:completionHandler:','NSClassFromString(@"WKContentWorld")','NSSelectorFromString(@"pageWorld")','ADInjectFrameNode7440','ADForceChildFrameTheme7440']:
     assert tok in S,tok
@@ -34,4 +34,4 @@ for tok in ["[data-csa-c-painter='sb-collections-ilm-mobile']",'[class*=_c2ItY_c
 # Existing successful/required fixes remain.
 for tok in ['#product-image-gallery .a-truncate-cut','img.p13n-product-image',".s-widget-container[class*='widgetId=container-search-results_sponsored']>.s-container-results",'[data-component-type=s-tiles-carousel-component-brand_logo]']:
     assert tok in S,tok
-print('PASS: v7.445 owns PDP ad child frames natively and closes current main-document residuals without recurring scans')
+print('PASS: v7.446 owns PDP ad child frames natively and closes current main-document residuals without recurring scans')

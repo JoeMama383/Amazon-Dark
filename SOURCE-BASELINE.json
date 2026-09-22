@@ -1,7 +1,7 @@
 {
-  "version": "7.445~probe-transition-hardening",
-  "direct_parent": "7.444~pdp-proven-media",
-  "source": "AmazonDark-v7.444-pdp-proven-media-source.zip",
-  "parent_sha256": "5cb14618c396f14e9c0529992b0658957616a6d7496f1a0dd30f9d2a80bae623",
-  "scope": "Preserve v7.444 theming. Isolate and harden FULL/VIEWPORT/TRANSITION probes, make exports current-session ZIPs, make PDP FULL lazy-growth-safe and bounded, and scale-normalize the exact probe-confirmed Search-to-PDP skeleton raster matcher."
+  "version": "7.446~probe-responsiveness",
+  "direct_parent": "7.445~probe-transition-hardening",
+  "source": "AmazonDark-v7.445-probe-transition-hardening-source.zip",
+  "parent_sha256": "c049acef67394600228b1ba6c1dbf9583c87655f3d3646610710b4b33e28bd62",
+  "scope": "Diagnostic responsiveness and truthful coverage. Production UI/transition policy identical to v7.445."
 }

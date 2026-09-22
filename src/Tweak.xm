@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.445 — PDP frame ownership correction
+ * AmazonDark v7.446 — PDP frame ownership correction
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.445-probe-transition-hardening"
+#define AD_VERSION "v7.446-probe-responsiveness"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2411,7 +2411,7 @@ static NSString *ADPDPUICompletionJS7439(void){
 
 
 
-// v7.445: The v7.435 FULL captures never emitted a CROSS_FRAME_DOM section even
+// v7.446: The v7.435 FULL captures never emitted a CROSS_FRAME_DOM section even
 // though the offending APE/SafeFrame iframe was present. Do not rely on all-frame
 // WKUserScript delivery for those renderer processes. Instead, use WebKit's frame
 // tree and frame-targeted JavaScript evaluation to install one persistent, inert-
@@ -2502,7 +2502,7 @@ static void ADFrameOwnerAttach7440(WKUserContentController *ucc){
     } @catch(...) {}
 }
 
-// v7.445 main-document residue proven by the v7.435 probes and current device shots:
+// v7.446 main-document residue proven by the v7.435 probes and current device shots:
 // the ILM lightAds carousel is main-document content, while Rufus comparison insight
 // copy was still rgb(86,89,89) on OLED. Own those exact families without touching
 // green insight dots, stars, Prime, links, deal colors, or other semantic accents.
@@ -2578,7 +2578,7 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
     ADSkelAttach7339(ucc); // v7.339 diagnostic integration
     ADUIProbeAttach7362(ucc); // universal FULL/VIEWPORT bridge
-    ADFrameOwnerAttach7440(ucc); // v7.445 event-driven child-frame ownership bridge
+    ADFrameOwnerAttach7440(ucc); // v7.446 event-driven child-frame ownership bridge
     @try {
         if(!objc_getAssociatedObject(ucc,kADCoreWebUS7271)){
             WKUserScript *us=ADSharedUserScript7387(0,ADCoreWebJS7271,NO,YES);

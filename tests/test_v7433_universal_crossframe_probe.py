@@ -10,11 +10,11 @@ CTL=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text()
 SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 
-assert 'Version: 7.445~probe-transition-hardening' in CTL
-assert '#define AD_VERSION "v7.445-probe-transition-hardening"' in S
-assert 'VER=7.445' in UI
-assert 'AD_PROBE_VERSION=7.445' in SK and 'AD_PROBE_NAME=AmazonDark-v7.445' in SK
-assert 'AmazonDark-v7.445-ui-viewport.arm' in INC
+assert 'Version: 7.446~probe-responsiveness' in CTL
+assert '#define AD_VERSION "v7.446-probe-responsiveness"' in S
+assert 'VER=7.446' in UI
+assert 'AD_PROBE_VERSION=7.446' in SK and 'AD_PROBE_NAME=AmazonDark-v7.446' in SK
+assert 'AmazonDark-v7.446-ui-viewport.arm' in INC
 
 # The bridge must exist before any frame document loads, including cross-origin SafeFrames.
 assert 'ADUIProbeAttach7362(ucc);' in S
@@ -36,11 +36,11 @@ assert 'window.__adUIProbeNonce7433' in main
 
 # Every child frame can inspect its own DOM and recursively fan out to nested frames.
 for token in [
-    "window.addEventListener('message'", 'adUniversalUI7433', 'walkRoot(document.documentElement',
+    "window.addEventListener('message'", 'adUniversalUI7433', 'document.createTreeWalker(document.documentElement',
     "document.querySelectorAll('iframe')", "f.contentWindow.postMessage(child,'*')",
     'originHash', 'pathHash', 'referrerHash', 'payload.slice', 'chunkSize=96000',
     'paintRisk', 'effectiveBg', 'dark-on-dark', 'light-on-light', 'contrast-ok',
-    'textMeta', 'ownHash', 'allHash', 'techAttrs', 'pseudo(', 'media(el)'
+    'textMeta', 'ownHash', 'boundedOwnText', 'techAttrs', 'pseudo(', 'media(el)'
 ]:
     assert token in frame, token
 

@@ -1,9 +1,9 @@
 #!/bin/sh
-# AmazonDark v7.445 universal UI probe helper.
+# AmazonDark v7.446 universal UI probe helper.
 # FULL: screenshot-triggered. VIEWPORT: one-shot arm + SIGUSR2.
 # Exports are deliberately mode-specific and contain exactly one current capture.
 set -eu
-VER=7.445
+VER=7.446
 CUR=${VER#7.}
 NAME=AmazonDark-v$VER
 ROOT=${AD_UI_ROOT:-/var/mobile}
@@ -71,14 +71,14 @@ find_capture(){
     set -- $line
     status=${1:-}; ts=${2:-0}; file=${3:-}
     case "$ts" in ''|*[!0-9]*) continue;; esac
-    case "$file" in "$NAME-ui-$mode-probe-"*.txt) ;; *) continue;; esac
+    case "$file" in "$NAME-ui-$mode-probe-"*.txt|no-capture) ;; *) continue;; esac
     [ "$ts" -gt "$BEST_TS" ] 2>/dev/null || continue
     BEST_TS=$ts; BEST_FILE="$d/$file"; BEST_STATE=$status; BEST_DIR=$d
   done < "$TARGETS"
   [ "$BEST_TS" -gt 0 ] 2>/dev/null || return 2
   age=$((now-BEST_TS))
-  if [ "$age" -lt -5 ] || [ "$age" -gt 900 ]; then return 3; fi
-  [ "$BEST_STATE" = completed ] || return 4
+  if [ "$age" -lt -5 ]; then return 3; fi
+  case "$BEST_STATE" in completed|partial) ;; *) return 4;; esac
   [ -f "$BEST_FILE" ] || return 5
   grep -q '================ END RUN ================' "$BEST_FILE" 2>/dev/null || return 4
   return 0
@@ -106,8 +106,8 @@ case "${1:-}" in
     case "$rc" in
       0) ;;
       2) printf 'No current v%s %s capture state found. %s\n' "$VER" "$mode" "$( [ "$mode" = full ] && printf 'Take a screenshot first.' || printf 'Run arm with the target visible first.' )" >&2; exit 1;;
-      3) printf 'The newest v%s %s capture state is stale (>15 minutes). Trigger a fresh %s capture.\n' "$VER" "$mode" "$mode" >&2; exit 1;;
-      4) printf 'The current v%s %s capture is still running or incomplete. Keep Amazon foregrounded, then retry this same export.\n' "$VER" "$mode" >&2; exit 1;;
+      3) printf 'The newest v%s %s capture timestamp is in the future. Check the clock before triggering another %s capture.\n' "$VER" "$mode" "$mode" >&2; exit 1;;
+      4) printf 'The current v%s %s capture is still running or incomplete. Keep Amazon foregrounded, then retry this same export. Use status for the exact state.\n' "$VER" "$mode" >&2; exit 1;;
       *) printf 'The current v%s %s capture file is missing. Trigger a fresh capture.\n' "$VER" "$mode" >&2; exit 1;;
     esac
     stage=$(mktemp -d)
@@ -117,13 +117,14 @@ case "${1:-}" in
       printf 'AmazonDark v%s universal UI probe\n' "$VER"
       printf 'mode=%s\n' "$mode"
       printf 'source=%s\n' "${BEST_FILE##*/}"
-      printf 'state=completed\n'
-      printf 'completed_epoch=%s\n' "$BEST_TS"
+      printf 'state=%s\n' "$BEST_STATE"
+      printf 'finished_epoch=%s\n' "$BEST_TS"
       printf 'exported_utc='; date -u '+%Y-%m-%dT%H:%M:%SZ'
     } > "$stage/manifest.txt"
-    archive="$SHARED/$NAME-ui-$mode-probe-$(date +%Y%m%d-%H%M%S)-$$.zip"
+    archive="$SHARED/${BEST_FILE##*/}"
+    archive="${archive%.txt}.zip"
     make_zip "$archive" "$stage"
-    printf 'Exported exactly one completed v%s %s capture:\n%s\n' "$VER" "$mode" "$archive"
+    printf 'Exported exactly one %s v%s %s capture:\n%s\n' "$BEST_STATE" "$VER" "$mode" "$archive"
     ;;
   status)
     printf 'Installed: %s\n' "$installed"

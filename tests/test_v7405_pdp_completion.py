@@ -4,8 +4,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
-assert 'Version: 7.445~probe-transition-hardening' in C
-assert '#define AD_VERSION "v7.445-probe-transition-hardening"' in S
+assert 'Version: 7.446~probe-responsiveness' in C
+assert '#define AD_VERSION "v7.446-probe-responsiveness"' in S
 block=S.split('static NSString *ADPDPCompletionJS7405(void){',1)[1].split('static NSString *ADPDPCompletionTWBJS7405',1)[0]
 video_border=S.split('static NSString *ADProductScrollVideoBorderJS7405(void){',1)[1].split('static NSString *ADPDPCompletionJS7405',1)[0]
 twb=S.split('static NSString *ADPDPCompletionTWBJS7405(void){',1)[1].split('// One immutable document-start program',1)[0]
@@ -43,15 +43,15 @@ assert "ad7405-pdp-child-ad" in block
 for token in ('#horizontalMediaCarousel','img.a-amazon-image','#aplus_feature_div','_dnNlL_vseThumbnailPreviewImg_','_Y3Itb_media-thumbnail-image_','_Y3Itd_notable-quote-thumbnail-image_','inline-twister-image-','_rufus-comparison-card_style_pillImageWrapper__'):
     assert token in twb, token
 assert 'brightness(%.3f)' in twb
-# Core integration retains the existing programs and v7.439 completion while v7.445 adds main-residual + frame-owner triggers with no recurring machinery.
+# Core integration retains the existing programs and v7.439 completion while v7.446 adds main-residual + frame-owner triggers with no recurring machinery.
 core=S.split('static NSString *ADCoreWebJS7271(void){',1)[1].split('static WKUserScript *ADSharedUserScript7387',1)[0]
-assert '@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@"' in core  # v7.445 appends two event-driven programs, for 16 total
+assert '@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@"' in core  # v7.446 appends two event-driven programs, for 16 total
 assert 'ADProductScrollVideoBorderJS7405()' in core and 'ADPDPCompletionJS7405()' in core and 'ADPDPSafeFrameJS7432()' in core and 'ADPDPCompletionTWBJS7405()' in core and 'ADPDPUICompletionJS7439()' in core and 'ADPDPMainResidualJS7440()' in core and 'ADFrameOwnerTriggerJS7440()' in core
 for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener('scroll'"):
     assert bad not in video_border and bad not in block and bad not in twb, bad
 # Release probes regenerated.
-assert 'VER=7.445' in UI
-assert 'AD_PROBE_VERSION=7.445' in SK and 'AD_PROBE_NAME=AmazonDark-v7.445' in SK
-assert 'AMAZONDARK v7.445 UNIVERSAL' in INC and 'AmazonDark-v7.445-ui-viewport.arm' in INC
-assert "version:'7.445'" in JS
+assert 'VER=7.446' in UI
+assert 'AD_PROBE_VERSION=7.446' in SK and 'AD_PROBE_NAME=AmazonDark-v7.446' in SK
+assert 'AMAZONDARK v7.446 UNIVERSAL' in INC and 'AmazonDark-v7.446-ui-viewport.arm' in INC
+assert "version:'7.446'" in JS
 print('PASS: inherited v7.405 PDP completion remains probe-backed PDP floors/text/controls/media/share/pagination/top-ad treatment and regenerates all probes')
