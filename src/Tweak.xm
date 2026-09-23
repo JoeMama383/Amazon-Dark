@@ -1,18 +1,4 @@
-/*
- * AmazonDark v7.461 — probe-backed PDP cleanup + selective screenshot Share suppression
- *
- * Architecture:
- *   - document-start, route-exclusive web CSS/JS owners
- *   - exact native lifecycle/setter owners backed by device probes
- *   - retained v6.0.185 preferences, 120 Hz path, TWB, and launch transition
- *
- * Production invariants:
- *   - no Dark Reader, native-dark weblab forcing, MutationObserver, polling loop,
- *     recurring hierarchy scanner, RAF loop, or web scroll listener
- *   - Cart Share / Saved / related-item text and Person AppCX sheet ownership are probe-scoped
- *   - the v7.255 Hamburger ownership remains exact to the #scrolled-hamburger React surface
- *   - exactly two universal UI probes remain: screenshot full-scan + armed viewport scan
- */
+/* AmazonDark v7.462 — Search suggestion cards + ScanIt shell. */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -28,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.461-home-hero-pill-variants"
+#define AD_VERSION "v7.462-search-cards-scanit-shell"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -627,7 +613,7 @@ static NSString *ADFloorJS(void){
         @"card_widget-sug-image-container,.ufs_tiles_card_widget-sug-image-background){background-color:transparent!important;border-color:#494d4d!important;}.ufs_tiles_card_widget-suggestio"
         @"n :is(h1,h2,h3,h4,h5,h6,p,span,a,div){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.ufs_tiles_card_widget-suggestion .ufs_tiles_card_widget-sug-text{backgroun"
         @"d:#000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}.ufs_tiles_card_widget-suggestion .ufs_tiles_card_widget-sug-text *{co"
-        @"lor:#fff!important;-webkit-text-fill-color:#fff!important;}.s-entity-pd-carousel-tile-suggestion,.s-entity-pd-carousel-tile-container,.s-entity-pd-carousel-tile-element-container,.s-entity-pd-carousel-tile-element-image-container{background:#000!important;}.s-entity-pd-carousel-tile-element-title-container{background:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.s-entity-pd-carousel-tile-element-title-container :is(span,a,p,div){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.cards_carousel_widget-sug-container-top{background:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column{background:#000!important;border-color:#494d4d!important;}.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-text{background:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-text :is(div,a,span,p){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column>:is(img,picture,[class*=cards_carousel_widget-sug-im])+*:not(:has(img,picture,source,[class*=cards_carousel_widget-sug-im])),.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column>:has(>:is(img,picture,source,[class*=cards_carousel_widget-sug-im]))+*:not(:has(img,picture,source,[class*=cards_carousel_widget-sug-im])),.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column>*:last-child:not(:has(img,picture,source,[class*=cards_carousel_widget-sug-im])){background:#000!important;background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#494d4d!important;box-shadow:none!important;}.cards_carousel_widget-sug-container-top :is(h1,h2,h3,h4,h5,h6,p,span,a,div){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.cards_carousel_widget-sug-container-top :is(img,picture,source),.cards_carousel_widget-sug-container-top [class*=cards_carousel_widget-sug-im]{background-color:transparent!important;box-shadow:none!important;}.cards_carousel_widget-sug-container-top img,.cards_carousel_widget-sug-container-top img[class*=cards_carousel_widget-sug-im]{background:transparent!important;visibility:visible!important;opacity:1!important;mix-blend-mode:normal!important;}body>:is(div,section,main,footer),#a-page>:is(div,section,main,footer),#attach-to-me>:is(div,section,main,footer),body>:is(div,section,main,footer)>:is(div,section,article,main,footer),#a-page>:is(div,section,main,footer)>:is(div,section,article,main,footer),#attach-to-me>:is(div,section,main,footer)>:is(div,section,article,main,footer){background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#attach-to-me :is(div,section,article,main,footer,ul,ol,li,span):has(:is([class*=delivery],[id*=delivery])) :is(.a-button,.a-button-inner,button,[role=button]){background:#000!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#attach-to-me :is(div,section,article,main,footer,ul,ol,li,span):has(:is([class*=delivery],[id*=delivery])) .a-button-text{background:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}\");}else if(!child&&(p==='/s'||p.indexOf('/s/')===0)){s=put('ad7-product-feed-theme',\"::-webkit-scrollbar{background-color:transparent!important;}::-webkit-scrollbar-track{background-color:transparent!important;}::-webkit-scrollbar-thumb{background-color:#d5d9d9!important;border-radius:8px!important;border:2px solid transparent!important;background-clip:content-box!important;}::-webkit-scrollbar-thumb:hover{background-color:#e8e6e3!important;}html,body,#a-page,#search,.s-main-s"
+        @"lor:#fff!important;-webkit-text-fill-color:#fff!important;}.s-entity-pd-carousel-tile-suggestion,.s-entity-pd-carousel-tile-container,.s-entity-pd-carousel-tile-element-container,.s-entity-pd-carousel-tile-element-image-container{background:#000!important;}.s-entity-pd-carousel-tile-element-title-container{background:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.s-entity-pd-carousel-tile-element-title-container :is(span,a,p,div){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.cards_carousel_widget-sug-container-top{background:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column{background:#000!important;border-color:#494d4d!important;}.cards_carousel_widget-sug-container-top [class$=widget-sug-text],.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-text{background:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.cards_carousel_widget-sug-container-top [class$=widget-sug-text],.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-text :is(div,a,span,p){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column>:is(img,picture,[class*=cards_carousel_widget-sug-im])+*:not(:has(img,picture,source,[class*=cards_carousel_widget-sug-im])),.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column>:has(>:is(img,picture,source,[class*=cards_carousel_widget-sug-im]))+*:not(:has(img,picture,source,[class*=cards_carousel_widget-sug-im])),.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column>*:last-child:not(:has(img,picture,source,[class*=cards_carousel_widget-sug-im])){background:#000!important;background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#494d4d!important;box-shadow:none!important;}.cards_carousel_widget-sug-container-top :is(h1,h2,h3,h4,h5,h6,p,span,a,div){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.cards_carousel_widget-sug-container-top :is(img,picture,source),.cards_carousel_widget-sug-container-top [class*=cards_carousel_widget-sug-im]{background-color:transparent!important;box-shadow:none!important;}.cards_carousel_widget-sug-container-top img,.cards_carousel_widget-sug-container-top img[class*=cards_carousel_widget-sug-im]{background:transparent!important;visibility:visible!important;opacity:1!important;mix-blend-mode:normal!important;}body>:is(div,section,main,footer),#a-page>:is(div,section,main,footer),#attach-to-me>:is(div,section,main,footer),body>:is(div,section,main,footer)>:is(div,section,article,main,footer),#a-page>:is(div,section,main,footer)>:is(div,section,article,main,footer),#attach-to-me>:is(div,section,main,footer)>:is(div,section,article,main,footer){background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#attach-to-me :is(div,section,article,main,footer,ul,ol,li,span):has(:is([class*=delivery],[id*=delivery])) :is(.a-button,.a-button-inner,button,[role=button]){background:#000!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#attach-to-me :is(div,section,article,main,footer,ul,ol,li,span):has(:is([class*=delivery],[id*=delivery])) .a-button-text{background:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}\");}else if(!child&&(p==='/s'||p.indexOf('/s/')===0)){s=put('ad7-product-feed-theme',\"::-webkit-scrollbar{background-color:transparent!important;}::-webkit-scrollbar-track{background-color:transparent!important;}::-webkit-scrollbar-thumb{background-color:#d5d9d9!important;border-radius:8px!important;border:2px solid transparent!important;background-clip:content-box!important;}::-webkit-scrollbar-thumb:hover{background-color:#e8e6e3!important;}html,body,#a-page,#search,.s-main-s"
         @"lot,.s-result-item,[data-component-type=s-search-result],.s-card-container,.puis-card-container,.puisg-row,.puisg-col,.puisg-col-inner{background:#0"
         @"00!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}#search :is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a"
         @"-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,.s-title-instructions-style,h1,h2,h3,h4,h5,h6,p,label,strong,b){color:#e8e6e3!important;-webkit-"
@@ -2542,7 +2528,7 @@ static NSString *ADAddressManagementJS7412(void){
 // allocated/compiled WKUserScripts while preserving their proven execution order.
 static long gADCoreWebJSStrength7271=-1;
 static NSString *gADCoreWebJSCached7271=nil;
-// v7.461 probe-backed PDP owners; declarative only.
+// v7.462 probe-backed PDP owners; declarative only.
 static NSString *ADPDPProbeBackedFixesJS7458(void){
     CGFloat f=1.0;if(gP.whiteTame){CGFloat t=((CGFloat)MAX(0,MIN(100,gP.whiteTameStrength)))/100.0;f=1.0-(0.10+(0.48*t));}
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#offsite-buy-box :is([data-testid=brand-name],[data-testid=product-description],[data-testid=combined-brand-and-description]){color:#fff!important;opacity:1!important}#offsite-buy-box :is([data-testid=ratings-stars],[data-testid=rating-stars],[class*=rating],[class*=star]){opacity:1!important;visibility:visible!important}#offsite-buy-box button[data-testid=sponsored-container],#offsite-buy-box button[data-testid=sponsored-container] span{color:#b1aaa0!important}#offsite-buy-box svg[data-testid=info-icon] path:first-of-type{fill:#b1aaa0!important}#offsite-buy-box svg[data-testid=info-icon] path:not(:first-of-type){fill:#000!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]){filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');}catch(_){}})();",gP.whiteTame,f];
@@ -10127,12 +10113,9 @@ static void ADPaintScanItSearchWidget7120(UIView *root){
     if(!gP.enabled||!root||!root.window)return;
     @try {
         ADSetViewBackground7226(root,ADOLED(),YES);
-        // v7.127: probe/screenshot put the stray bright hairline exactly on this
-        // 60pt widget's top edge (y=526). Own the root edge itself instead of
-        // touching Search-row separators in WebKit. A black 1pt border is
-        // invisible on the OLED body but covers Amazon's stock top seam.
-        root.layer.borderWidth=1.0;
+        root.layer.borderWidth=0.0;
         root.layer.borderColor=ADOLED().CGColor;
+        for(CALayer *l in root.layer.sublayers)if(l.frame.size.height<=1.5&&l.frame.size.width>=root.bounds.size.width*.9)l.backgroundColor=ADOLED().CGColor;
         root.layer.shadowOpacity=0.0f;
         root.layer.shadowColor=ADOLED().CGColor;
         UIView *ancestor=root.superview;
@@ -10166,6 +10149,10 @@ static void ADPaintScanItSearchWidget7120(UIView *root){
 }
 
 %hook A9VSScanItSearchWidget
+- (void)layoutSubviews {
+    %orig;
+    if(gP.enabled&&((UIView *)self).window)((UIView *)self).layer.borderWidth=0.0;
+}
 - (void)didMoveToWindow {
     %orig;
     ADPaintScanItSearchWidget7120((UIView *)self);
@@ -12001,7 +11988,7 @@ static void ADInstallPrivacyHooks7271(void){
     %init(ADPrivacyHooks7271);
 }
 
-// v7.461: v7.457 FULL evidence identified the screenshot Share opener exactly.
+// v7.462: v7.457 FULL evidence identified the screenshot Share opener exactly.
 // Suppress only that callback when the testing preference is enabled; screenshot
 // notification delivery and the normal/manual Share path remain untouched.
 %hook AXFScreenshotToastPresenter

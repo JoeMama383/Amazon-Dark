@@ -1,7 +1,7 @@
-# AmazonDark v7.460 — Home hero Sponsored pill ownership correction
+# AmazonDark v7.462 — Search suggestion cards + ScanIt shell
 
-v7.460 is built directly from v7.459. The v7.458 VIEWPORT evidence correctly identified the visible Home hero Sponsored pill itself as `_single-video-card_style_sponsored-label-pill__*` with computed `rgba(255,255,255,0.6)`, but v7.459 mistakenly required that element to be beneath `#gwm-dashboard`. The captured ancestry instead shows the single-video card under the `wd-shoppable-1` / `ape_gateway_mobile-wd-1_mshop_placement` path and does not establish that dashboard ancestor.
+v7.462 is a narrow probe-backed follow-up to v7.461. The supplied v7.461 FULL probe identifies the white description strips under the Search suggestion carousel as `cards_carousel_nview_widget-sug-text` / `cards_carousel_text_left_widget-sug-text`. The existing dark rule only matched `cards_carousel_widget-sug-text`, so v7.462 broadens that exact carousel owner to the shared `widget-sug-text` suffix: OLED black floor with light text.
 
-v7.460 targets the exact single-video Sponsored-pill class family directly and keeps the requested alpha unchanged at 0.6 while replacing white with black. It also uses a fresh style identity (`ad7460-home-hero-pill`) so the older `ad7381-home-ad-shell-floor` node cannot suppress the corrected rule in a surviving document.
+The same probe identifies the square gray outline around both “Search with” controls as the 430x60 native `A9VSScanItSearchWidget` root (`layerBorder=1px`), while the two child `A9VSScanItIngressButtonRedesign` controls own their separate rounded borders. v7.462 removes only the root square border, keeps the child button borders, and darkens the root's captured 1px stock top hairline. A cheap exact-owner `layoutSubviews` seal only reasserts `borderWidth=0`; it does not walk the subtree.
 
-The v7.459 VIEWPORT terminal-state changes are retained. FULL, VIEWPORT, and TRANSITION probe identities are regenerated as v7.460.
+v7.461 Home hero Sponsored-pill coverage and VIEWPORT reliability changes are retained. FULL, VIEWPORT, and TRANSITION identities are regenerated as v7.462.
