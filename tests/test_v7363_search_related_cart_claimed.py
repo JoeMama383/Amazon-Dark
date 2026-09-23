@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/"src/Tweak.xm").read_text()
 ctl=(ROOT/"layout/DEBIAN/control").read_text()
-assert "Version: 7.458~probe-backed-pdp-ui-screenshot-disable" in ctl
-assert "#define AD_VERSION \"v7.458-probe-backed-pdp-ui-screenshot-disable\"" in t
+assert "Version: 7.459~viewport-terminal-home-hero-pill" in ctl
+assert "#define AD_VERSION \"v7.459-viewport-terminal-home-hero-pill\"" in t
 # Search autocomplete: broad black-plane ownership must skip image/icon artwork owners.
 assert "[class*=autocomplete]:not([class*=icon]):not([class*=glyph]):not([class*=image])" in t
 assert "[class*=suggestion]:not([class*=icon]):not([class*=glyph]):not([class*=image])" in t

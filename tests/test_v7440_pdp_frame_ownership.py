@@ -4,10 +4,10 @@ S=(R/'src/Tweak.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
-assert 'Version: 7.458~probe-backed-pdp-ui-screenshot-disable' in C
-assert '#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"' in S
-assert 'VER=7.458' in UI
-assert 'AD_PROBE_VERSION=7.458' in SK and 'AD_PROBE_NAME=AmazonDark-v7.458' in SK
+assert 'Version: 7.459~viewport-terminal-home-hero-pill' in C
+assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in S
+assert 'VER=7.459' in UI
+assert 'AD_PROBE_VERSION=7.459' in SK and 'AD_PROBE_NAME=AmazonDark-v7.459' in SK
 # The correction changes delivery, not just selectors: enumerate WebKit child frames and evaluate in their page world.
 for tok in ['NSSelectorFromString(@"_frames:")','evaluateJavaScript:inFrame:inContentWorld:completionHandler:','NSClassFromString(@"WKContentWorld")','NSSelectorFromString(@"pageWorld")','ADInjectFrameNode7440','ADForceChildFrameTheme7440']:
     assert tok in S,tok

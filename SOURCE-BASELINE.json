@@ -1,8 +1,8 @@
 {
-  "version": "7.458~probe-backed-pdp-ui-screenshot-disable",
-  "direct_parent": "7.457~screenshot-share-diagnostic",
-  "parent_commit": "615ba69c820e7625cb4e869d604da595ee2f478c",
-  "scope": "Probe-backed PDP UI/image fixes plus exact AXFScreenshotToastPresenter didDetectScreenshot: suppression behind restored disableShareSheetForProbes preference. Remove blanket notification-registration diagnostics.",
-  "device_evidence": "AmazonDark-v7.457-ui-full-probe-20260923-062724-074-r1.tar plus IMG_7093/7095/7097/7099: mshop-subnav light floor; rpi-icon background sprites; FBT multiply wrapper; dark supplemental chevron/search glyph; white feedback buttons; bright dividers; child-ad black brand/description; missed filter:none image families; selector-registration AXFScreenshotToastPresenter didDetectScreenshot:.",
-  "device_validation": "Pending installation. Expected: FBT/book-detail art visible, all captured image families tamed when White Taming is enabled, neutral controls/dividers dark, and screenshot Share suppressed only when Hide Share Sheet for Probes is enabled."
+  "version": "7.459~viewport-terminal-home-hero-pill",
+  "direct_parent": "7.458~probe-backed-pdp-ui-screenshot-disable",
+  "parent_source": "AmazonDark-v7.458-probe-backed-pdp-ui-screenshot-disable-source.zip",
+  "scope": "Make armed VIEWPORT capture terminal reliably without changing FULL's cooperative scan architecture; change the exact Home single-video Sponsored pill from rgba(255,255,255,0.6) to rgba(0,0,0,0.6).",
+  "device_evidence": "AmazonDark-v7.458-ui-viewport-probe-20260923-073220-076-r2.tar plus IMG_7101/IMG_7103. The completed VIEWPORT evidence required 107 WebKit continuation chunks for 2,046 visited nodes and about six seconds to terminal state. The Home hero pill owner is _single-video-card_style_sponsored-label-pill__* with computed rgba(255,255,255,0.6).",
+  "device_validation": "Pending installation. Expected: every armed next-background VIEWPORT reaches completed/partial terminal state without a continuation chain; export waits for an in-flight state write; Home hero Sponsored pill remains 60% translucent but paints black rather than white."
 }

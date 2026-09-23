@@ -1,11 +1,11 @@
 #!/bin/sh
-# AmazonDark v7.458 universal UI probe helper.
+# AmazonDark v7.459 universal UI probe helper.
 # FULL: screenshot-triggered while Amazon stays foregrounded.
 # VIEWPORT: arm once, show the target in Amazon, then background Amazon once.
 # The app captures the last foreground scene at WillResignActive; export runs afterward.
 # FULL, VIEWPORT, and TRANSITION all export one current capture as plain .tar.
 set -eu
-VER=7.458
+VER=7.459
 CUR=${VER#7.}
 NAME=AmazonDark-v$VER
 ROOT=${AD_UI_ROOT:-/var/mobile}
@@ -91,7 +91,18 @@ case "${1:-}" in
     mode=${2:-}
     case "$mode" in full|viewport) ;; *) printf 'Use exactly one mode: sh scripts/ui-probe.sh export full | export viewport\n' >&2; exit 1;; esac
     [ -d "$SHARED" ] || { printf 'Shared Documents missing: %s\n' "$SHARED" >&2; exit 1; }
-    rc=0; find_capture "$mode" || rc=$?
+    rc=0
+    if [ "$mode" = viewport ]; then
+      tries=0
+      while :; do
+        rc=0; find_capture "$mode" || rc=$?
+        case "$rc" in 0|3|5) break;; esac
+        tries=$((tries+1)); [ "$tries" -ge 10 ] && break
+        sleep 1
+      done
+    else
+      find_capture "$mode" || rc=$?
+    fi
     case "$rc" in
       0) ;;
       2)

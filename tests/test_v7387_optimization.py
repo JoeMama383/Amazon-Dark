@@ -42,6 +42,10 @@ if _v402a in S_golden:
 S_golden=S_golden.replace(",#checkoutDisplayPage #checkout-maple-upsell .maple-banner__image img","")
 S_golden=S_golden.replace("#checkoutDisplayPage :is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card']) [data-testid='image']{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","").replace("#checkoutDisplayPage :is([data-testid='selected-balance-pm-giftcard'],[data-testid='unselected-balance-pm-giftcard']) [data-testid='art']{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","")
 S_golden=S_golden.replace("#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-map canvas#Microsoft\\\\.Maps\\\\.Imagery\\\\.LiteRoad{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","")
+# v7.459 intentionally changes only the Home single-video sponsored pill from
+# translucent white to the same-alpha translucent black. Normalize that exact
+# selector before comparing older v7.386 semantic program hashes.
+S_golden=S_golden.replace("#gwm-dashboard [class*='_single-video-card_style_sponsored-label-pill__']{background:rgba(0,0,0,.6)!important;background-color:rgba(0,0,0,.6)!important;}","")
 for name,expected in golden['programs'].items():
     assert digest(payload(S_golden,name))==expected, name+' changed beyond the approved CSS shorthand compaction / v7.389-v7.390 scoped append'
 # Expand comma lists without splitting inside quotes, attributes or pseudo-classes.

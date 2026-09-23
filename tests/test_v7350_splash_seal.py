@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 sb=ROOT/'src/AmazonDarkSB.xm'
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.458~probe-backed-pdp-ui-screenshot-disable' in ctl
-assert '#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"' in t
+assert 'Version: 7.459~viewport-terminal-home-hero-pill' in ctl
+assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in t
 for s in [
     'AmazonDarkSplashSeal7350',
     'AmazonDarkSplashSealLogo7350',

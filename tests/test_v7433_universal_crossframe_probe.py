@@ -10,11 +10,11 @@ CTL=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text()
 SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 
-assert 'Version: 7.458~probe-backed-pdp-ui-screenshot-disable' in CTL
-assert '#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"' in S
-assert 'VER=7.458' in UI
-assert 'AD_PROBE_VERSION=7.458' in SK and 'AD_PROBE_NAME=AmazonDark-v7.458' in SK
-assert 'AmazonDark-v7.458-ui-viewport.arm' in INC
+assert 'Version: 7.459~viewport-terminal-home-hero-pill' in CTL
+assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in S
+assert 'VER=7.459' in UI
+assert 'AD_PROBE_VERSION=7.459' in SK and 'AD_PROBE_NAME=AmazonDark-v7.459' in SK
+assert 'AmazonDark-v7.459-ui-viewport.arm' in INC
 
 # The bridge must exist before any frame document loads, including cross-origin SafeFrames.
 assert 'ADUIProbeAttach7362(ucc);' in S
@@ -23,7 +23,8 @@ assert 'objc_setAssociatedObject(self,kADUniversalProbeUS7433,nil' in S
 assert 'initWithSource:source?:@"" injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO' in INC
 assert 'addScriptMessageHandler:gADUniversalUIBridge7433 contentWorld:ADUIProbeWorld7453() name:@"adUniversalUI7433"' in INC
 assert 'removeScriptMessageHandlerForName:@"adUniversalUI7433"' in INC
-assert 'CROSS_FRAME_DOM' in INC and 'CROSS_FRAME_FLUSH_WAIT ms=900' in INC
+assert 'CROSS_FRAME_DOM' in INC and 'CROSS_FRAME_FLUSH_WAIT policy=viewport-200ms/full-900ms' in INC
+assert 'NSTimeInterval flushDelay=viewportOnly?0.20:0.90;' in INC
 
 main=''.join(json.loads(x) for x in MAIN_INC.splitlines())
 frame=''.join(json.loads(x) for x in FRAME_INC.splitlines())

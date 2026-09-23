@@ -9,8 +9,8 @@ frameinc=(ROOT/'src/ADUniversalUIProbe7362.frame.js.inc').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
 helper=(ROOT/'scripts/ui-probe.sh').read_text()
 
-assert 'Version: 7.458~probe-backed-pdp-ui-screenshot-disable' in ctl
-assert '#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"' in t
+assert 'Version: 7.459~viewport-terminal-home-hero-pill' in ctl
+assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in t
 assert '#include "ADUniversalUIProbe7362.inc"' in t
 
 # Architectural convergence: the old per-menu capture engines and historical v7.309 output stems are removed.
@@ -33,7 +33,7 @@ assert inc.count('UIApplicationWillResignActiveNotification') == 1
 assert 'ADUIBeginViewportBackgroundTask7447' in inc and 'ADUIEndViewportBackgroundTask7447' in inc
 assert 'ADUIWaitForeground7446' not in inc
 assert 'applicationState==UIApplicationStateActive&&ADUIConsumeViewportArm7362()' in inc
-assert 'AmazonDark-v7.458-ui-viewport.arm' in inc
+assert 'AmazonDark-v7.459-ui-viewport.arm' in inc
 assert 'ADSkelTrigger7339(trigger); ADCaptureUniversalUIProbe7362(NO,trigger)' in inc  # transition marking no longer suppresses FULL
 
 # Universal scope: every current on-screen WKWebView plus native hierarchy, no tab routing.

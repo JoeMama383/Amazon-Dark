@@ -7,11 +7,11 @@ SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 FJS=(ROOT/'src/ADUniversalUIProbe7362.frame.js.inc').read_text()
 
-assert 'Version: 7.458~probe-backed-pdp-ui-screenshot-disable' in C
-assert '#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"' in S
-assert 'VER=7.458' in UI
-assert 'AD_PROBE_VERSION=7.458' in SK and 'AD_PROBE_NAME=AmazonDark-v7.458' in SK
-assert "version:'7.458'" in JS and "version:'7.458'" in FJS
+assert 'Version: 7.459~viewport-terminal-home-hero-pill' in C
+assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in S
+assert 'VER=7.459' in UI
+assert 'AD_PROBE_VERSION=7.459' in SK and 'AD_PROBE_NAME=AmazonDark-v7.459' in SK
+assert "version:'7.459'" in JS and "version:'7.459'" in FJS
 
 f=S[S.index('static NSString *ADPDPCompletionJS7405'):S.index('static NSString *ADPDPCompletionTWBJS7405')]
 for tok in [

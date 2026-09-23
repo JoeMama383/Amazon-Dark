@@ -1,17 +1,17 @@
-# AmazonDark v7.458 commands
+# AmazonDark v7.459 commands
 
 ## PUSH
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone &&
 AD_DOCS=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents &&
-AD_STAGE=$(mktemp -d /var/mobile/ad7458.XXXXXX) &&
-unzip -q "$AD_DOCS/AmazonDark-v7.458-probe-backed-pdp-ui-screenshot-disable-source.zip" -d "$AD_STAGE" &&
-cp -a "$AD_STAGE/AmazonDark-v7.458-probe-backed-pdp-ui-screenshot-disable-source/." . &&
+AD_STAGE=$(mktemp -d /var/mobile/ad7459.XXXXXX) &&
+unzip -q "$AD_DOCS/AmazonDark-v7.459-viewport-terminal-home-hero-pill-source.zip" -d "$AD_STAGE" &&
+cp -a "$AD_STAGE/AmazonDark-v7.459-viewport-terminal-home-hero-pill-source/." . &&
 chmod 755 layout/DEBIAN/postinst scripts/ui-probe.sh scripts/skeleton-probe.sh &&
 AD_STRICT_VALIDATE=0 sh scripts/validate.sh &&
 git add -A &&
-if ! git diff --cached --quiet; then git commit -m "v7.458: probe-backed PDP fixes and selective screenshot Share suppression"; fi &&
+if ! git diff --cached --quiet; then git commit -m "v7.459: make VIEWPORT terminal reliable and darken home hero sponsored pill"; fi &&
 git push origin main
 ```
 

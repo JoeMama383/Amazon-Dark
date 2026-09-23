@@ -16,4 +16,4 @@ assert 'Hide Share Sheet for Probes' in RPL
 assert 'closeScreenshotShareForFull' not in RPL
 for forbidden in ['removeObserver','postNotification','setInterval','evaluateJavaScript','dispatch_after']:
     assert forbidden not in hook
-print('PASS: v7.458 suppresses only the probe-recorded screenshot presenter callback')
+print('PASS: v7.459 suppresses only the probe-recorded screenshot presenter callback')
