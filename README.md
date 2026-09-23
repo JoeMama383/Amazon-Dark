@@ -1,11 +1,11 @@
-# AmazonDark v7.465 — PDP ad/book CI compatibility fix
+# AmazonDark v7.466 — legacy PDP CI anchor compatibility
 
-Direct parent: **v7.464~pdp-ad-book-polish**.
+Direct parent: **v7.465~pdp-ad-book-ci-fix**.
 
-v7.464's production visual changes are preserved. This build fixes the strict-regression failure caused by accidentally deleting the long-standing `// One immutable document-start program...` source sentinel immediately after `ADAddressManagementJS7412()`.
+v7.465 cleared the earlier `ADAddressManagementJS7412()` boundary failure, and strict CI then advanced through the complete v7.438 regression before stopping in `test_v7439_pdp_ui_completion.py`. That test slices `ADPDPSafeFrameJS7432()` at the historical `// v7.439:` source marker. v7.464 had removed that marker while compacting source comments.
 
-That sentinel is intentionally consumed by multiple historical regression tests as the stable end boundary for older WebKit program blocks. Its removal did not itself change runtime theming, but it made strict CI unable to slice those historical blocks and stopped validation at `test_v7412_address_location_aux_theme.py`. v7.465 restores the exact two-line sentinel in its historical location and adds a regression that locks the boundary in place.
+v7.466 restores the minimal `// v7.439:` boundary immediately before `ADPDPUICompletionJS7439()` and restores the exact historical OLED declaration token that the same v7.439 regression verifies. It also restores the minimal `// v7.388: WKUserScript` boundary before `ADSharedUserScript7387()` so the older user-style source-contract slicer cannot fail for the same reason later.
 
-The v7.464 PDP fixes remain unchanged in behavior: top standalone-ad header/floor ownership, Books divider, Book-details fade/text, Customer-review text, half-carousel OLED/text controls, BTF duplicate-border removal, and all-frame delivery remain intact. No MutationObserver, polling, RAF loop, Web scroll listener, or recurring DOM walk is added.
+These are source-contract compatibility repairs. The v7.464/v7.465 production UI ownership remains intact: top standalone-ad header/floor treatment, Books divider, Book-details fade/text, Customer-review text, half-carousel OLED/text controls, BTF duplicate-border removal, image taming, and all-frame delivery. The added `background-color:#000` / `background-image:none` declarations are behaviorally consistent with the already-owned OLED ILM shell.
 
-FULL, VIEWPORT, and TRANSITION identities are regenerated as v7.465 and remain separate workflows.
+No MutationObserver, polling loop, RAF loop, Web scroll listener, or recurring DOM walk is added. FULL, VIEWPORT, and TRANSITION identities are regenerated as v7.466.

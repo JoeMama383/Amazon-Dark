@@ -1,4 +1,4 @@
-/* AmazonDark v7.465 — PDP ad/book CI compatibility fix. */
+/* AmazonDark v7.466 — PDP ad/book CI compatibility fix. */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.465-pdp-ad-book-ci-fix"
+#define AD_VERSION "v7.466-pdp-ad-book-ci-compat"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2346,11 +2346,12 @@ static NSString *ADPDPSafeFrameJS7432(void){
 }
 
 
+// v7.439:
 static NSString *ADPDPUICompletionJS7439(void){
     return @"(function(){try{if(window.top!==window)return;var d=document,s=d.getElementById('ad7439-pdp-ui-completion');if(!s){s=d.createElement('style');s.id='ad7439-pdp-ui-completion';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#dp#dp [class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display__]{mix-blend-mode:normal!important;background:transparent!important;opacity:1!important;}"
         "#dp#dp :is(#ape_detail_mobile-hero-quick-promo_mshop_placement,#ape_detail_btf_mshop_placement,#ape_detail_btf2_mshop_placement){background:#000!important;border:0!important;outline:0!important;box-shadow:none!important;box-sizing:border-box!important;}#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important;box-sizing:border-box!important;}"
         "#dp#dp :is(#ape_detail_mobile-hero-quick-promo_mshop_wrapper,#ape_detail_btf_mshop_wrapper,#ape_detail_btf2_mshop_wrapper,#ape_detail_mobile-app-detail-ilm_mshop_wrapper,#ape_detail_mobile-hero-quick-promo_mshop_iframe,#ape_detail_btf_mshop_iframe,#ape_detail_btf2_mshop_iframe,#ape_detail_mobile-app-detail-ilm_mshop_iframe){background:#000!important;border:0!important;border-width:0!important;border-color:transparent!important;outline:0!important;box-shadow:none!important;}"
-        "#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement :is([data-csa-c-painter='sb-collections-ilm-mobile'],[class*=_c2ItY_cardWrapper_],[class*=_c2ItY_container_],[class*=_c2ItY_containerInner_]){background:#000!important;border:0!important;border-width:0!important;outline:0!important;box-shadow:none!important;}"
+        "#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement :is([data-csa-c-painter='sb-collections-ilm-mobile'],[class*=_c2ItY_cardWrapper_],[class*=_c2ItY_container_],[class*=_c2ItY_containerInner_]){background:#000!important;background-color:#000!important;background-image:none!important;border:0!important;border-width:0!important;outline:0!important;box-shadow:none!important;}"
         "#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement [data-csa-c-painter='sb-collections-ilm-mobile'] :is([class*=_c2ItY_asinSection_],[class*=_c2ItY_asinItem_],[class*=_c2ItY_asinInfo_],[class*=_c2ItY_priceContainer_],[class*=_c2ItY_brandSection_],[class*=_c2ItY_ctaText_],[class*=_c2ItY_ctaSubline_],.a-section){background:transparent!important;box-shadow:none!important;border-color:#494d4d!important;}"
         "#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement [data-csa-c-painter='sb-collections-ilm-mobile'] :is(h1,h2,h3,h4,h5,h6,p,span,a,strong,b,em,label,div,.a-color-base,.a-color-secondary,.a-color-tertiary,.a-text-normal,.a-size-base,.a-size-small,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen):not(.a-color-link):not(.a-color-price):not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=saving]):not([class*=savings]):not([class*=discount]):not([class*=promotion]):not([class*=promo]):not(:where(.a-color-link *)):not(:where(.a-color-price *)):not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=saving] *)):not(:where([class*=savings] *)):not(:where([class*=discount] *)):not(:where([class*=promotion] *)):not(:where([class*=promo] *)){color:#fff!important;-webkit-text-fill-color:#fff!important;}"
         "#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement [data-csa-c-painter='sb-collections-ilm-mobile'] :is(.a-color-link,.a-color-price,[class*=prime],[class*=star],[class*=rating],[class*=badge],[class*=deal],[class*=coupon],[class*=saving],[class*=savings],[class*=discount],[class*=promotion],[class*=promo]),#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement [data-csa-c-painter='sb-collections-ilm-mobile'] :is(.a-color-link,.a-color-price,[class*=prime],[class*=star],[class*=rating],[class*=badge],[class*=deal],[class*=coupon],[class*=saving],[class*=savings],[class*=discount],[class*=promotion],[class*=promo]) *{-webkit-text-fill-color:currentColor!important;}"
@@ -2530,6 +2531,7 @@ static NSString *ADCoreWebJS7271(void){
     return gADCoreWebJSCached7271;
 }
 
+// v7.388: WKUserScript
 static WKUserScript *ADSharedUserScript7387(NSUInteger slot,NSString *(*source)(void),BOOL mainOnly,BOOL strengthDependent){
     static WKUserScript *scripts[8]={nil};
     static long strengths[8]={0};
