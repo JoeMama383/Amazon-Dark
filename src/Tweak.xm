@@ -1,4 +1,4 @@
-/* AmazonDark v7.463 — PDP reviews polish. */
+/* AmazonDark v7.464 — PDP ad/book polish. */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.463-pdp-reviews-polish"
+#define AD_VERSION "v7.464-pdp-ad-book-polish"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -556,6 +556,7 @@ static const void *kADPrivacyUS7117=&kADPrivacyUS7117;
 static const void *kADPrivacyRule7117=&kADPrivacyRule7117;
 static const void *kADTrackedWebView7191=&kADTrackedWebView7191;
 static const void *kADUniversalProbeUS7433=&kADUniversalProbeUS7433;
+static const void *kADPDPChildUS7464=&kADPDPChildUS7464;
 static void ADUIProbeAttach7362(WKUserContentController *ucc);
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
@@ -2292,24 +2293,12 @@ static NSString *ADProductScrollPolishJS7404(void){
 // PDP structural/card/control families and preserve authored semantic colors, star/Prime
 // art and selected-state colors. The child-frame arm is restricted to a direct PDP
 // referrer so the top APE ad receives readable neutral copy without broad ad inversion.
-// v7.405 FULL r1 (captured on v7.404): a second Product Search video-ad renderer
-// uses the c2Itd short-product shell. The v7.404 outer CardInstance border spans the
-// Sponsored footer, while _singleAsin carries another border around just the text half.
-// The probe geometry proves _shortProduct is the exact video+product-copy owner: keep one
-// #494d4d frame there, remove the root/footer-spanning frame and remove the nested text frame.
-// v7.406 device correction: do not clip the short-product owner. Amazon positions the
-// Sponsored/footer label below that owner; overflow:hidden in v7.405 made it disappear.
-// Keep the single border geometry, but allow the authored footer to remain visible below it.
 static NSString *ADProductScrollVideoBorderJS7405(void){
     return @"(function(){try{var d=document,s=d.getElementById('ad7405-product-scroll-video-border');if(!s){s=d.createElement('style');s.id='ad7405-product-scroll-video-border';(d.head||d.documentElement||d).appendChild(s);}s.textContent='#search#search .sb-video-creative[class*=_c2Itd_container_]{border:0!important;border-width:0!important;border-color:transparent!important;outline:0!important;outline-color:transparent!important;box-shadow:none!important;border-radius:0!important;}#search#search .sb-video-creative [class*=_c2Itd_shortProduct_]{border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important;border-radius:4px!important;box-sizing:border-box!important;overflow:visible!important;}#search#search .sb-video-creative [class*=_c2Itd_singleAsin_]{border:0!important;border-width:0!important;border-color:transparent!important;outline:0!important;outline-color:transparent!important;box-shadow:none!important;border-radius:0!important;}';}catch(_){}})();";
 }
 
-// v7.454 r2 probe-backed APE grid carousel: the live child renderer uses an exact
-// gridContainer -> gridRegion -> grid-inset-carousel -> swiper-slide -> gridRegionCarousel
-// chain. Give only those neutral shells OLED/gray treatment and only the measured price
-// leaves light ink. Arrow controls, CTA/link colors and all authored media are untouched.
 static NSString *ADPDPGridCarouselFix7454(void){
-    return @"(function(){try{var d=document;if(window.top===window)return;var root=d.getElementById('ad');if(!root||!root.querySelector('[data-testid=gridContainer]'))return;var s=d.getElementById('ad7454-pdp-grid-carousel');if(!s){s=d.createElement('style');s.id='ad7454-pdp-grid-carousel';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`html body #ad#ad [data-testid=gridContainer]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important;}html body #ad#ad :is([data-testid=gridWrapper],[data-testid=gridRegion],.grid-inset-carousel){background:#000!important;box-shadow:none!important;}html body #ad#ad .grid.bg-zinc-100{background:#000!important;}html body #ad#ad .swiper-slide.bg-white{background:#000!important;border:0!important;outline:0!important;box-shadow:none!important;}html body #ad#ad [data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important;}html body #ad#ad :is([data-testid=price-text],[data-testid=currency]),html body #ad#ad .buybox-dealprice :is(span,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}html body #ad#ad :is(.grid-buy-box,.buybox-dealprice,.grid-logo-image){background:transparent!important;box-shadow:none!important;}`;}catch(_){}})();";
+    return @"(function(){try{var d=document;if(window.top===window)return;var s=d.getElementById('ad7454-pdp-grid-carousel');if(!s){s=d.createElement('style');s.id='ad7454-pdp-grid-carousel';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`html body #ad#ad [data-testid=gridContainer]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important;}html body #ad#ad :is([data-testid=gridWrapper],[data-testid=gridRegion],.grid-inset-carousel){background:#000!important;box-shadow:none!important;}html body #ad#ad .grid.bg-zinc-100{background:#000!important;}html body #ad#ad .swiper-slide.bg-white{background:#000!important;border:0!important;outline:0!important;box-shadow:none!important;}html body #ad#ad [data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important;}html body #ad#ad [data-testid=gridContainer] :is(h1,h2,h3,h4,p,span,div):not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=deal]):not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)):not(:where([class*=deal] *)){color:#fff!important;-webkit-text-fill-color:#fff!important;}html body #ad#ad :is([data-testid=price-text],[data-testid=currency]),html body #ad#ad .buybox-dealprice :is(span,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}html body #ad#ad :is(.grid-buy-box,.buybox-dealprice,.grid-logo-image){background:transparent!important;box-shadow:none!important;}html body #ad#ad :is(.swiper-button-prev,.swiper-button-next){background:#303335!important;color:#fff!important;border-color:#747a7c!important;box-shadow:none!important;}`;}catch(_){}})();";
 }
 
 static NSString *ADPDPCompletionJS7405(void){
@@ -2357,12 +2346,9 @@ static NSString *ADPDPSafeFrameJS7432(void){
 }
 
 
-// v7.439: final probe-backed PDP standalone-ad outer-shell completion. The outer placement owns
-// the one standard gray edge; wrappers/iframes and the ILM inner shell are frameless so there is
-// no duplicate square. Neutral copy is light, authored semantic colors remain untouched.
 static NSString *ADPDPUICompletionJS7439(void){
     return @"(function(){try{if(window.top!==window)return;var d=document,s=d.getElementById('ad7439-pdp-ui-completion');if(!s){s=d.createElement('style');s.id='ad7439-pdp-ui-completion';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#dp#dp [class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display__]{mix-blend-mode:normal!important;background:transparent!important;opacity:1!important;}"
-        "#dp#dp :is(#ape_detail_mobile-hero-quick-promo_mshop_placement,#ape_detail_btf_mshop_placement,#ape_detail_btf2_mshop_placement,#ape_detail_mobile-app-detail-ilm_mshop_placement){background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important;box-sizing:border-box!important;}"
+        "#dp#dp :is(#ape_detail_mobile-hero-quick-promo_mshop_placement,#ape_detail_btf_mshop_placement,#ape_detail_btf2_mshop_placement){background:#000!important;border:0!important;outline:0!important;box-shadow:none!important;box-sizing:border-box!important;}#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important;box-sizing:border-box!important;}"
         "#dp#dp :is(#ape_detail_mobile-hero-quick-promo_mshop_wrapper,#ape_detail_btf_mshop_wrapper,#ape_detail_btf2_mshop_wrapper,#ape_detail_mobile-app-detail-ilm_mshop_wrapper,#ape_detail_mobile-hero-quick-promo_mshop_iframe,#ape_detail_btf_mshop_iframe,#ape_detail_btf2_mshop_iframe,#ape_detail_mobile-app-detail-ilm_mshop_iframe){background:#000!important;border:0!important;border-width:0!important;border-color:transparent!important;outline:0!important;box-shadow:none!important;}"
         "#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement :is([data-csa-c-painter='sb-collections-ilm-mobile'],[class*=_c2ItY_cardWrapper_],[class*=_c2ItY_container_],[class*=_c2ItY_containerInner_]){background:#000!important;border:0!important;border-width:0!important;outline:0!important;box-shadow:none!important;}"
         "#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement [data-csa-c-painter='sb-collections-ilm-mobile'] :is([class*=_c2ItY_asinSection_],[class*=_c2ItY_asinItem_],[class*=_c2ItY_asinInfo_],[class*=_c2ItY_priceContainer_],[class*=_c2ItY_brandSection_],[class*=_c2ItY_ctaText_],[class*=_c2ItY_ctaSubline_],.a-section){background:transparent!important;box-shadow:none!important;border-color:#494d4d!important;}"
@@ -2524,14 +2510,11 @@ static NSString *ADAddressManagementJS7412(void){
         "`;}catch(_){}})();";
 }
 
-// One immutable document-start program per strength replaces four separately
-// allocated/compiled WKUserScripts while preserving their proven execution order.
 static long gADCoreWebJSStrength7271=-1;
 static NSString *gADCoreWebJSCached7271=nil;
-// v7.463 probe-backed PDP owners; declarative only.
 static NSString *ADPDPProbeBackedFixesJS7458(void){
     CGFloat f=1.0;if(gP.whiteTame){CGFloat t=((CGFloat)MAX(0,MIN(100,gP.whiteTameStrength)))/100.0;f=1.0-(0.10+(0.48*t));}
-    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#offsite-buy-box :is([data-testid=brand-name],[data-testid=product-description],[data-testid=combined-brand-and-description]){color:#fff!important;opacity:1!important}#offsite-buy-box :is([data-testid=ratings-stars],[data-testid=rating-stars],[class*=rating],[class*=star]){opacity:1!important;visibility:visible!important}#offsite-buy-box button[data-testid=sponsored-container],#offsite-buy-box button[data-testid=sponsored-container] span{color:#b1aaa0!important}#offsite-buy-box svg[data-testid=info-icon] path:first-of-type{fill:#b1aaa0!important}#offsite-buy-box svg[data-testid=info-icon] path:not(:first-of-type){fill:#000!important}#dp #relatedProductZone4_feature_div .a-carousel-container,#dp #heimdallShoppingCxFeedback_feature_div fieldset{background:#000!important}#dp #cm_cr_top_reviews_to_arp_button>.a-box-inner{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #va-related-videos-widget_feature_div [class*=_dnNlL_vseUploadButton_] i.a-icon-supplemental{filter:brightness(0) invert(1)!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]){filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');}catch(_){}})();",gP.whiteTame,f];
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav .mshop-subnav-bar{box-shadow:0 1px 0 #494d4d!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#ad>div>div>div:has(#offsite-buy-box){background:#000!important;border-color:#494d4d!important;box-shadow:none!important}#offsite-buy-box :is([data-testid=brand-name],[data-testid=product-description],[data-testid=combined-brand-and-description]){color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}#offsite-buy-box :is([data-testid=ratings-stars],[data-testid=rating-stars],[class*=rating],[class*=star]){opacity:1!important;visibility:visible!important}#offsite-buy-box button[data-testid=sponsored-container],#offsite-buy-box button[data-testid=sponsored-container] span{color:#b1aaa0!important}#offsite-buy-box svg[data-testid=info-icon] path:first-of-type{fill:#b1aaa0!important}#offsite-buy-box svg[data-testid=info-icon] path:not(:first-of-type){fill:#000!important}#dp #relatedProductZone4_feature_div .a-carousel-container,#dp #heimdallShoppingCxFeedback_feature_div fieldset{background:#000!important}#dp #productInfoTabExpanderHeader0>.a-expander-content-fade{background:transparent!important;background-image:none!important;box-shadow:none!important;opacity:0!important}#dp #product-details-card_primary-view .putb-main-text,#dp #product-details-card_primary-view .putb-main-text :is(div,span,p,strong,b){color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #averageCustomerReviewsAnchor,#dp #averageCustomerReviewsAnchor :is(div,span){color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #cm_cr_top_reviews_to_arp_button>.a-box-inner{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #va-related-videos-widget_feature_div [class*=_dnNlL_vseUploadButton_] i.a-icon-supplemental{filter:brightness(0) invert(1)!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]){filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');}catch(_){}})();",gP.whiteTame,f];
 }
 
 static NSString *ADCoreWebJS7271(void){
@@ -2545,9 +2528,6 @@ static NSString *ADCoreWebJS7271(void){
     return gADCoreWebJSCached7271;
 }
 
-// v7.388: WKUserScript is immutable. Each controller retains the same program;
-// allocate only once per slot (or once when that slot's TWB strength changes).
-// UIKit/WebKit owners call this on main; no controller or webview is retained here.
 static WKUserScript *ADSharedUserScript7387(NSUInteger slot,NSString *(*source)(void),BOOL mainOnly,BOOL strengthDependent){
     static WKUserScript *scripts[8]={nil};
     static long strengths[8]={0};
@@ -2565,6 +2545,7 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     ADUIProbeAttach7362(ucc); // universal FULL/VIEWPORT bridge
     ADFrameOwnerAttach7440(ucc); // v7.448 event-driven child-frame ownership bridge
     @try {
+        if(!objc_getAssociatedObject(ucc,kADPDPChildUS7464)){NSString *js=[ADPDPGridCarouselFix7454() stringByAppendingString:ADPDPProbeBackedFixesJS7458()];WKUserScript *us=[[WKUserScript alloc] initWithSource:js injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO inContentWorld:[WKContentWorld worldWithName:@"AmazonDarkPDP7464"]];[ucc addUserScript:us];objc_setAssociatedObject(ucc,kADPDPChildUS7464,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
         if(!objc_getAssociatedObject(ucc,kADCoreWebUS7271)){
             WKUserScript *us=ADSharedUserScript7387(0,ADCoreWebJS7271,NO,YES);
             [ucc addUserScript:us];
@@ -2669,6 +2650,7 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
     objc_setAssociatedObject(self,kADCheckoutBYGHydrateUS7375,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADPrivacyUS7117,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADUniversalProbeUS7433,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADPDPChildUS7464,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(gP.enabled)ADAttachScriptsToUCC710(self);
 }
 - (void)removeAllContentRuleLists {

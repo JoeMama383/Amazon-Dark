@@ -1,12 +1,14 @@
-# AmazonDark v7.463 — PDP reviews polish
+# AmazonDark v7.464 — PDP ad + book polish
 
-v7.463 is a probe-backed PDP follow-up to v7.462.
+Direct parent: **v7.463~pdp-reviews-polish**. The three supplied v7.463 VIEWPORT captures are the selector/paint evidence for this pass.
 
-It addresses the new viewport-reported issues on the product reviews flow:
+This build fixes the currently visible PDP issues without adding observers, polling, RAF loops, Web scroll listeners, or recurring DOM traversal:
 
-- forces the related-products / “Customers who bought this item also bought” carousel floor to OLED black by owning the exact `#relatedProductZone4_feature_div` carousel shell
-- forces the “Rate today’s book shopping experience” header strip to OLED black by owning the exact `#heimdallShoppingCxFeedback_feature_div` widget container / fieldset while preserving the gray rating buttons
-- restores the hidden “See more reviews” row to white text by owning `#cm_cr_top_reviews_to_arp_button`
-- forces the “Upload your video” chevron to white by owning the exact `_dnNlL_vseUploadButton_` supplemental icon
+- delivers the exact PDP child-ad repair sheet through a dedicated all-frame WebKit content world, so late SafeFrame/APE hydration no longer leaves the top standalone-ad heading black/hidden or the half-carousel renderer white
+- keeps the compact/offsite ad shell OLED, forces its brand/product heading white, preserves ratings/semantic colors, and retains the existing configurable image taming
+- makes the half-carousel `gridContainer`/grid/swiper neutral floors OLED, neutral copy white, and arrow controls dark with gray edges
+- removes the square outer border from the BTF/hero standalone placements while preserving the child renderer’s existing rounded inner border; the separate ILM family keeps its accepted outer-edge ownership
+- changes the Books subnav shadow/divider to the standard `#494d4d` gray
+- removes the white Book details expander fade, makes the captured Book details text white, and makes the captured Customer reviews rating text white
 
-The implementation remains declarative CSS only inside the existing probe-backed PDP owner block. No observers, polling, MutationObserver, scroll listeners, or recurring DOM walks are added. FULL, VIEWPORT, and TRANSITION identities are regenerated as v7.463.
+FULL, VIEWPORT, and TRANSITION identities are regenerated as v7.464 and remain separate workflows.
