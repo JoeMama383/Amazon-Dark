@@ -4,8 +4,8 @@ import hashlib,re,subprocess,tempfile
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.454~carousel-probe-order' in CTRL
-assert '#define AD_VERSION "v7.454-carousel-probe-order"' in S
+assert 'Version: 7.455~pdp-manual-full' in CTRL
+assert '#define AD_VERSION "v7.455-pdp-manual-full"' in S
 
 from cart7423_delta import strip_cart7423
 from video7425_delta import strip_video7425

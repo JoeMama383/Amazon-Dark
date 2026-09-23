@@ -1,11 +1,11 @@
 #!/bin/sh
-# AmazonDark v7.454 universal UI probe helper.
+# AmazonDark v7.455 universal UI probe helper.
 # FULL: screenshot-triggered while Amazon stays foregrounded.
 # VIEWPORT: arm once, show the target in Amazon, then background Amazon once.
 # The app captures the last foreground scene at WillResignActive; export runs afterward.
 # FULL, VIEWPORT, and TRANSITION all export one current capture as plain .tar.
 set -eu
-VER=7.454
+VER=7.455
 CUR=${VER#7.}
 NAME=AmazonDark-v$VER
 ROOT=${AD_UI_ROOT:-/var/mobile}
@@ -104,7 +104,7 @@ case "${1:-}" in
       3) printf 'The newest v%s %s capture timestamp is in the future. Check the clock before triggering another capture.\n' "$VER" "$mode" >&2; exit 1;;
       4)
         if [ "$mode" = full ]; then
-          printf 'The current v%s FULL capture is still running or incomplete. Return to Amazon so the finite FULL sweep can finish, then export again.\n' "$VER" >&2
+          printf 'The current v%s FULL capture is still running or incomplete. Non-PDP menus finish automatically; on Product Detail manually scroll through the page to the bottom, then export again.\n' "$VER" >&2
         else
           printf 'The current v%s VIEWPORT background capture did not reach a terminal state. Re-arm it and background Amazon again.\n' "$VER" >&2
         fi
@@ -145,7 +145,7 @@ case "${1:-}" in
     ;;
   *)
     printf 'Usage: sh scripts/ui-probe.sh arm | export full | export viewport | status | disarm\n' >&2
-    printf 'FULL: screenshot in Amazon, let it finish, then export full. VIEWPORT: arm, show target in Amazon, background once, then export viewport.\n' >&2
+    printf 'FULL: screenshot in Amazon. Non-PDP walks automatically; Product Detail is manual-scroll only, so scroll to the bottom. Then export full. VIEWPORT: arm, show target in Amazon, background once, then export viewport.\n' >&2
     exit 1
     ;;
 esac

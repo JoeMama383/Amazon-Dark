@@ -6,8 +6,8 @@ M=''.join(json.loads(x) for x in (R/'src/ADUniversalUIProbe7362.js.inc').read_te
 SC=''.join(json.loads(x) for x in (R/'src/ADUIProbeScroll7446.js.inc').read_text().splitlines())
 SAMPLE=''.join(json.loads(x) for x in (R/'src/ADUIProbeViewportSample7449.js.inc').read_text().splitlines())
 C=(R/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.454~carousel-probe-order' in C
-assert '#define AD_VERSION "v7.454-carousel-probe-order"' in S
+assert 'Version: 7.455~pdp-manual-full' in C
+assert '#define AD_VERSION "v7.455-pdp-manual-full"' in S
 # Screenshot FULL may not synchronously format a full native hierarchy anymore.
 cap=I[I.index('static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){'):I.index('static NSString *ADUIViewportArmPath7362')]
 assert 'ADUINativeSnapshot7362(viewportOnly)' not in cap

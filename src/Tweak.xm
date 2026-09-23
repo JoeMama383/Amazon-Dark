@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.454 — PDP streaming FULL correction
+ * AmazonDark v7.455 — PDP-safe manual FULL probe
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.454-carousel-probe-order"
+#define AD_VERSION "v7.455-pdp-manual-full"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;

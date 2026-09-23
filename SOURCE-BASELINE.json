@@ -1,8 +1,8 @@
 {
-  "version": "7.454~carousel-probe-order",
-  "direct_parent": "7.453~isolated-probe",
-  "source": "AmazonDark-v7.453-isolated-probe-source(1).zip",
-  "scope": "Probe-backed PDP child-frame grid carousel theming plus FULL probe execution-order correction. Exact carousel shells/price leaves are themed while arrows, CTA/link colors and media are preserved. FULL begins the guarded root/visible-panel walk before detailed inventory; fixed-height vertical panels are discoverable without inventory; post-walk inventory and unseen-node catch-up remain finite and opt-in.",
-  "device_evidence": "v7.453 r2 FULL captured exact carousel DOM but ended PDP stream with document-backgrounded; WEB_SWEEP_END reported root-init-failed totalSteps=0. UI screenshot showed white grid/card floors and thin light borders with stock arrow/media controls.",
-  "device_validation": "Pending installation of v7.454 CI package."
+  "version": "7.455~pdp-manual-full",
+  "direct_parent": "7.454~carousel-probe-order",
+  "source": "AmazonDark-v7.454-carousel-probe-order-source.zip",
+  "scope": "Restore the proven Product Detail no-programmatic-scroll boundary without regressing the working automatic FULL walker on Cart/Search/other menus. PDP FULL is user-driven and records bounded visible checkpoints after manual scroll idle; the exhaustive PDP stream and all Web/native scroll writes are excluded from the PDP branch. The v7.454 exact carousel OLED fix is retained.",
+  "device_evidence": "Problem PDP r2: v7.453 stream ended document-backgrounded after 13 batches/289 emitted nodes and the later walk ended root-init-failed totalSteps=0. Good Cart r3: v7.454 root walker completed 10 steps from y=0 to y=2392 and mounted nodes grew 2383 to 5637. Historical v7.450 audit had already shown active PDP scroll driving collapsing ~11k-13k px renderers to 779 px.",
+  "device_validation": "Pending installation of v7.455 CI package. Expected PDP behavior: responsive page, no automatic product scroll, user scroll checkpoints, automatic terminal completion at bottom."
 }

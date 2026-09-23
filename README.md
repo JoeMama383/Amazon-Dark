@@ -1,26 +1,34 @@
-# AmazonDark v7.454 — carousel correction + FULL walk-first probe
+# AmazonDark v7.455 — PDP-safe manual FULL probe
 
-Parent: v7.453-isolated-probe. Source handoff; device behavior still requires installation verification.
+Parent: `v7.454~carousel-probe-order`. Source handoff; compile/device verification remains required.
 
-## What changed
+## Root cause
 
-- Fixes the probe-recorded PDP sponsored grid carousel with exact child-frame selectors. The outer grid shell and carousel cards are OLED black, neutral borders are standardized to `#494d4d`, and the recorded price/currency leaves are white.
-- Does **not** target the carousel arrow controls, CTA/link colors, or authored media, so their stock styling is preserved.
-- FULL now starts the guarded document/visible-panel walk before the expensive detailed DOM stream. A slow serializer can no longer block the automatic walk from ever starting.
-- Fixed-height vertical panels can be found directly from visible hit-test/ancestor geometry before DOM inventory exists. Horizontal carousels are excluded because discovery requires real vertical scroll span.
-- After the root/primary pass, FULL runs detailed mounted-DOM inventory, walks any newly discovered nested owners, then runs an incremental unseen-node catch-up and coverage check.
-- The stream keeps a per-run WeakSet so the catch-up does not serialize the same mounted elements again.
+The Product Detail page is not behaving like Cart/Search under probe-driven scrolling. The supplied captures make the split clear:
 
-## v7.453 device evidence that drove this build
+- **R3 Cart / v7.454:** the automatic root walker completed 10 real scroll steps, from `y=0` through `y=2392`; mounted nodes grew from 2,383 to 5,637. The generic walker works.
+- **R2 PDP / v7.453:** the PDP serializer started, but the app was backgrounded while it was running. It ended `document-backgrounded`; the later automatic walk never initialized and ended `root-init-failed totalSteps=0`.
+- Older PDP evidence already established a second, independent product-only hazard: driving Product Detail scroll state can collapse its WebKit renderer. v7.450 documented historical PDP documents around 11k–13k px becoming a 779 px renderer after active sweep mutation.
 
-The r2 FULL capture did start the PDP stream, but the document was backgrounded while the stream was still running. It ended with `document-backgrounded`; the subsequent root walk returned `root-init-failed` with `totalSteps=0`. The capture still recorded the exact ad carousel nodes that are targeted by the v7.454 UI patch.
+So this is not a generic FULL failure and it is not caused by Cart having a smaller DOM. Product Detail needs a different diagnostic transport: **the probe must not drive its scroll position and must not begin with an exhaustive full-DOM style serialization.**
 
-So v7.453 was **not** a deliberate manual-scroll FULL mode. Manually scrolling while Amazon stayed foreground could expose additional virtualized content, but the intended automatic walk never got a chance to run in that capture.
+## v7.455 correction
+
+- Non-PDP menus keep the v7.454 automatic root/vertical-owner walker unchanged.
+- Product Detail is classified by `/dp/`, `/gp/product/`, `/gp/aw/d/`, with `#dp` fallback.
+- PDP FULL never calls the generic Web scroll writer and still skips native scroll driving.
+- PDP FULL installs one temporary probe-only scroll listener. **You scroll the product page normally.** After scrolling idles for 220 ms, the probe records a bounded detailed snapshot of the visible scene.
+- The PDP snapshot is hit-test/visible-semantic bounded (`460` unique visible elements max); it does not TreeWalk/style the entire product DOM.
+- When the user reaches the document bottom, the probe records the final checkpoint, removes the temporary listener, and marks FULL terminal. Backgrounding early stops it as partial so it never traps the app waiting on a hidden document.
+- The temporary listener exists only during an explicitly triggered PDP FULL capture. Production theming still has no scroll listener, MutationObserver, polling loop, RAF loop, or recurring hierarchy scan.
+- The v7.454 exact carousel OLED fix is retained unchanged.
 
 ## FULL workflow
 
-Take one screenshot in Amazon and keep Amazon foregrounded. v7.454 should begin moving the document/visible vertical panel automatically. Do not switch to NewTerm until the automatic movement has stopped and the view has returned to its original offset. Then run `sh scripts/ui-probe.sh status`; a successful run should report FULL `completed`, not `partial`, before export.
+**Cart/Search/other menus:** take one screenshot and leave Amazon foregrounded. The probe scrolls automatically and restores the starting offset.
 
-Manual scrolling is compatible, but it is not required and is not the default contract.
+**Product Detail:** start near the top, take one screenshot, then manually scroll through the product page to the bottom. Pause briefly at anything important. The probe captures the initial visible scene and each manual scroll-idle checkpoint. It does not programmatically move the PDP.
 
-VIEWPORT and TRANSITION remain separate exports and keep their existing behavior.
+After the probe reaches a terminal state, run `sh scripts/ui-probe.sh status`, then `sh scripts/ui-probe.sh export full`.
+
+VIEWPORT and TRANSITION remain separate and unchanged in behavior.

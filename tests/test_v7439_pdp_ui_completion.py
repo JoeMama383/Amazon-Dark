@@ -6,12 +6,12 @@ UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
-assert 'Version: 7.454~carousel-probe-order' in C
-assert '#define AD_VERSION "v7.454-carousel-probe-order"' in S
-assert 'VER=7.454' in UI
-assert 'AD_PROBE_VERSION=7.454' in SK and 'AD_PROBE_NAME=AmazonDark-v7.454' in SK
-assert '7.454~*)' in SK and 'Install the v7.454 Actions package first.' in SK
-assert 'AmazonDark-v7.454-carousel-probe-order-source.zip' in CMD
+assert 'Version: 7.455~pdp-manual-full' in C
+assert '#define AD_VERSION "v7.455-pdp-manual-full"' in S
+assert 'VER=7.455' in UI
+assert 'AD_PROBE_VERSION=7.455' in SK and 'AD_PROBE_NAME=AmazonDark-v7.455' in SK
+assert '7.455~*)' in SK and 'Install the v7.455 Actions package first.' in SK
+assert 'AmazonDark-v7.455-pdp-manual-full-source.zip' in CMD
 assert 'sh scripts/validate.sh' in CMD
 
 # New main-frame completion is injected into the core script.

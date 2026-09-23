@@ -7,8 +7,8 @@ C=(ROOT/'layout/DEBIAN/control').read_text()
 W=(ROOT/'.github/workflows/build.yml').read_text()
 CMD=(ROOT/'COMMANDS.md').read_text()
 
-assert 'Version: 7.454~carousel-probe-order' in C
-assert '#define AD_VERSION "v7.454-carousel-probe-order"' in S
+assert 'Version: 7.455~pdp-manual-full' in C
+assert '#define AD_VERSION "v7.455-pdp-manual-full"' in S
 
 # Claude audit: ADStandalonePaintJS7104 is semantically clean.
 stand=S[S.index('static NSString *ADStandalonePaintJS7104'):S.index('static NSString *ADTWBJS')]
@@ -65,7 +65,7 @@ for bad in ['MutationObserver','setInterval','setTimeout','requestAnimationFrame
 assert 'actions/setup-python@v5' in W
 assert 'AD_STRICT_VALIDATE=1 sh scripts/validate.sh' in W
 assert 'sh scripts/validate.sh' in CMD
-assert 'AmazonDark-v7.454-carousel-probe-order-source.zip' in CMD
+assert 'AmazonDark-v7.455-pdp-manual-full-source.zip' in CMD
 V=(ROOT/'scripts/validate.sh').read_text()
 assert 'scripts/lint-logos.sh' in V and 'tests/test_*.py' in V
 assert 'command -v python3' in V and 'AD_STRICT_VALIDATE' in V

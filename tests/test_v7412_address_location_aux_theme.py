@@ -3,8 +3,8 @@ import json
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7412-location-aux-zip.json').read_text())
-assert 'Version: 7.454~carousel-probe-order' in C
-assert '#define AD_VERSION "v7.454-carousel-probe-order"' in S
+assert 'Version: 7.455~pdp-manual-full' in C
+assert '#define AD_VERSION "v7.455-pdp-manual-full"' in S
 # Historical ZIP evidence remains the geometry contract.
 assert F['aux_scroll']['rect']==[18.0,752.7,394.0,179.3]
 assert F['input']['class']=='RCTSinglelineTextInputView' and F['input']['background']==[1,1,1,1]
