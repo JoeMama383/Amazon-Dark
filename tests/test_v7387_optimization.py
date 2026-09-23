@@ -42,11 +42,12 @@ if _v402a in S_golden:
 S_golden=S_golden.replace(",#checkoutDisplayPage #checkout-maple-upsell .maple-banner__image img","")
 S_golden=S_golden.replace("#checkoutDisplayPage :is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card']) [data-testid='image']{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","").replace("#checkoutDisplayPage :is([data-testid='selected-balance-pm-giftcard'],[data-testid='unselected-balance-pm-giftcard']) [data-testid='art']{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","")
 S_golden=S_golden.replace("#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-map canvas#Microsoft\\\\.Maps\\\\.Imagery\\\\.LiteRoad{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","")
-# v7.460 corrects the exact Home single-video sponsored-pill owner and gives
-# that style a fresh identity. Normalize only those two approved deltas before
-# comparing the older v7.386 semantic program hashes.
+# v7.461 keeps the captured single-video owner and adds the alternate
+# single-creative owner seen on the next Home load. Normalize only those
+# approved Home-pill deltas before comparing the older v7.386 semantic hashes.
 S_golden=S_golden.replace("[class*='_single-video-card_style_sponsored-label-pill__']{background:rgba(0,0,0,.6)!important;background-color:rgba(0,0,0,.6)!important;}","")
-S_golden=S_golden.replace('ad7460-home-hero-pill','ad7381-home-ad-shell-floor')
+S_golden=S_golden.replace("[class*='_single-creative-card_style_sponsored-label-pill__']{background:rgba(0,0,0,.6)!important;background-color:rgba(0,0,0,.6)!important;}","")
+S_golden=S_golden.replace('ad7461-home-hero-pill','ad7381-home-ad-shell-floor')
 for name,expected in golden['programs'].items():
     assert digest(payload(S_golden,name))==expected, name+' changed beyond the approved CSS shorthand compaction / v7.389-v7.390 scoped append'
 # Expand comma lists without splitting inside quotes, attributes or pseudo-classes.
