@@ -1,4 +1,4 @@
-/* AmazonDark v7.464 — PDP ad/book polish. */
+/* AmazonDark v7.465 — PDP ad/book CI compatibility fix. */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.464-pdp-ad-book-polish"
+#define AD_VERSION "v7.465-pdp-ad-book-ci-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2510,6 +2510,8 @@ static NSString *ADAddressManagementJS7412(void){
         "`;}catch(_){}})();";
 }
 
+// One immutable document-start program per strength replaces four separately
+// allocated/compiled WKUserScripts while preserving their proven execution order.
 static long gADCoreWebJSStrength7271=-1;
 static NSString *gADCoreWebJSCached7271=nil;
 static NSString *ADPDPProbeBackedFixesJS7458(void){

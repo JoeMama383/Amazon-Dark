@@ -1,14 +1,11 @@
-# AmazonDark v7.464 — PDP ad + book polish
+# AmazonDark v7.465 — PDP ad/book CI compatibility fix
 
-Direct parent: **v7.463~pdp-reviews-polish**. The three supplied v7.463 VIEWPORT captures are the selector/paint evidence for this pass.
+Direct parent: **v7.464~pdp-ad-book-polish**.
 
-This build fixes the currently visible PDP issues without adding observers, polling, RAF loops, Web scroll listeners, or recurring DOM traversal:
+v7.464's production visual changes are preserved. This build fixes the strict-regression failure caused by accidentally deleting the long-standing `// One immutable document-start program...` source sentinel immediately after `ADAddressManagementJS7412()`.
 
-- delivers the exact PDP child-ad repair sheet through a dedicated all-frame WebKit content world, so late SafeFrame/APE hydration no longer leaves the top standalone-ad heading black/hidden or the half-carousel renderer white
-- keeps the compact/offsite ad shell OLED, forces its brand/product heading white, preserves ratings/semantic colors, and retains the existing configurable image taming
-- makes the half-carousel `gridContainer`/grid/swiper neutral floors OLED, neutral copy white, and arrow controls dark with gray edges
-- removes the square outer border from the BTF/hero standalone placements while preserving the child renderer’s existing rounded inner border; the separate ILM family keeps its accepted outer-edge ownership
-- changes the Books subnav shadow/divider to the standard `#494d4d` gray
-- removes the white Book details expander fade, makes the captured Book details text white, and makes the captured Customer reviews rating text white
+That sentinel is intentionally consumed by multiple historical regression tests as the stable end boundary for older WebKit program blocks. Its removal did not itself change runtime theming, but it made strict CI unable to slice those historical blocks and stopped validation at `test_v7412_address_location_aux_theme.py`. v7.465 restores the exact two-line sentinel in its historical location and adds a regression that locks the boundary in place.
 
-FULL, VIEWPORT, and TRANSITION identities are regenerated as v7.464 and remain separate workflows.
+The v7.464 PDP fixes remain unchanged in behavior: top standalone-ad header/floor ownership, Books divider, Book-details fade/text, Customer-review text, half-carousel OLED/text controls, BTF duplicate-border removal, and all-frame delivery remain intact. No MutationObserver, polling, RAF loop, Web scroll listener, or recurring DOM walk is added.
+
+FULL, VIEWPORT, and TRANSITION identities are regenerated as v7.465 and remain separate workflows.

@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.464~pdp-ad-book-polish' in C
-assert '#define AD_VERSION "v7.464-pdp-ad-book-polish"' in S
+assert 'Version: 7.465~pdp-ad-book-ci-fix' in C
+assert '#define AD_VERSION "v7.465-pdp-ad-book-ci-fix"' in S
 assert len(S.encode()) < 856000
 # Probe 2: install the grid style before late renderer hydration, then darken the exact family.
 g=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSString *ADPDPCompletionJS7405')]
@@ -30,6 +30,6 @@ assert '#ape_detail_btf_mshop_placement,#ape_detail_btf2_mshop_placement){backgr
 assert '#ape_detail_mobile-app-detail-ilm_mshop_placement{background:#000!important;border:1px solid #494d4d!important' in u
 remove=S[S.index('- (void)removeAllUserScripts'):S.index('- (void)removeAllContentRuleLists')]
 assert 'kADPDPChildUS7464,nil' in remove
-for h in ['## FULL — v7.464','## VIEWPORT — v7.464','## TRANSITION — v7.464']:
+for h in ['## FULL — v7.465','## VIEWPORT — v7.465','## TRANSITION — v7.465']:
     assert h in CMD
-print('PASS: v7.464 probe-backed PDP ad/book UI fixes and all-frame delivery contract')
+print('PASS: v7.465 probe-backed PDP ad/book UI fixes and all-frame delivery contract')
