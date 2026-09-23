@@ -9,6 +9,7 @@ case "$mode" in 5??|7??) ;; *) echo "validate: layout/DEBIAN/postinst must be ex
 
 bash scripts/lint-logos.sh
 
+# Source regression set is tests/test_*.py; execution uses a normalized temporary copy.
 # Current-version synchronization is checked once here instead of rewriting every
 # historical regression file on each build. Historical tests are frozen at the
 # v7.460 baseline and receive version-token normalization only in a temporary copy.
@@ -36,6 +37,12 @@ if command -v python3 >/dev/null 2>&1; then
   test_tmp="$ROOT/.ad-regressions.$$"
   rm -rf "$test_tmp"
   mkdir -p "$test_tmp"
+  source_test_count=0
+  for f in tests/test_*.py; do
+    [ -f "$f" ] || continue
+    source_test_count=$((source_test_count + 1))
+  done
+  [ "$source_test_count" -gt 0 ] || { echo "validate: no Python regressions found" >&2; exit 1; }
   cp -R tests/. "$test_tmp/"
   auto_cleanup="$test_tmp"
   trap 'rm -rf "${auto_cleanup:-}"' EXIT HUP INT TERM

@@ -1,16 +1,16 @@
-# AmazonDark v7.460 commands
+# AmazonDark v7.461 commands
 
 ## Push
 ```sh
 cd /var/mobile/Amazon-Dark-phone &&
 AD_DOCS=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents &&
-AD_STAGE=$(mktemp -d /var/mobile/ad7460.XXXXXX) &&
-unzip -q "$AD_DOCS/AmazonDark-v7.460-home-hero-pill-owner-fix-source.zip" -d "$AD_STAGE" &&
-cp -a "$AD_STAGE/AmazonDark-v7.460-home-hero-pill-owner-fix-source/." . &&
-chmod 755 layout/DEBIAN/postinst scripts/ui-probe.sh scripts/skeleton-probe.sh &&
+AD_STAGE=$(mktemp -d /var/mobile/ad7461.XXXXXX) &&
+unzip -q "$AD_DOCS/AmazonDark-v7.461-home-hero-pill-variants-source.zip" -d "$AD_STAGE" &&
+cp -a "$AD_STAGE/AmazonDark-v7.461-home-hero-pill-variants-source/." . &&
+chmod 755 layout/DEBIAN/postinst scripts/ui-probe.sh scripts/skeleton-probe.sh scripts/validate.sh &&
 AD_STRICT_VALIDATE=0 sh scripts/validate.sh &&
 git add -A &&
-if ! git diff --cached --quiet; then git commit -m "v7.460: correct Home hero Sponsored pill owner"; fi &&
+if ! git diff --cached --quiet; then git commit -m "v7.461: cover both Home hero Sponsored pill variants"; fi &&
 git push origin main
 ```
 
