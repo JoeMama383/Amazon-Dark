@@ -6,32 +6,21 @@ U=(R/'scripts/ui-probe.sh').read_text()
 K=(R/'scripts/skeleton-probe.sh').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
-assert 'Version: 7.462~search-cards-scanit-shell' in C
-assert '#define AD_VERSION "v7.462-search-cards-scanit-shell"' in S
+assert 'Version: 7.463~pdp-reviews-polish' in C
+assert '#define AD_VERSION "v7.463-pdp-reviews-polish"' in S
 
-# FULL probe captured two Amazon class variants for the white description floors.
-# Keep ownership inside the known cards carousel and match their shared exact suffix.
-sel='.cards_carousel_widget-sug-container-top [class$=widget-sug-text]'
-assert S.count(sel) >= 2
-for decl in ['background:#000!important','color:#e8e6e3!important','-webkit-text-fill-color:#e8e6e3!important']:
-    assert decl in S[S.index(sel):S.index(sel)+260], decl
+block=S[S.index('static NSString *ADPDPProbeBackedFixesJS7458(void)'):S.index('static NSString *ADCoreWebJS7271(void)')]
+for sel in [
+    '#dp#dp #relatedProductZone4_feature_div :is(.a-carousel-container,.a-carousel-viewport,.a-carousel,.a-carousel-row,.a-carousel-card,.p13n-uf-wrapper,.p13n-uf,.p13n-sc-uncoverable-faceout,.a-box,.a-box-inner){background:#000!important;border-color:#494d4d!important;box-shadow:none!important}',
+    '#dp#dp #heimdallShoppingCxFeedback_feature_div :is(.shoppingCxFeedbackRootWidget,.widgetContentContainer,[class*=_shopping-cx-feedback-widget_style_shopping-cx-feedback-widget__],[class*=_shopping-cx-feedback-widget_style_radio-feedback-container__],fieldset.a-box-group.a-form-control-group){background:#000!important}',
+    '#dp#dp #aw-udpv3-customer-reviews_feature_div #cm_cr_top_reviews_to_arp_button,#dp#dp #aw-udpv3-customer-reviews_feature_div #cm_cr_top_reviews_to_arp_button>.a-box-inner{background:#000!important;border-color:#494d4d!important;box-shadow:none!important}',
+    '#dp#dp #va-related-videos-widget_feature_div [class*=_dnNlL_vseUploadButton_] .a-icon.a-icon-supplemental{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important}',
+]:
+    assert sel in block
 
-# The square gray outline belongs to the 430x60 A9VSScanItSearchWidget shell,
-# not to the two rounded A9VSScanItIngressButtonRedesign children.
-block=S[S.index('static void ADPaintScanItSearchWidget7120'):S.index('%hook ANPSearchBarRightButton')]
-assert 'root.layer.borderWidth=0.0;' in block
-assert 'root.layer.sublayers' in block and 'frame.size.height<=1.5' in block
-hook=block[block.index('%hook A9VSScanItSearchWidget'):]
-assert '- (void)layoutSubviews' in hook
-assert '((UIView *)self).layer.borderWidth=0.0;' in hook
-# Preserve the existing rounded child-button border styling.
-assert 'v.layer.borderColor=ADBorderGray706().CGColor;' in block
-assert 'if(v.layer.borderWidth<0.5)v.layer.borderWidth=1.0;' in block
-
-# Every build regenerates all probe identities and handoff commands.
-assert 'VER=7.462' in U
-assert 'AD_PROBE_VERSION=7.462' in K and 'AD_PROBE_NAME=AmazonDark-v7.462' in K
-assert 'AmazonDark-v7.462-search-cards-scanit-shell-source.zip' in CMD
-for h in ['## FULL — v7.462','## VIEWPORT — v7.462','## TRANSITION — v7.462']:
+assert 'VER=7.463' in U
+assert 'AD_PROBE_VERSION=7.463' in K and 'AD_PROBE_NAME=AmazonDark-v7.463' in K
+assert 'AmazonDark-v7.463-pdp-reviews-polish-source.zip' in CMD
+for h in ['## FULL — v7.463','## VIEWPORT — v7.463','## TRANSITION — v7.463']:
     assert h in CMD
-print('PASS: v7.462 owns both Search description-floor variants, removes only the ScanIt shell border, and regenerates all probes')
+print('PASS: v7.463 polishes PDP review/recommendation floors, fixes See more reviews and Upload your video, and regenerates all probes')

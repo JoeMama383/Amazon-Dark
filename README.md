@@ -1,7 +1,12 @@
-# AmazonDark v7.462 — Search suggestion cards + ScanIt shell
+# AmazonDark v7.463 — PDP reviews polish
 
-v7.462 is a narrow probe-backed follow-up to v7.461. The supplied v7.461 FULL probe identifies the white description strips under the Search suggestion carousel as `cards_carousel_nview_widget-sug-text` / `cards_carousel_text_left_widget-sug-text`. The existing dark rule only matched `cards_carousel_widget-sug-text`, so v7.462 broadens that exact carousel owner to the shared `widget-sug-text` suffix: OLED black floor with light text.
+v7.463 is a probe-backed PDP follow-up to v7.462.
 
-The same probe identifies the square gray outline around both “Search with” controls as the 430x60 native `A9VSScanItSearchWidget` root (`layerBorder=1px`), while the two child `A9VSScanItIngressButtonRedesign` controls own their separate rounded borders. v7.462 removes only the root square border, keeps the child button borders, and darkens the root's captured 1px stock top hairline. A cheap exact-owner `layoutSubviews` seal only reasserts `borderWidth=0`; it does not walk the subtree.
+It addresses the new viewport-reported issues on the product reviews flow:
 
-v7.461 Home hero Sponsored-pill coverage and VIEWPORT reliability changes are retained. FULL, VIEWPORT, and TRANSITION identities are regenerated as v7.462.
+- forces the related-products / “Customers who bought this item also bought” carousel floor to OLED black by owning the exact `#relatedProductZone4_feature_div` carousel shell
+- forces the “Rate today’s book shopping experience” header strip to OLED black by owning the exact `#heimdallShoppingCxFeedback_feature_div` widget container / fieldset while preserving the gray rating buttons
+- restores the hidden “See more reviews” row to white text by owning `#cm_cr_top_reviews_to_arp_button`
+- forces the “Upload your video” chevron to white by owning the exact `_dnNlL_vseUploadButton_` supplemental icon
+
+The implementation remains declarative CSS only inside the existing probe-backed PDP owner block. No observers, polling, MutationObserver, scroll listeners, or recurring DOM walks are added. FULL, VIEWPORT, and TRANSITION identities are regenerated as v7.463.
