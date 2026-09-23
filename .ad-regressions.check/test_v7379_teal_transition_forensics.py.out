@@ -1,0 +1,1 @@
+PASS: v7.379 transition trace survives switcher/warm return, captures lifecycle windows, and passively observes placeholder delivery without mutation

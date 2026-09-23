@@ -1,0 +1,13 @@
+{
+  "source": "AmazonDark-v7.409 transition bundle 20260911-193344 plus v7.406 camera FULL/transition evidence",
+  "location_bad_sequence": [
+    {"tick": 733, "class": "RCTView", "rect": [0, 914, 430, 18], "bg": "white", "role": "top_rail", "location_child_available": false},
+    {"tick": 737, "class": "RCTView", "rect": [0, 915.3, 430, 16.7], "bg": "white", "clips": true, "role": "outer_shell", "early_inset_content": [18, 915.3, 394, 350.7], "rct_scrollview_available": false},
+    {"tick": 747, "class": "RCTScrollView", "rect": [18, 643, 394, 289], "bg": "black", "role": "late_concrete_scroller"},
+    {"tick": 749, "class": "RCTView", "rect": [0, 607, 430, 325], "bg": "black", "role": "outer_shell_settled_dark"},
+    {"tick": 752, "class": "RCTView", "rect": [0, 550.3, 430, 18], "bg": "black", "role": "top_rail_settled_dark"}
+  ],
+  "camera_button": {"parent_id": "inflight-prompt-allow-button", "text_class": "RCTTextView", "stock_fg": [0.059, 0.067, 0.067, 1.0]},
+  "camera_dismiss_button": {"parent_id": "inflight-prompt-dismiss-button", "text_class": "RCTTextView", "stock_fg": [0.059, 0.067, 0.067, 1.0]},
+  "microphone_button": {"parent_id": "actionButton", "text_class": "RCTTextView", "stock_fg": [0.059, 0.067, 0.067, 1.0]}
+}

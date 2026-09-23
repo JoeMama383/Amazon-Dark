@@ -1,0 +1,1 @@
+PASS: forward-class compile fix is retained while location ownership is simplified

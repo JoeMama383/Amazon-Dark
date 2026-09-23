@@ -1,0 +1,108 @@
+{
+  "source": "AmazonDark-v7.411-ui-full-probe-20260911-203522-224-r1",
+  "window": [
+    0,
+    0,
+    430,
+    932
+  ],
+  "aux_scroll": {
+    "class": "RCTScrollView",
+    "rect": [
+      18.0,
+      752.7,
+      394.0,
+      179.3
+    ],
+    "background": "black"
+  },
+  "header": {
+    "class": "RCTView",
+    "rect": [
+      18.0,
+      752.7,
+      394.0,
+      35.3
+    ],
+    "borderBottomWidth": 1.0,
+    "children": [
+      "RCTImageView 24x24",
+      "RCTTextView 365x24.7"
+    ]
+  },
+  "header_text": {
+    "class": "RCTTextView",
+    "len": 19,
+    "hash": "0dff0c9a",
+    "fg": [
+      0.067,
+      0.067,
+      0.067,
+      1.0
+    ],
+    "fontSize": 17
+  },
+  "input": {
+    "class": "RCTSinglelineTextInputView",
+    "rect": [
+      18.0,
+      794.0,
+      394.0,
+      44.0
+    ],
+    "background": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "borderWidth": 1.0,
+    "borderRadius": 3.0
+  },
+  "placeholder": {
+    "class": "UITextFieldLabel",
+    "rect": [
+      29.0,
+      806.3,
+      372.0,
+      19.3
+    ],
+    "len": 19,
+    "hash": "0dff0c9a",
+    "fg": [
+      0.91,
+      0.902,
+      0.89,
+      1.0
+    ]
+  },
+  "apply": {
+    "class": "RCTView",
+    "rect": [
+      18.0,
+      856.0,
+      394.0,
+      45.0
+    ],
+    "background": [
+      0.941,
+      0.757,
+      0.294,
+      1.0
+    ],
+    "borderWidth": 1.0,
+    "borderRadius": 2.0
+  },
+  "apply_text": {
+    "class": "RCTTextView",
+    "len": 5,
+    "hash": "ca77bbdb",
+    "fg": [
+      0.067,
+      0.067,
+      0.067,
+      1.0
+    ],
+    "fontSize": 18
+  }
+}

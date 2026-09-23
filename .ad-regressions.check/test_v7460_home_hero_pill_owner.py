@@ -1,0 +1,14 @@
+from pathlib import Path
+R=Path(__file__).resolve().parents[1]
+T=(R/'src/Tweak.xm').read_text()
+C=(R/'layout/DEBIAN/control').read_text()
+UI=(R/'scripts/ui-probe.sh').read_text()
+SK=(R/'scripts/skeleton-probe.sh').read_text()
+assert 'Version: 7.470~pdp-isolated-frame-ownership' in C
+assert '#define AD_VERSION "v7.470-pdp-isolated-frame-ownership"' in T
+assert 'VER=7.470' in UI
+assert 'AD_PROBE_VERSION=7.470' in SK and 'AD_PROBE_NAME=AmazonDark-v7.470' in SK
+assert "ad7461-home-hero-pill" in T
+assert "[class*='_single-video-card_style_sponsored-label-pill__']{background:rgba(0,0,0,.6)!important;background-color:rgba(0,0,0,.6)!important;}" in T
+assert "#gwm-dashboard [class*='_single-video-card_style_sponsored-label-pill__']" not in T
+print('PASS: v7.470 targets the captured single-video Sponsored pill directly with a fresh style identity')

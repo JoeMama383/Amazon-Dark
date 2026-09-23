@@ -1,0 +1,2 @@
+PASS: cooperative final-full collector yields 400-node fixture; root/owner offsets restore independently
+PASS: v7.454 bounded diagnostic capture and explicit incomplete coverage

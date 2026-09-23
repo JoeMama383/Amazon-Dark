@@ -1,0 +1,1 @@
+PASS: v7.454 FULL is cooperative, post-lazy-load complete, and does not rewalk the entire DOM per scroll step

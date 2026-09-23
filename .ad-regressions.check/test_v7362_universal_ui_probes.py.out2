@@ -1,0 +1,3 @@
+PASS: v7.454 retains exactly two universal UI probe categories and no route-specific dispatcher
+PASS: screenshot -> finite native/main-Web/child-SafeFrame FULL; armed next-background lifecycle -> last-foreground VIEWPORT
+PASS: main + cross-frame probe programs compile in gnu++98, parse in Node, and have no recurring scan machinery

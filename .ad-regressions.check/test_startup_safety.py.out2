@@ -1,0 +1,3 @@
+PASS: constructor and reachable helpers contain no UIKit image/screen work
+PASS: guard rejects the actual v7.337 eager load and indirect logger regression
+PASS: logo-load exception is contained inside the dispatch_once callback

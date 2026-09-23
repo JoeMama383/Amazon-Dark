@@ -1,0 +1,2 @@
+PASS: v7.354 retains v7.351 optimization architecture and unchanged critical non-Search payload hashes
+PASS: CNM hot path, UIView classification reuse, universal probe writer/path consolidation, dead Menu ring removal, probe-only SB logging present

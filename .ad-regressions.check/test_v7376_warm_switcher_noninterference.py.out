@@ -1,0 +1,1 @@
+PASS: v7.377 restores warm/app-switcher non-interference and leaves cold exact-splash theming intact

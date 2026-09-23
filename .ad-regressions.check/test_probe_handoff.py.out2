@@ -1,0 +1,1 @@
+PASS: v7.470 transition helper exports one current armed session as plain TAR and never bundles historical captures

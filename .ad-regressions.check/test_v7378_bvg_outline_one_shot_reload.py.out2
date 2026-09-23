@@ -1,0 +1,1 @@
+PASS: v7.378 removes the BYG focus-outline corners and uses one guarded real-renderer reload without recurring work
