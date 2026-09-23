@@ -5,12 +5,12 @@ J=(R/'src/ADPDPMainStream7451.js.inc').read_text()
 T=(R/'src/Tweak.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.455~pdp-manual-full' in C
-assert '#define AD_VERSION "v7.455-pdp-manual-full"' in T
+assert 'Version: 7.457~screenshot-share-diagnostic' in C
+assert '#define AD_VERSION "v7.457-screenshot-share-diagnostic"' in T
 
 # The failed v7.450 path recursively re-entered evaluateJavaScript once per tiny DOM chunk.
 # The inherited mounted-DOM streamer remains one finite page-side stream for non-PDP catch-up.
-pdp=S[S.index('static NSString *ADPDPStreamJS7451'):S.index('static void ADUIPDPManualFinish7455')]
+pdp=S[S.index('static NSString *ADPDPStreamJS7451'):S.index('static void ADUIProcessWebViews7364')]
 assert '#include "ADPDPMainStream7451.js.inc"' in pdp
 assert 'ADUIEvaluate7453(wv,ADPDPStreamJS7451(capture),' in pdp
 assert 'ADUIEvalAppend7364' not in pdp
@@ -39,4 +39,4 @@ for tok in ['getComputedStyle(el)', "getComputedStyle(el,'::before')", "getCompu
             "document.createTreeWalker(document.documentElement,1)"]:
     assert tok in J, tok
 
-print('PASS: v7.455 retains the finite read-only streamer for non-PDP catch-up without using it as the PDP primary path')
+print('PASS: v7.457 retains the finite read-only streamer for non-PDP catch-up without using it as the PDP primary path')

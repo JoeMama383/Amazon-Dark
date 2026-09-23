@@ -6,8 +6,8 @@ W=(R/'src/ADUIProbeScroll7446.js.inc').read_text()
 S=(R/'src/ADPDPMainStream7451.js.inc').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.455~pdp-manual-full' in C
-assert '#define AD_VERSION "v7.455-pdp-manual-full"' in T
+assert 'Version: 7.457~screenshot-share-diagnostic' in C
+assert '#define AD_VERSION "v7.457-screenshot-share-diagnostic"' in T
 
 fn=T[T.index('static NSString *ADPDPGridCarouselFix7454'):T.index('static NSString *ADPDPCompletionJS7405')]
 for tok in ['[data-testid=gridContainer]','[data-testid=gridWrapper]','[data-testid=gridRegion]',
@@ -20,7 +20,7 @@ for bad in ['swiper-button-prev','swiper-button-next','cta-button','pictureHighQ
 assert 'ADPDPGridCarouselFix7454()' in T[T.index('static NSString *ADCoreWebJS7271'):]
 
 router=U[U.index('static void ADUIProcessWebViews7364'):U.index('static void ADUIScanNativeAxis7364')]
-assert 'ADUIScanPDPManual7455(wv,index,path,cap,nextWeb)' in router
+assert 'ADUIEnsurePDPScrollable7456(wv,' in router
 assert 'ADUIScanWebViewFull7364(wv,index,path,cap,nextWeb)' in router
 full=U[U.index('static void ADUIScanWebViewFull7364'):U.index('static BOOL ADUIURLIsPDP7451')]
 assert 'startRoot(NO);' in full
@@ -34,4 +34,4 @@ for tok in ['visibleVerticalPrimary(root)','elementsFromPoint','cw<innerWidth*.6
 for tok in ['window.__adPDPStreamSeen7454','catchup=!!priorSeen','catchup?96:24','catchup?4:6',
             'state.pass===0&&!state.truncated&&!catchup']:
     assert tok in S, tok
-print('PASS: v7.455 preserves exact carousel scope, manual PDP FULL, and automatic non-PDP walk')
+print('PASS: v7.457 preserves exact carousel scope, manual PDP FULL, and automatic non-PDP walk')

@@ -4,9 +4,9 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
-assert 'Version: 7.455~pdp-manual-full' in C
-assert '#define AD_VERSION "v7.455-pdp-manual-full"' in S
-assert 'VER=7.455' in UI and 'AD_PROBE_VERSION=7.455' in SK
+assert 'Version: 7.457~screenshot-share-diagnostic' in C
+assert '#define AD_VERSION "v7.457-screenshot-share-diagnostic"' in S
+assert 'VER=7.457' in UI and 'AD_PROBE_VERSION=7.457' in SK
 
 # Three FULL-probe permission/location families remain exact and semantic.
 for tok in [

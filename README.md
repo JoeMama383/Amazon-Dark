@@ -1,34 +1,24 @@
-# AmazonDark v7.455 — PDP-safe manual FULL probe
+# AmazonDark v7.457 — temporary Share recovery and handler diagnostics
 
-Parent: `v7.454~carousel-probe-order`. Source handoff; compile/device verification remains required.
+This is NOT screenshot Share prevention. It carries the v7.456 close-before-walk workaround and adds bounded native screenshot-registration evidence so the actual opener can be identified. The temporary preference is labeled honestly: `Close Screenshot Share for FULL (Temporary)`, default ON. Turning it OFF stops PDP FULL rather than manipulating a possibly locked page. The old hide-only `disableShareSheetForProbes` setting is not used.
 
-## Root cause
+Fully close and relaunch Amazon after installation so early observer registrations are recorded. Take one screenshot on a product page, leave Amazon visible for the walk, then export FULL from the terminal. Send that TAR. `SCREENSHOT_OBSERVER_REGISTRATIONS` records up to 64 registration sites, each with at most 12 native stack entries. Selector registrations include class/selector; block registrations include their registration stack. This is registration evidence, not proof of which callback fired. No notification is suppressed, no observer is retained, and manual Share is untouched outside FULL.
 
-The Product Detail page is not behaving like Cart/Search under probe-driven scrolling. The supplied captures make the split clear:
+Direct parent: v7.455, commit `615ba69c820e7625cb4e869d604da595ee2f478c`.
+Source handoff only: iOS compilation and installed-device verification are still required.
 
-- **R3 Cart / v7.454:** the automatic root walker completed 10 real scroll steps, from `y=0` through `y=2392`; mounted nodes grew from 2,383 to 5,637. The generic walker works.
-- **R2 PDP / v7.453:** the PDP serializer started, but the app was backgrounded while it was running. It ended `document-backgrounded`; the later automatic walk never initialized and ended `root-init-failed totalSteps=0`.
-- Older PDP evidence already established a second, independent product-only hazard: driving Product Detail scroll state can collapse its WebKit renderer. v7.450 documented historical PDP documents around 11k–13k px becoming a 779 px renderer after active sweep mutation.
+## Evidence and correction
 
-So this is not a generic FULL failure and it is not caused by Cart having a smaller DOM. Product Detail needs a different diagnostic transport: **the probe must not drive its scroll position and must not begin with an exhaustive full-DOM style serialization.**
+Five v7.440 product captures show the same sequence: the root scroll height drops from 12,737–14,405 pixels to 779, while the product container remains full height. A screenshot-triggered SSF Product Share sheet appears and `#a-page` becomes fixed with `a-scroll-disabled`. The v7.403 probe stylesheet hid that sheet without invoking its close handler, leaving the modal scroll lock active.
 
-## v7.455 correction
+Earlier attempts interpreted this as a collapsed renderer. v7.455 then disabled automatic PDP walking in favor of manual checkpoints. That interpretation missed the retained product height and new Share sheet.
 
-- Non-PDP menus keep the v7.454 automatic root/vertical-owner walker unchanged.
-- Product Detail is classified by `/dp/`, `/gp/product/`, `/gp/aw/d/`, with `#dp` fallback.
-- PDP FULL never calls the generic Web scroll writer and still skips native scroll driving.
-- PDP FULL installs one temporary probe-only scroll listener. **You scroll the product page normally.** After scrolling idles for 220 ms, the probe records a bounded detailed snapshot of the visible scene.
-- The PDP snapshot is hit-test/visible-semantic bounded (`460` unique visible elements max); it does not TreeWalk/style the entire product DOM.
-- When the user reaches the document bottom, the probe records the final checkpoint, removes the temporary listener, and marks FULL terminal. Backgrounding early stops it as partial so it never traps the app waiting on a hidden document.
-- The temporary listener exists only during an explicitly triggered PDP FULL capture. Production theming still has no scroll listener, MutationObserver, polling loop, RAF loop, or recurring hierarchy scan.
-- The v7.454 exact carousel OLED fix is retained unchanged.
+This version removes the hiding stylesheet and obsolete Hide Share preference. During an explicitly requested PDP FULL capture, it invokes only the SSF sheet's stock close button and waits for the page lock to release before using the existing automatic walker. A late-arriving lock pauses the walker for the same check. Unknown modals, missing close buttons, and timeouts stop with partial/error evidence; the probe does not forcibly clear Amazon's styles or lock classes.
 
-## FULL workflow
+Cart/Search retain their automatic walker. The manual-only PDP tracker is retired. Duplicate native PDP scrolling remains disabled. Existing UI treatment is retained; this release does not claim to fix outstanding ad styling. FULL, VIEWPORT, and TRANSITION exports remain separate plain TAR archives.
 
-**Cart/Search/other menus:** take one screenshot and leave Amazon foregrounded. The probe scrolls automatically and restores the starting offset.
+## Use and verification
 
-**Product Detail:** start near the top, take one screenshot, then manually scroll through the product page to the bottom. Pause briefly at anything important. The probe captures the initial visible scene and each manual scroll-idle checkpoint. It does not programmatically move the PDP.
+Take one screenshot in Amazon and leave the app visible while FULL walks automatically. After completion, switch to the terminal and export. No manual product-page scrolling is required. VIEWPORT and TRANSITION workflows are in `COMMANDS.md`.
 
-After the probe reaches a terminal state, run `sh scripts/ui-probe.sh status`, then `sh scripts/ui-probe.sh export full`.
-
-VIEWPORT and TRANSITION remain separate and unchanged in behavior.
+The new regression fixture models the captured Share lock, verifies stock-close recovery and automatic bottom traversal, and tests late locks, unknown modals, timeout, restore, backgrounding, and nonce changes. These tests are not a substitute for an installed-device run. Inspect `PDP_SHARE_GATE`, `WEB_SWEEP_END`, and `WEB_WALK_COVERAGE` in that run before calling the repair device-verified.

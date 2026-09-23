@@ -6,8 +6,8 @@ attach=s[s.index('static void ADUIProbeAttach7362(WKUserContentController *ucc){
 assert attach.index('addScriptMessageHandler') < attach.index('if(old&&')
 router=s[s.index('static void ADUIProcessWebViews7364'):s.index('static void ADUIScanNativeAxis7364')]
 assert router.index('ADUIProbeAttach7362') < router.index('ADUIScanWebViewFull7364')
-assert 'ADUIScanPDPManual7455' in router
-assert 'PDP_AUX_READONLY_VIEWPORT_' in router
+assert 'ADUIEnsurePDPScrollable7456' in router
+assert 'PDP_AUX_READONLY_VIEWPORT' in router
 full=s[s.index('static void ADUIScanWebViewFull7364'):s.index('static BOOL ADUIURLIsPDP7451')]
 assert 'ADUIScanPDPStreaming7451(wv,index,path,cap,^' in full
 assert '[wv.scrollView setContentOffset:original' not in s

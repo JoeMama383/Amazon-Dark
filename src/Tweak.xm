@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.455 — PDP-safe manual FULL probe
+ * AmazonDark v7.457 — screenshot Share unlock before automatic PDP FULL
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,8 +28,10 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.455-pdp-manual-full"
+#define AD_VERSION "v7.457-screenshot-share-diagnostic"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
+
+#import "ADScreenshotObservers7457.h"
 
 extern char *__progname;
 @interface RNSVGSvgView : UIView @end
@@ -116,7 +118,7 @@ typedef struct {
 } ADPrefs;
 
 static ADPrefs gP;
-static BOOL gADDisableShareSheetForProbes7403=NO;
+static BOOL gADCloseScreenshotShare7457=YES;
 
 enum { ADPrefsFloors7388=1, ADPrefsPromotion7388=2, ADPrefsTWB7388=4, ADPrefsPrivacy7388=8 };
 static unsigned ADPreferenceChanges7388(ADPrefs before,ADPrefs after){
@@ -137,25 +139,25 @@ static BOOL ADPrefBool(NSDictionary *d, NSString *k, BOOL def){
 }
 
 static void ADLoadPrefs(void){
+    gADCloseScreenshotShare7457=YES;
     gP.enabled=YES;
     gP.whiteTame=NO;
     gP.force120Hz=NO;
     gP.privacyMode=NO;
     gP.hideSponsored=NO;
     gP.priceHistory=NO;
-    gADDisableShareSheetForProbes7403=NO;
     gP.whiteTameStrength=45;
     @try {
         NSString *path=[NSString stringWithFormat:@"/var/jb/var/mobile/Library/Preferences/%s.plist",AD_PREF_DOMAIN];
         NSDictionary *d=[NSDictionary dictionaryWithContentsOfFile:path];
         if(!d.count)return;
+        gADCloseScreenshotShare7457=ADPrefBool(d,@"closeScreenshotShareForFull",YES);
         gP.enabled=ADPrefBool(d,@"enabled",gP.enabled);
         gP.whiteTame=ADPrefBool(d,@"whiteTame",gP.whiteTame);
         gP.force120Hz=ADPrefBool(d,@"force120Hz",gP.force120Hz);
         gP.privacyMode=ADPrefBool(d,@"privacyMode",gP.privacyMode);
         gP.hideSponsored=ADPrefBool(d,@"hideSponsored",gP.hideSponsored);
         gP.priceHistory=ADPrefBool(d,@"priceHistory",gP.priceHistory);
-        gADDisableShareSheetForProbes7403=ADPrefBool(d,@"disableShareSheetForProbes",gADDisableShareSheetForProbes7403);
         gP.whiteTameStrength=ADPrefLong(d,@"whiteTameStrength",gP.whiteTameStrength);
     } @catch(...) {}
 }
@@ -2310,13 +2312,10 @@ static NSString *ADProductShareTWBJS7403(void){
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7403-ssf-product-share-twb');if(!s){s=d.createElement('style');s.id='ad7403-ssf-product-share-twb';(d.head||d.documentElement||d).appendChild(s);}s.textContent='.a-sheet-web:has(.ssf-customize-container-one) .ssf-backend-preview #ssf-preview-container,.a-sheet-web:has(.ssf-customize-container-one) .ssf-html-preview #ssf-img-main-image,.a-sheet-web:has(.ssf-customize-container-one) img[id^=ssf-share-channel-]{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;}.a-sheet-web:has(.ssf-customize-container-one) #ssf-img-reviews-stars{filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;}';}catch(_){}})();",factor,factor];
 }
 
-// Testing preference: screenshot-triggered FULL probes must be able to inspect the underlying
-// Amazon UI without the Product Share SSF sheet covering it. Default OFF. Settings already
-// requires a respring, so this needs no observer, polling, or live reinjection machinery.
-static NSString *ADShareProbeSuppressJS7403(void){
-    if(!gADDisableShareSheetForProbes7403)return @"";
-    return @"(function(){try{var d=document,s=d.getElementById('ad7403-share-probe-suppress');if(!s){s=d.createElement('style');s.id='ad7403-share-probe-suppress';(d.head||d.documentElement||d).appendChild(s);}s.textContent='.a-sheet-web-container:has(.ssf-customize-container-one),.a-sheet-web:has(.ssf-customize-container-one){display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}body:has(.ssf-customize-container-one)>.a-sheet-lightbox{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}';}catch(_){}})();";
-}
+// v7.457: retired ad7403-share-probe-suppress. CSS hiding left Amazon's SSF
+// scroll lock active. FULL now uses the stock close button in its finite PDP gate.
+// Keep the source slot for concatenation compatibility; ordinary share UI stays usable.
+static NSString *ADShareProbeSuppressJS7403(void){return @"";}
 
 // v7.404 FULL r1: VIDEO_SINGLE_PRODUCT currently has two nested card borders: the outer
 // s-card-border encloses video + product copy, while the inner mobile-video-product-view
@@ -12022,6 +12021,19 @@ static void ADInstallPrivacyHooks7271(void){
     gADPrivacyHooksInstalled7271=YES;
     %init(ADPrivacyHooks7271);
 }
+
+// Passive evidence for selecting the real Amazon screenshot callback in a later fix.
+// Preserve registration arguments, block/selector, queue, object, and return token.
+%hook NSNotificationCenter
+- (void)addObserver:(id)observer selector:(SEL)selector name:(NSString *)name object:(id)object {
+    ADRecordScreenshotRegistration7457(name,observer,selector,NO);
+    %orig(observer,selector,name,object);
+}
+- (id)addObserverForName:(NSString *)name object:(id)object queue:(NSOperationQueue *)queue usingBlock:(void (^)(NSNotification *))block {
+    ADRecordScreenshotRegistration7457(name,nil,NULL,YES);
+    return %orig(name,object,queue,block);
+}
+%end
 
 static BOOL gADMainHooksInstalled7271=NO;
 static void ADInstallMainHooks7271(void){

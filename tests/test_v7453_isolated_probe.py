@@ -10,8 +10,8 @@ assert s.count('[wv evaluateJavaScript:')==1
 assert 'inFrame:nil inContentWorld:ADUIProbeWorld7453() completionHandler:completion' in s
 router=s[s.index('static void ADUIProcessWebViews7364'):s.index('static void ADUIScanNativeAxis7364')]
 assert 'gADUIFullHasPDP7451' in router
-# v7.455 keeps the isolated world but restores the product-specific no-scroll branch.
-assert 'ADUIScanPDPManual7455(wv,index,path,cap,nextWeb)' in router
+# v7.457 keeps the isolated world but restores the product-specific no-scroll branch.
+assert 'ADUIEnsurePDPScrollable7456(wv,' in router
 assert 'ADUIScanWebViewFull7364(wv,index,path,cap,nextWeb)' in router
 full=s[s.index('static void ADUIScanWebViewFull7364'):s.index('static BOOL ADUIURLIsPDP7451')]
 assert 'startRoot(NO);' in full

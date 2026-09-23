@@ -1,7 +1,7 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.455~pdp-manual-full' in C
+assert 'Version: 7.457~screenshot-share-diagnostic' in C
 hook=S[S.index('%hook RCTScrollContentView'):S.index('%hook RCTScrollView')]
 assert 'UIView *v=(UIView *)self;' in hook
 assert 'v.layer.backgroundColor=black.CGColor;' in hook

@@ -1,8 +1,8 @@
 {
-  "version": "7.455~pdp-manual-full",
-  "direct_parent": "7.454~carousel-probe-order",
-  "source": "AmazonDark-v7.454-carousel-probe-order-source.zip",
-  "scope": "Restore the proven Product Detail no-programmatic-scroll boundary without regressing the working automatic FULL walker on Cart/Search/other menus. PDP FULL is user-driven and records bounded visible checkpoints after manual scroll idle; the exhaustive PDP stream and all Web/native scroll writes are excluded from the PDP branch. The v7.454 exact carousel OLED fix is retained.",
-  "device_evidence": "Problem PDP r2: v7.453 stream ended document-backgrounded after 13 batches/289 emitted nodes and the later walk ended root-init-failed totalSteps=0. Good Cart r3: v7.454 root walker completed 10 steps from y=0 to y=2392 and mounted nodes grew 2383 to 5637. Historical v7.450 audit had already shown active PDP scroll driving collapsing ~11k-13k px renderers to 779 px.",
-  "device_validation": "Pending installation of v7.455 CI package. Expected PDP behavior: responsive page, no automatic product scroll, user scroll checkpoints, automatic terminal completion at bottom."
+  "version": "7.457~screenshot-share-diagnostic",
+  "direct_parent": "7.455~pdp-manual-full",
+  "parent_commit": "615ba69c820e7625cb4e869d604da595ee2f478c",
+  "scope": "v7.456 temporary close-before-walk recovery plus bounded passive native screenshot-registration diagnostics and explicit temporary-close preference. True selective prevention is not implemented. Preserve non-PDP walking and TAR exports.",
+  "device_evidence": "Five v7.440 PDP captures retain full product height when root height becomes 779 and screenshot SSF locks a-page. v7.454 Cart r3 completes ten root steps; v7.453 PDP r2 backgrounds before walking.",
+  "device_validation": "Pending CI iOS build and installation. Expected PDP behavior: stock screenshot Share closes, automatic walk traverses product content and restores the start; failures explicitly remain partial."
 }
