@@ -1,36 +1,27 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.468~pdp-ad-book-ci-reconcile' in C
-assert '#define AD_VERSION "v7.468-pdp-ad-book-ci-reconcile"' in S
-assert len(S.encode()) < 856000
-# Probe 2: install the grid style before late renderer hydration, then darken the exact family.
+assert 'Version: 7.470~pdp-isolated-frame-ownership' in C
+assert '#define AD_VERSION "v7.470-pdp-isolated-frame-ownership"' in S
+assert len(S.encode()) < 856000, len(S.encode())
+# Frozen v7.454 fallback remains exact and does not touch already-correct arrows/media.
 g=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSString *ADPDPCompletionJS7405')]
-assert "if(!root||!root.querySelector('[data-testid=gridContainer]'))return" not in g
-for x in ['[data-testid=gridContainer]{background:#000!important','[data-testid^=gridRegionCarousel]{background:#000!important','.grid.bg-zinc-100{background:#000!important','.swiper-slide.bg-white{background:#000!important']:
+for x in ['[data-testid=gridContainer]{background:#000!important;border:0!important','[data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important','.grid.bg-zinc-100','.swiper-slide.bg-white','[data-testid=price-text]','[data-testid=currency]']:
     assert x in g,x
-assert ':not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)):not(:where([class*=deal] *))' in g
-assert 'swiper-button-prev' not in g and 'swiper-button-next' not in g
-# Probes 1/2: use the same all-frame content-world mechanism that current universal child capture proves reaches these frames.
-a=S[S.index('static void ADAttachScriptsToUCC710'):S.index('static void ADPaintWrapperChildren7129')]
-assert 'kADPDPChildUS7464' in S and 'AmazonDarkPDP7464' in a
-assert '[ADPDPGridCarouselFix7454() stringByAppendingString:ADPDPProbeBackedFixesJS7458()]' in a
-assert 'forMainFrameOnly:NO inContentWorld:' in a
-r=S[S.index('static NSString *ADPDPProbeBackedFixesJS7458'):S.index('static NSString *ADCoreWebJS7271')]
-for x in [
-    '#nav-subnav .mshop-subnav-bar{box-shadow:0 1px 0 #494d4d!important}',
-    '#ad>div>div>div:has(#offsite-buy-box){background:#000!important;border-color:#494d4d!important;box-shadow:none!important}',
-    '#offsite-buy-box :is([data-testid=brand-name],[data-testid=product-description],[data-testid=combined-brand-and-description]){color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}',
-    '#dp #productInfoTabExpanderHeader0>.a-expander-content-fade{background:none!important;box-shadow:none!important;opacity:0!important}',
-    '#dp #product-details-card_primary-view .putb-main-text',
-    '#dp #averageCustomerReviewsAnchor :is(div,span){color:#fff!important;-webkit-text-fill-color:#fff!important}',
-]: assert x in r,x
-# Probe 3: BTF shell loses the square duplicate edge; ILM stays separate.
-u=S[S.index('static NSString *ADPDPUICompletionJS7439'):S.index('static long gADForcedPDPFrameThemeStrength7448')]
-assert '#ape_detail_btf_mshop_placement,#ape_detail_btf2_mshop_placement){background:#000!important;border:0!important' in u
-assert '#ape_detail_mobile-app-detail-ilm_mshop_placement{background:#000!important;border:1px solid #494d4d!important' in u
-remove=S[S.index('- (void)removeAllUserScripts'):S.index('- (void)removeAllContentRuleLists')]
-assert 'kADPDPChildUS7464,nil' in remove
-for h in ['## FULL — v7.468','## VIEWPORT — v7.468','## TRANSITION — v7.468']:
+for bad in ['swiper-button-prev','swiper-button-next','cta-button','pictureHighQuality','img{','video{']:
+    assert bad not in g,bad
+# Current delivery uses the same named isolated world that produced the successful cross-frame probe.
+u=S[S.index('static NSString *ADPDPIsolatedFrameThemeJS7470'):S.index('static void ADPDPIsolatedFrameThemeAttach7470')]
+a=S[S.index('static void ADPDPIsolatedFrameThemeAttach7470'):S.index('// v7.388: WKUserScript')]
+for x in ['[data-testid=brand-name]','[data-testid=product-description]','[data-testid=gridContainer]','[data-testid^=gridRegionCarousel]','#ape_detail_btf_mshop_placement']:
+    assert x in u,x
+assert 'inContentWorld:ADUIProbeWorld7453()' in a and 'forMainFrameOnly:NO' in a
+assert '_WKUserStyleSheet' not in S and 'ADPDPUserStyleAttach7469' not in S
+# Book-details fix is the actual PUTB read-more gradient pseudo seen in r1, not the unrelated product-description expander.
+main=S[S.index('static NSString *ADPDPProbeBackedFixesJS7458'):S.index('static NSString *ADCoreWebJS7271')]
+assert '.putb-read-more-primary-view::before' in main
+assert '[id^=putb-read-more-primary-view-][id$=-product-details-card_primary-view]::before' in main
+assert '.putb-main-text :is(.a-size-small,.a-text-bold)' in main
+for h in ['## FULL — v7.470','## VIEWPORT — v7.470','## TRANSITION — v7.470']:
     assert h in CMD
-print('PASS: v7.468 probe-backed PDP ad/book UI fixes and all-frame delivery contract')
+print('PASS: v7.470 keeps frozen carousel scope and moves live stubborn frames to the proven isolated-world route')
