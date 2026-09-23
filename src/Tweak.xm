@@ -1,4 +1,4 @@
-/* AmazonDark v7.467 — PDP ad/book strict repair. */
+/* AmazonDark v7.468 — PDP ad/book CI reconciliation. */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.467-pdp-ad-book-strict-repair"
+#define AD_VERSION "v7.468-pdp-ad-book-ci-reconcile"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2298,7 +2298,7 @@ static NSString *ADProductScrollVideoBorderJS7405(void){
 }
 
 static NSString *ADPDPGridCarouselFix7454(void){
-    return @"(function(){try{var d=document;if(window.top===window)return;var s=d.getElementById('ad7454-pdp-grid-carousel');if(!s){s=d.createElement('style');s.id='ad7454-pdp-grid-carousel';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`html body #ad#ad [data-testid=gridContainer]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important;}html body #ad#ad :is([data-testid=gridWrapper],[data-testid=gridRegion],.grid-inset-carousel){background:#000!important;box-shadow:none!important;}html body #ad#ad .grid.bg-zinc-100{background:#000!important;}html body #ad#ad .swiper-slide.bg-white{background:#000!important;border:0!important;outline:0!important;box-shadow:none!important;}html body #ad#ad [data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important;}html body #ad#ad [data-testid=gridContainer] :is(h1,h2,h3,h4,p,span,div):not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=deal]):not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)):not(:where([class*=deal] *)){color:#fff!important;-webkit-text-fill-color:#fff!important;}html body #ad#ad :is([data-testid=price-text],[data-testid=currency]),html body #ad#ad .buybox-dealprice :is(span,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}html body #ad#ad :is(.grid-buy-box,.buybox-dealprice,.grid-logo-image){background:transparent!important;box-shadow:none!important;}html body #ad#ad :is(.swiper-button-prev,.swiper-button-next){background:#303335!important;color:#fff!important;border-color:#747a7c!important;box-shadow:none!important;}`;}catch(_){}})();";
+    return @"(function(){try{var d=document;if(window.top===window)return;var s=d.getElementById('ad7454-pdp-grid-carousel');if(!s){s=d.createElement('style');s.id='ad7454-pdp-grid-carousel';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`html body #ad#ad [data-testid=gridContainer]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important;}html body #ad#ad :is([data-testid=gridWrapper],[data-testid=gridRegion],.grid-inset-carousel){background:#000!important;box-shadow:none!important;}html body #ad#ad .grid.bg-zinc-100{background:#000!important;}html body #ad#ad .swiper-slide.bg-white{background:#000!important;border:0!important;outline:0!important;box-shadow:none!important;}html body #ad#ad [data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important;}html body #ad#ad [data-testid=gridContainer] :is(h1,h2,h3,h4,p,span,div):not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=deal]):not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)):not(:where([class*=deal] *)){color:#fff!important;-webkit-text-fill-color:#fff!important;}html body #ad#ad :is([data-testid=price-text],[data-testid=currency]),html body #ad#ad .buybox-dealprice :is(span,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}html body #ad#ad :is(.grid-buy-box,.buybox-dealprice,.grid-logo-image){background:transparent!important;box-shadow:none!important;}`;}catch(_){}})();";
 }
 
 static NSString *ADPDPCompletionJS7405(void){

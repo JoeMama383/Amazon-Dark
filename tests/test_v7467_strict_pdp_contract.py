@@ -2,8 +2,8 @@ from pathlib import Path
 import re
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.467~pdp-ad-book-strict-repair' in C
-assert '#define AD_VERSION "v7.467-pdp-ad-book-strict-repair"' in S
+assert 'Version: 7.468~pdp-ad-book-ci-reconcile' in C
+assert '#define AD_VERSION "v7.468-pdp-ad-book-ci-reconcile"' in S
 assert len(S.encode()) < 856000, len(S.encode())
 
 def fn(name,next_name=None):
@@ -41,6 +41,6 @@ for tok in [
  '#ad>div>div>div:has(#offsite-buy-box){background:#000!important;border-color:#494d4d!important;box-shadow:none!important}',
  'kADPDPChildUS7464','AmazonDarkPDP7464']:
     assert tok in S,tok
-for h in ['## FULL — v7.467','## VIEWPORT — v7.467','## TRANSITION — v7.467']:
+for h in ['## FULL — v7.468','## VIEWPORT — v7.468','## TRANSITION — v7.468']:
     assert h in CMD,h
-print('PASS: v7.467 satisfies the v7.448 consolidation gate and all restored PDP source-contract boundaries')
+print('PASS: v7.468 satisfies the v7.448 consolidation gate and all restored PDP source-contract boundaries')

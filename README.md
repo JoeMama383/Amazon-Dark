@@ -1,11 +1,11 @@
-# AmazonDark v7.467 — strict PDP compatibility repair
+# AmazonDark v7.468 — PDP ad/book CI reconciliation
 
-Direct parent: **v7.466~pdp-ad-book-ci-compat**.
+Direct parent: **v7.467~pdp-ad-book-strict-repair**.
 
-v7.466 failed the frozen v7.448 performance-consolidation regression because it reintroduced a CSS redundancy (`background` immediately followed by the equivalent `background-color`) while trying to satisfy an older v7.439 source-contract assertion. The v7.448 history already updated that v7.439 assertion to accept the consolidated shorthand, so restoring the redundant declaration was incorrect.
+v7.467 cleared the v7.448 performance-consolidation regression but exposed the next frozen contract in `test_v7454_carousel_probe_order.py`: the v7.454 device evidence explicitly requires the grid-carousel arrow controls and media to remain untouched. v7.464 had accidentally added a `.swiper-button-prev/.swiper-button-next` repaint and its new regression required that repaint, creating a direct contradiction between the old and new test contracts.
 
-v7.467 keeps the restored historical slicing markers (`// v7.439:`, `// One immutable document-start program...`, and `// v7.388: WKUserScript`) but restores the actual v7.448 CSS consolidation contract. The ILM shell again uses the single `background:#000!important` shorthand. The Book-details fade uses `background:none!important`, which preserves the requested transparent/no-image result without tripping the v7.448 redundant-background detector.
+v7.468 resolves the contradiction in favor of the probe-backed v7.454 ownership rule. The half-carousel still gets the requested OLED structural floors, gray borders, white neutral text, white price/currency text, and transparent neutral sub-shells; the already-correct arrow controls and media are no longer restyled. `test_v7464_pdp_ad_book_polish.py` is corrected to require the arrows to remain untouched, and `test_v7468_ci_contract_reconcile.py` locks both sides of that contract together.
 
-The v7.464 UI fixes remain intact: standalone-ad header/floor treatment, gray Books divider, transparent Book-details fade, white Book-details/review copy, OLED half-carousel treatment, BTF duplicate-border removal, and all-frame PDP delivery. No MutationObserver, polling loop, RAF loop, Web scroll listener, or recurring DOM traversal is added.
+All v7.464 UI work remains intact: top standalone-ad header/floor treatment, gray Books divider, transparent Book-details fade, white Book-details/review copy, OLED half-carousel treatment, BTF duplicate-border removal, and document-start all-frame PDP delivery. The v7.465/v7.466/v7.467 historical slicing and performance compatibility repairs also remain intact.
 
-The new v7.467 regression reproduces both regex checks from the frozen v7.448 performance test and also verifies all three restored historical source boundaries in the same run.
+No MutationObserver, polling loop, requestAnimationFrame loop, Web scroll listener, recurring DOM traversal, or new recurring native hierarchy work is added.

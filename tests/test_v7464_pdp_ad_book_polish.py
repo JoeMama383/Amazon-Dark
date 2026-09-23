@@ -1,15 +1,16 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.467~pdp-ad-book-strict-repair' in C
-assert '#define AD_VERSION "v7.467-pdp-ad-book-strict-repair"' in S
+assert 'Version: 7.468~pdp-ad-book-ci-reconcile' in C
+assert '#define AD_VERSION "v7.468-pdp-ad-book-ci-reconcile"' in S
 assert len(S.encode()) < 856000
 # Probe 2: install the grid style before late renderer hydration, then darken the exact family.
 g=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSString *ADPDPCompletionJS7405')]
 assert "if(!root||!root.querySelector('[data-testid=gridContainer]'))return" not in g
-for x in ['[data-testid=gridContainer]{background:#000!important','[data-testid^=gridRegionCarousel]{background:#000!important','.grid.bg-zinc-100{background:#000!important','.swiper-slide.bg-white{background:#000!important',':is(.swiper-button-prev,.swiper-button-next){background:#303335!important']:
+for x in ['[data-testid=gridContainer]{background:#000!important','[data-testid^=gridRegionCarousel]{background:#000!important','.grid.bg-zinc-100{background:#000!important','.swiper-slide.bg-white{background:#000!important']:
     assert x in g,x
 assert ':not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)):not(:where([class*=deal] *))' in g
+assert 'swiper-button-prev' not in g and 'swiper-button-next' not in g
 # Probes 1/2: use the same all-frame content-world mechanism that current universal child capture proves reaches these frames.
 a=S[S.index('static void ADAttachScriptsToUCC710'):S.index('static void ADPaintWrapperChildren7129')]
 assert 'kADPDPChildUS7464' in S and 'AmazonDarkPDP7464' in a
@@ -30,6 +31,6 @@ assert '#ape_detail_btf_mshop_placement,#ape_detail_btf2_mshop_placement){backgr
 assert '#ape_detail_mobile-app-detail-ilm_mshop_placement{background:#000!important;border:1px solid #494d4d!important' in u
 remove=S[S.index('- (void)removeAllUserScripts'):S.index('- (void)removeAllContentRuleLists')]
 assert 'kADPDPChildUS7464,nil' in remove
-for h in ['## FULL — v7.467','## VIEWPORT — v7.467','## TRANSITION — v7.467']:
+for h in ['## FULL — v7.468','## VIEWPORT — v7.468','## TRANSITION — v7.468']:
     assert h in CMD
-print('PASS: v7.467 probe-backed PDP ad/book UI fixes and all-frame delivery contract')
+print('PASS: v7.468 probe-backed PDP ad/book UI fixes and all-frame delivery contract')

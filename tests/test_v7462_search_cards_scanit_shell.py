@@ -7,8 +7,8 @@ K=(R/'scripts/skeleton-probe.sh').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
 assert len(S.encode()) < 856000, len(S.encode())
-assert 'Version: 7.467~pdp-ad-book-strict-repair' in C
-assert '#define AD_VERSION "v7.467-pdp-ad-book-strict-repair"' in S
+assert 'Version: 7.468~pdp-ad-book-ci-reconcile' in C
+assert '#define AD_VERSION "v7.468-pdp-ad-book-ci-reconcile"' in S
 
 block=S[S.index('static NSString *ADPDPProbeBackedFixesJS7458(void)'):S.index('static NSString *ADCoreWebJS7271(void)')]
 for sel in [
@@ -18,9 +18,9 @@ for sel in [
 ]:
     assert sel in block
 
-assert 'VER=7.467' in U
-assert 'AD_PROBE_VERSION=7.467' in K and 'AD_PROBE_NAME=AmazonDark-v7.467' in K
-assert 'AmazonDark-v7.467-pdp-ad-book-strict-repair-source.zip' in CMD
-for h in ['## FULL — v7.467','## VIEWPORT — v7.467','## TRANSITION — v7.467']:
+assert 'VER=7.468' in U
+assert 'AD_PROBE_VERSION=7.468' in K and 'AD_PROBE_NAME=AmazonDark-v7.468' in K
+assert 'AmazonDark-v7.468-pdp-ad-book-ci-reconcile-source.zip' in CMD
+for h in ['## FULL — v7.468','## VIEWPORT — v7.468','## TRANSITION — v7.468']:
     assert h in CMD
-print('PASS: v7.467 handoff stays below the 856000-byte gate and regenerates all probes')
+print('PASS: v7.468 handoff stays below the 856000-byte gate and regenerates all probes')

@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.467~pdp-ad-book-strict-repair' in C
-assert '#define AD_VERSION "v7.467-pdp-ad-book-strict-repair"' in S
+assert 'Version: 7.468~pdp-ad-book-ci-reconcile' in C
+assert '#define AD_VERSION "v7.468-pdp-ad-book-ci-reconcile"' in S
 assert len(S.encode()) < 856000
 # Frozen v7.439 regression requires this exact source boundary after SafeFrame.
 sf0=S.index('static NSString *ADPDPSafeFrameJS7432(void)')
@@ -23,6 +23,6 @@ assert S.rfind('// v7.388: WKUserScript',0,shared) > 0
 # v7.464 visual delivery remains present.
 for tok in ['kADPDPChildUS7464','AmazonDarkPDP7464','#productInfoTabExpanderHeader0>.a-expander-content-fade','#ad>div>div>div:has(#offsite-buy-box)']:
     assert tok in S,tok
-for h in ['## FULL — v7.467','## VIEWPORT — v7.467','## TRANSITION — v7.467']:
+for h in ['## FULL — v7.468','## VIEWPORT — v7.468','## TRANSITION — v7.468']:
     assert h in CMD,h
-print('PASS: v7.467 restores frozen PDP/source slicing anchors without changing the v7.464 visual ownership contract')
+print('PASS: v7.468 restores frozen PDP/source slicing anchors without changing the v7.464 visual ownership contract')
