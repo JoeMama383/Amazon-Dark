@@ -9,8 +9,8 @@ W=(ROOT/'.github/workflows/build.yml').read_text()
 V=(ROOT/'scripts/validate.sh').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.457~screenshot-share-diagnostic' in C
-assert '#define AD_VERSION "v7.457-screenshot-share-diagnostic"' in S
+assert 'Version: 7.458~probe-backed-pdp-ui-screenshot-disable' in C
+assert '#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"' in S
 for key in ['hideSponsored','priceHistory']:
     assert key in S and f'<string>{key}</string>' in P
 assert '<string>Hide Sponsored Content</string>' in P

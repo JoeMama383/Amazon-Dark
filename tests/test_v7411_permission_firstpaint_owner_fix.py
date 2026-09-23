@@ -5,11 +5,11 @@ S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text(
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7411-permission-location-firstpaint.json').read_text())
-assert 'Version: 7.457~screenshot-share-diagnostic' in C
-assert '#define AD_VERSION "v7.457-screenshot-share-diagnostic"' in S
-assert 'VER=7.457' in UI and 'AD_PROBE_VERSION=7.457' in SK and 'AD_PROBE_NAME=AmazonDark-v7.457' in SK
-assert 'AMAZONDARK v7.457 UNIVERSAL' in INC and 'AmazonDark-v7.457-ui-viewport.arm' in INC
-assert "version:'7.457'" in JS
+assert 'Version: 7.458~probe-backed-pdp-ui-screenshot-disable' in C
+assert '#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"' in S
+assert 'VER=7.458' in UI and 'AD_PROBE_VERSION=7.458' in SK and 'AD_PROBE_NAME=AmazonDark-v7.458' in SK
+assert 'AMAZONDARK v7.458 UNIVERSAL' in INC and 'AmazonDark-v7.458-ui-viewport.arm' in INC
+assert "version:'7.458'" in JS
 # The actual bad location chronology disproves the old v7.410 test assumption.
 seq=F['location_bad_sequence']
 assert seq[0]['role']=='top_rail' and seq[0]['location_child_available'] is False

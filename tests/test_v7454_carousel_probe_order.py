@@ -6,8 +6,8 @@ W=(R/'src/ADUIProbeScroll7446.js.inc').read_text()
 S=(R/'src/ADPDPMainStream7451.js.inc').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.457~screenshot-share-diagnostic' in C
-assert '#define AD_VERSION "v7.457-screenshot-share-diagnostic"' in T
+assert 'Version: 7.458~probe-backed-pdp-ui-screenshot-disable' in C
+assert '#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"' in T
 
 fn=T[T.index('static NSString *ADPDPGridCarouselFix7454'):T.index('static NSString *ADPDPCompletionJS7405')]
 for tok in ['[data-testid=gridContainer]','[data-testid=gridWrapper]','[data-testid=gridRegion]',
@@ -34,4 +34,4 @@ for tok in ['visibleVerticalPrimary(root)','elementsFromPoint','cw<innerWidth*.6
 for tok in ['window.__adPDPStreamSeen7454','catchup=!!priorSeen','catchup?96:24','catchup?4:6',
             'state.pass===0&&!state.truncated&&!catchup']:
     assert tok in S, tok
-print('PASS: v7.457 preserves exact carousel scope, manual PDP FULL, and automatic non-PDP walk')
+print('PASS: v7.458 preserves exact carousel scope, manual PDP FULL, and automatic non-PDP walk')

@@ -1,7 +1,7 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 s=(R/'src/ADUniversalUIProbe7362.inc').read_text()
-# Regression: v7.457 silently replaced requested automatic scanning with manual-only
+# Regression: v7.458 silently replaced requested automatic scanning with manual-only
 # sampling and a capture-phase scroll listener. Neither may reenter the product path.
 for retired in ['ADUIScanPDPManual7455', 'pdp-manual-scroll-signal', 'gADPDPManualPending7455']:
     assert retired not in s

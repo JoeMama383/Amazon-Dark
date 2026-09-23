@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.457~screenshot-share-diagnostic' in CTRL
-assert '#define AD_VERSION "v7.457-screenshot-share-diagnostic"' in S
+assert 'Version: 7.458~probe-backed-pdp-ui-screenshot-disable' in CTRL
+assert '#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"' in S
 
 from cart7423_delta import strip_cart7423
 from video7425_delta import strip_video7425
@@ -27,7 +27,7 @@ def func(name):
 _floor=func('ADFloorJS').replace('if(!child)put(\'ad7418-switch-outline-clean\',\\"[role=switch] [data-testid=outline-outer],[role=switch] [data-testid=outline-inner]{border:0!important;border-color:transparent!important;outline:0!important;outline-color:transparent!important;box-shadow:none!important;}\\");','').replace('.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column>:is(img,picture,[class*=cards_carousel_widget-sug-im])+*:not(:has(img,picture,source,[class*=cards_carousel_widget-sug-im])),.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column>:has(>:is(img,picture,source,[class*=cards_carousel_widget-sug-im]))+*:not(:has(img,picture,source,[class*=cards_carousel_widget-sug-im])),.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column>*:last-child:not(:has(img,picture,source,[class*=cards_carousel_widget-sug-im])){background:#000!important;background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#494d4d!important;box-shadow:none!important;}','')
 assert hashlib.sha256(_floor.encode()).hexdigest() == '86730a2287803039c3912c5b0cd5f2bdca27464c63820a1c24a4aa3e24685d83'
 assert hashlib.sha256(func('ADTWBJS').encode()).hexdigest() == 'a86f3c1257f32380057eb6c8c99c1c75e2c98f1fc5529364f4304feaa33821a3'
-core=func('ADCoreWebJS7271').replace('@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@"','@"%@%@%@%@"').replace(',ADProductShareThemeJS7403(),\n        ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403(),ADProductScrollPolishJS7404(),\n        ADProductScrollVideoBorderJS7405(),ADPDPGridCarouselFix7454(),ADPDPCompletionJS7405(),ADPDPSafeFrameJS7432(),ADPDPCompletionTWBJS7405(),ADPDPUICompletionJS7439(),ADPDPMainResidualJS7440(),ADFrameOwnerTriggerJS7440(),ADAddressManagementJS7412()','')
+core=func('ADCoreWebJS7271').replace('@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@"','@"%@%@%@%@"').replace(',ADProductShareThemeJS7403(),\n        ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403(),ADProductScrollPolishJS7404(),\n        ADProductScrollVideoBorderJS7405(),ADPDPGridCarouselFix7454(),ADPDPCompletionJS7405(),ADPDPSafeFrameJS7432(),ADPDPCompletionTWBJS7405(),ADPDPUICompletionJS7439(),ADPDPMainResidualJS7440(),ADPDPProbeBackedFixesJS7458(),ADFrameOwnerTriggerJS7440(),ADAddressManagementJS7412()','')
 assert hashlib.sha256(core.encode()).hexdigest() == '41ce925c9bad5362bf65204d4eb9778d016c2015b41b427704943df363b6d30c'
 
 for x in ['ADCheckoutFloorJS7369','ADCheckoutTWBJS7369','kADCheckoutFloorUS7369','kADCheckoutTWBUS7369',

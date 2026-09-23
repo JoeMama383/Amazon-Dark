@@ -110,14 +110,14 @@
 			<key>label</key>
 			<string>Probe Testing</string>
 			<key>footerText</key>
-			<string>Temporary workaround: FULL closes the screenshot-triggered Product Share sheet before scanning. This does not prevent it opening. With this off, PDP FULL stops rather than moving a locked page. Manual Share and VIEWPORT stay available. True screenshot Share prevention is pending native handler identification.</string>
+			<string>Probe-only native suppression. When enabled, AmazonDark blocks only the screenshot-triggered Product Share presenter identified by the v7.457 FULL probe (AXFScreenshotToastPresenter didDetectScreenshot:). Manual Share remains available. FULL keeps a stock-close fallback when this is off.</string>
 		</dict>
 		<dict>
 			<key>cell</key><string>PSSwitchCell</string>
-			<key>default</key><true/>
+			<key>default</key><false/>
 			<key>defaults</key><string>com.colindavidr.amazondark</string>
-			<key>key</key><string>closeScreenshotShareForFull</string>
-			<key>label</key><string>Close Screenshot Share for FULL (Temporary)</string>
+			<key>key</key><string>disableShareSheetForProbes</string>
+			<key>label</key><string>Hide Share Sheet for Probes</string>
 			<key>PostNotification</key><string>com.colindavidr.amazondark/prefs-changed</string>
 		</dict>
 		<dict>

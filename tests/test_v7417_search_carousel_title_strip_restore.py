@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.457~screenshot-share-diagnostic' in C
-assert '#define AD_VERSION "v7.457-screenshot-share-diagnostic"' in S
+assert 'Version: 7.458~probe-backed-pdp-ui-screenshot-disable' in C
+assert '#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"' in S
 # v7.417 repair retained in v7.418: keep exact old text owner and add narrow structural fallbacks.
 assert '.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-text{background:#000!important' in S
 for token in [

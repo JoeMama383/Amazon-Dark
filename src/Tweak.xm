@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.457 — screenshot Share unlock before automatic PDP FULL
+ * AmazonDark v7.458 — probe-backed PDP cleanup + selective screenshot Share suppression
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,13 +28,12 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.457-screenshot-share-diagnostic"
+#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
-
-#import "ADScreenshotObservers7457.h"
 
 extern char *__progname;
 @interface RNSVGSvgView : UIView @end
+@interface AXFScreenshotToastPresenter : NSObject @end
 @interface RNSVGRenderable : UIView @end
 
 #pragma clang diagnostic push
@@ -118,7 +117,7 @@ typedef struct {
 } ADPrefs;
 
 static ADPrefs gP;
-static BOOL gADCloseScreenshotShare7457=YES;
+static BOOL gADDisableShareSheetForProbes7458=NO;
 
 enum { ADPrefsFloors7388=1, ADPrefsPromotion7388=2, ADPrefsTWB7388=4, ADPrefsPrivacy7388=8 };
 static unsigned ADPreferenceChanges7388(ADPrefs before,ADPrefs after){
@@ -139,7 +138,7 @@ static BOOL ADPrefBool(NSDictionary *d, NSString *k, BOOL def){
 }
 
 static void ADLoadPrefs(void){
-    gADCloseScreenshotShare7457=YES;
+    gADDisableShareSheetForProbes7458=NO;
     gP.enabled=YES;
     gP.whiteTame=NO;
     gP.force120Hz=NO;
@@ -151,7 +150,7 @@ static void ADLoadPrefs(void){
         NSString *path=[NSString stringWithFormat:@"/var/jb/var/mobile/Library/Preferences/%s.plist",AD_PREF_DOMAIN];
         NSDictionary *d=[NSDictionary dictionaryWithContentsOfFile:path];
         if(!d.count)return;
-        gADCloseScreenshotShare7457=ADPrefBool(d,@"closeScreenshotShareForFull",YES);
+        gADDisableShareSheetForProbes7458=ADPrefBool(d,@"disableShareSheetForProbes",NO);
         gP.enabled=ADPrefBool(d,@"enabled",gP.enabled);
         gP.whiteTame=ADPrefBool(d,@"whiteTame",gP.whiteTame);
         gP.force120Hz=ADPrefBool(d,@"force120Hz",gP.force120Hz);
@@ -257,24 +256,7 @@ static void ADPrivacyInstallProtocolOnConfig7117(NSURLSessionConfiguration *cfg)
 }
 
 
-// -----------------------------------------------------------------------------
-// Retained v6.0.185 Force 120 Hz implementation.
-// -----------------------------------------------------------------------------
-// ── PROMOTION + PRIVATE CADISPLAY 120 HZ FORCE (v6.0.10) ──────────────────────
-// Public ProMotion ranges are advisory and v6.0.9 proved Core Animation was
-// normalising Amazon back to 60 Hz even with both bundle opt-ins visible. On a
-// jailbreak we can move one layer lower: CADisplay exposes a private
-// overrideMinimumFrameDuration: policy selector. v6.0.10 experimentally clamps
-// that integer policy to 2 on the 120-Hz device and verifies the resulting
-// minimumFrameDuration/actual timing on-device rather than assuming success. We
-// install a process-local runtime interpose so later CoreAnimation calls cannot
-// silently restore the previous value while the preference is enabled.
-//
-// This affects only Amazon: AmazonDark.plist still injects this target solely into
-// com.amazon.Amazon. We intentionally do NOT inject into backboardd or globally
-// force SpringBoard; that would add system-wide battery/thermal cost and a daemon
-// crash would be much more disruptive. If this private CADisplay path is absent on
-// a future OS, every call is capability-checked and becomes a no-op.
+// Retained v6.0.185 Amazon-local 120 Hz path; capability checked.
 static NSString * const ADPromotionInfoKey607 = @"CADisableMinimumFrameDurationOnPhone";
 static BOOL ADIsPromotionInfoKey609(NSString *key){
     return [key isEqualToString:ADPromotionInfoKey607];
@@ -328,9 +310,7 @@ static NSInteger ADPreferredMaxHz362(void){
     return hz;
 }
 
-// Weak registry of live links lets the Settings toggle take effect immediately in
-// both directions. v6.0.10 only gated future setter calls; links already forced to
-// 120 stayed forced until relaunch. Weak storage adds no ownership/lifetime cost.
+// Weak live-link registry makes the preference reversible without relaunch.
 static NSHashTable *gADDisplayLinks611 = nil;
 static const void *kADTrackedDisplayLink7271=&kADTrackedDisplayLink7271;
 static void ADTrackDisplayLink611(CADisplayLink *d){
@@ -352,8 +332,7 @@ static NSArray *ADTrackedDisplayLinks611(void){
     return @[];
 }
 
-// Private CADisplay policy interpose. method_setImplementation keeps the hook local
-// to Amazon and chains whatever implementation was present before AmazonDark.
+// Amazon-local CADisplay policy interpose.
 typedef void (*ADCADisplayOverrideIMP610)(id, SEL, NSInteger);
 static ADCADisplayOverrideIMP610 gADCADisplayOverrideOrig610 = NULL;
 static BOOL gADCADisplayOverrideInstallTried610 = NO;
@@ -2417,7 +2396,6 @@ static NSString *ADPDPUICompletionJS7439(void){
 }
 
 
-
 // v7.448: The v7.435 FULL captures never emitted a CROSS_FRAME_DOM section even
 // though the offending APE/SafeFrame iframe was present. Do not rely on all-frame
 // WKUserScript delivery for those renderer processes. Instead, use WebKit's frame
@@ -2569,6 +2547,12 @@ static NSString *ADAddressManagementJS7412(void){
 // allocated/compiled WKUserScripts while preserving their proven execution order.
 static long gADCoreWebJSStrength7271=-1;
 static NSString *gADCoreWebJSCached7271=nil;
+// v7.458 probe-backed PDP owners; declarative only.
+static NSString *ADPDPProbeBackedFixesJS7458(void){
+    CGFloat f=1.0;if(gP.whiteTame){CGFloat t=((CGFloat)MAX(0,MIN(100,gP.whiteTameStrength)))/100.0;f=1.0-(0.10+(0.48*t));}
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#offsite-buy-box :is([data-testid=brand-name],[data-testid=product-description],[data-testid=combined-brand-and-description]){color:#fff!important;opacity:1!important}#offsite-buy-box :is([data-testid=ratings-stars],[data-testid=rating-stars],[class*=rating],[class*=star]){opacity:1!important;visibility:visible!important}#offsite-buy-box button[data-testid=sponsored-container],#offsite-buy-box button[data-testid=sponsored-container] span{color:#b1aaa0!important}#offsite-buy-box svg[data-testid=info-icon] path:first-of-type{fill:#b1aaa0!important}#offsite-buy-box svg[data-testid=info-icon] path:not(:first-of-type){fill:#000!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]){filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');}catch(_){}})();",gP.whiteTame,f];
+}
+
 static NSString *ADCoreWebJS7271(void){
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
     if(gADCoreWebJSCached7271&&gADCoreWebJSStrength7271==strength)return gADCoreWebJSCached7271;
@@ -2576,7 +2560,7 @@ static NSString *ADCoreWebJS7271(void){
     gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
         ADStandalonePaintJS7104(),ADFloorJS(),ADHomeAdShellFloorJS7381(),ADProductShareThemeJS7403(),
         ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403(),ADProductScrollPolishJS7404(),
-        ADProductScrollVideoBorderJS7405(),ADPDPGridCarouselFix7454(),ADPDPCompletionJS7405(),ADPDPSafeFrameJS7432(),ADPDPCompletionTWBJS7405(),ADPDPUICompletionJS7439(),ADPDPMainResidualJS7440(),ADFrameOwnerTriggerJS7440(),ADAddressManagementJS7412()];
+        ADProductScrollVideoBorderJS7405(),ADPDPGridCarouselFix7454(),ADPDPCompletionJS7405(),ADPDPSafeFrameJS7432(),ADPDPCompletionTWBJS7405(),ADPDPUICompletionJS7439(),ADPDPMainResidualJS7440(),ADPDPProbeBackedFixesJS7458(),ADFrameOwnerTriggerJS7440(),ADAddressManagementJS7412()];
     return gADCoreWebJSCached7271;
 }
 
@@ -12022,16 +12006,13 @@ static void ADInstallPrivacyHooks7271(void){
     %init(ADPrivacyHooks7271);
 }
 
-// Passive evidence for selecting the real Amazon screenshot callback in a later fix.
-// Preserve registration arguments, block/selector, queue, object, and return token.
-%hook NSNotificationCenter
-- (void)addObserver:(id)observer selector:(SEL)selector name:(NSString *)name object:(id)object {
-    ADRecordScreenshotRegistration7457(name,observer,selector,NO);
-    %orig(observer,selector,name,object);
-}
-- (id)addObserverForName:(NSString *)name object:(id)object queue:(NSOperationQueue *)queue usingBlock:(void (^)(NSNotification *))block {
-    ADRecordScreenshotRegistration7457(name,nil,NULL,YES);
-    return %orig(name,object,queue,block);
+// v7.458: v7.457 FULL evidence identified the screenshot Share opener exactly.
+// Suppress only that callback when the testing preference is enabled; screenshot
+// notification delivery and the normal/manual Share path remain untouched.
+%hook AXFScreenshotToastPresenter
+- (void)didDetectScreenshot:(id)notification {
+    if(gP.enabled&&gADDisableShareSheetForProbes7458)return;
+    %orig(notification);
 }
 %end
 

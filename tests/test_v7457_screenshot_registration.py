@@ -1,17 +1,19 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 T=(R/'src/Tweak.xm').read_text()
-H=(R/'src/ADScreenshotObservers7457.h').read_text()
 P=(R/'src/ADUniversalUIProbe7362.inc').read_text()
-hook=T.split('%hook NSNotificationCenter\n',1)[1].split('%end',1)[0]
-assert '%orig(observer,selector,name,object);' in hook
-assert 'return %orig(name,object,queue,block);' in hook
-assert 'gADScreenshotRegistrations7457.count>=64' in H
-assert 'stack.count>12' in H
-assert 'UIApplicationUserDidTakeScreenshotNotification' in H
-assert 'ADScreenshotRegistrationReport7457(),cap' in P
-for forbidden in ['removeObserver','postNotification','setInterval','evaluateJavaScript','userInfo','performSelector','dispatch_after']:
+RPL=(R/'prefs/Resources/Root.plist').read_text()
+assert '%hook AXFScreenshotToastPresenter' in T
+hook=T.split('%hook AXFScreenshotToastPresenter\n',1)[1].split('%end',1)[0]
+assert '- (void)didDetectScreenshot:(id)notification' in hook
+assert 'gADDisableShareSheetForProbes7458' in hook
+assert '%orig(notification);' in hook
+assert '%hook NSNotificationCenter' not in T
+assert 'ADScreenshotObservers7457.h' not in T
+assert 'ADScreenshotRegistrationReport7457' not in P
+assert 'disableShareSheetForProbes' in RPL
+assert 'Hide Share Sheet for Probes' in RPL
+assert 'closeScreenshotShareForFull' not in RPL
+for forbidden in ['removeObserver','postNotification','setInterval','evaluateJavaScript','dispatch_after']:
     assert forbidden not in hook
-    assert forbidden not in H.replace('notification userInfo','notification payload')
-assert '@"observer":observer' not in H
-print('PASS: screenshot registration evidence is bounded, preserves registrations and never intercepts delivery')
+print('PASS: v7.458 suppresses only the probe-recorded screenshot presenter callback')

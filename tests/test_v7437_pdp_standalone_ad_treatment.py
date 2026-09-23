@@ -4,9 +4,9 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
-assert 'Version: 7.457~screenshot-share-diagnostic' in C
-assert '#define AD_VERSION "v7.457-screenshot-share-diagnostic"' in S
-assert 'VER=7.457' in UI and 'AD_PROBE_VERSION=7.457' in SK and 'AD_PROBE_NAME=AmazonDark-v7.457' in SK
+assert 'Version: 7.458~probe-backed-pdp-ui-screenshot-disable' in C
+assert '#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"' in S
+assert 'VER=7.458' in UI and 'AD_PROBE_VERSION=7.458' in SK and 'AD_PROBE_NAME=AmazonDark-v7.458' in SK
 
 pdp=S[S.index('static NSString *ADPDPCompletionJS7405'):S.index('static NSString *ADPDPCompletionTWBJS7405')]
 twb=S[S.index('static NSString *ADPDPCompletionTWBJS7405'):S.index('// v7.432: PDP APE/SafeFrame', S.index('static NSString *ADPDPCompletionTWBJS7405'))]

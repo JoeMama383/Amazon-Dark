@@ -6,12 +6,12 @@ UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
-assert 'Version: 7.457~screenshot-share-diagnostic' in C
-assert '#define AD_VERSION "v7.457-screenshot-share-diagnostic"' in S
-assert 'VER=7.457' in UI
-assert 'AD_PROBE_VERSION=7.457' in SK and 'AD_PROBE_NAME=AmazonDark-v7.457' in SK
-assert '7.457~*)' in SK and 'Install the v7.457 Actions package first.' in SK
-assert 'AmazonDark-v7.457-screenshot-share-diagnostic-source.zip' in CMD
+assert 'Version: 7.458~probe-backed-pdp-ui-screenshot-disable' in C
+assert '#define AD_VERSION "v7.458-probe-backed-pdp-ui-screenshot-disable"' in S
+assert 'VER=7.458' in UI
+assert 'AD_PROBE_VERSION=7.458' in SK and 'AD_PROBE_NAME=AmazonDark-v7.458' in SK
+assert '7.458~*)' in SK and 'Install the v7.458 Actions package first.' in SK
+assert 'AmazonDark-v7.458-probe-backed-pdp-ui-screenshot-disable-source.zip' in CMD
 assert 'sh scripts/validate.sh' in CMD
 
 # New main-frame completion is injected into the core script.

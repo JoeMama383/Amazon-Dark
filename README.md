@@ -1,24 +1,9 @@
-# AmazonDark v7.457 — temporary Share recovery and handler diagnostics
+# AmazonDark v7.458 — probe-backed PDP cleanup + selective screenshot Share suppression
 
-This is NOT screenshot Share prevention. It carries the v7.456 close-before-walk workaround and adds bounded native screenshot-registration evidence so the actual opener can be identified. The temporary preference is labeled honestly: `Close Screenshot Share for FULL (Temporary)`, default ON. Turning it OFF stops PDP FULL rather than manipulating a possibly locked page. The old hide-only `disableShareSheetForProbes` setting is not used.
+v7.458 is built directly from the exact v7.457 source and the completed `AmazonDark-v7.457-ui-full-probe-20260923-062724-074-r1.tar` plus the four paired screenshots. It replaces the temporary screenshot-registration diagnostic with the exact recorded owner: `AXFScreenshotToastPresenter -didDetectScreenshot:`. The restored **Hide Share Sheet for Probes** switch (default OFF) suppresses only that screenshot-triggered presenter. It does not hook `NSNotificationCenter`, does not suppress screenshot notification delivery, and does not alter the normal/manual Share button path.
 
-Fully close and relaunch Amazon after installation so early observer registrations are recorded. Take one screenshot on a product page, leave Amazon visible for the walk, then export FULL from the terminal. Send that TAR. `SCREENSHOT_OBSERVER_REGISTRATIONS` records up to 64 registration sites, each with at most 12 native stack entries. Selector registrations include class/selector; block registrations include their registration stack. This is registration evidence, not proof of which callback fired. No notification is suppressed, no observer is retained, and manual Share is untouched outside FULL.
+The same probe supplies exact PDP owners for the remaining UI defects: Shop Books subnav floor/text/divider; Book Details `rpi-icon` background sprites; Frequently Bought Together `mix-blend-mode:multiply` wrappers and the dark supplemental chevron; the review-search magnifier; the five shopping-experience rating buttons; Product Details/review/solicitation divider families; and the compact child-ad brand/description/Sponsored info control. White-taming coverage is extended only to image families the FULL scan caught with `filter:none`: PDP main/alternate gallery art, `sp_phoneapp_detail*` sponsored book carousels, review avatars, Product Details bullet art, and compact child-ad rasters.
 
-Direct parent: v7.455, commit `615ba69c820e7625cb4e869d604da595ee2f478c`.
-Source handoff only: iOS compilation and installed-device verification are still required.
+No MutationObserver, timer/poll loop, RAF loop, production document walker, web scroll listener, or recurring hierarchy scan is added. The FBT fix is a declarative blend reset; the Book Details fix operates on the captured background-image sprite owner rather than hiding/replacing the artwork.
 
-## Evidence and correction
-
-Five v7.440 product captures show the same sequence: the root scroll height drops from 12,737–14,405 pixels to 779, while the product container remains full height. A screenshot-triggered SSF Product Share sheet appears and `#a-page` becomes fixed with `a-scroll-disabled`. The v7.403 probe stylesheet hid that sheet without invoking its close handler, leaving the modal scroll lock active.
-
-Earlier attempts interpreted this as a collapsed renderer. v7.455 then disabled automatic PDP walking in favor of manual checkpoints. That interpretation missed the retained product height and new Share sheet.
-
-This version removes the hiding stylesheet and obsolete Hide Share preference. During an explicitly requested PDP FULL capture, it invokes only the SSF sheet's stock close button and waits for the page lock to release before using the existing automatic walker. A late-arriving lock pauses the walker for the same check. Unknown modals, missing close buttons, and timeouts stop with partial/error evidence; the probe does not forcibly clear Amazon's styles or lock classes.
-
-Cart/Search retain their automatic walker. The manual-only PDP tracker is retired. Duplicate native PDP scrolling remains disabled. Existing UI treatment is retained; this release does not claim to fix outstanding ad styling. FULL, VIEWPORT, and TRANSITION exports remain separate plain TAR archives.
-
-## Use and verification
-
-Take one screenshot in Amazon and leave the app visible while FULL walks automatically. After completion, switch to the terminal and export. No manual product-page scrolling is required. VIEWPORT and TRANSITION workflows are in `COMMANDS.md`.
-
-The new regression fixture models the captured Share lock, verifies stock-close recovery and automatic bottom traversal, and tests late locks, unknown modals, timeout, restore, backgrounding, and nonce changes. These tests are not a substitute for an installed-device run. Inspect `PDP_SHARE_GATE`, `WEB_SWEEP_END`, and `WEB_WALK_COVERAGE` in that run before calling the repair device-verified.
+For PDP FULL, turn **Hide Share Sheet for Probes** ON before taking the screenshot. If it is left OFF, the inherited scan-recovery gate may still use Amazon's stock close handler if the screenshot sheet blocks the page; it no longer aborts simply because the preference is off.
