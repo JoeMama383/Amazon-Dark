@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.466~pdp-ad-book-ci-compat' in C
-assert '#define AD_VERSION "v7.466-pdp-ad-book-ci-compat"' in S
+assert 'Version: 7.467~pdp-ad-book-strict-repair' in C
+assert '#define AD_VERSION "v7.467-pdp-ad-book-strict-repair"' in S
 assert len(S.encode()) < 856000
 # Probe 2: install the grid style before late renderer hydration, then darken the exact family.
 g=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSString *ADPDPCompletionJS7405')]
@@ -20,7 +20,7 @@ for x in [
     '#nav-subnav .mshop-subnav-bar{box-shadow:0 1px 0 #494d4d!important}',
     '#ad>div>div>div:has(#offsite-buy-box){background:#000!important;border-color:#494d4d!important;box-shadow:none!important}',
     '#offsite-buy-box :is([data-testid=brand-name],[data-testid=product-description],[data-testid=combined-brand-and-description]){color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}',
-    '#dp #productInfoTabExpanderHeader0>.a-expander-content-fade{background:transparent!important;background-image:none!important;box-shadow:none!important;opacity:0!important}',
+    '#dp #productInfoTabExpanderHeader0>.a-expander-content-fade{background:none!important;box-shadow:none!important;opacity:0!important}',
     '#dp #product-details-card_primary-view .putb-main-text',
     '#dp #averageCustomerReviewsAnchor :is(div,span){color:#fff!important;-webkit-text-fill-color:#fff!important}',
 ]: assert x in r,x
@@ -30,6 +30,6 @@ assert '#ape_detail_btf_mshop_placement,#ape_detail_btf2_mshop_placement){backgr
 assert '#ape_detail_mobile-app-detail-ilm_mshop_placement{background:#000!important;border:1px solid #494d4d!important' in u
 remove=S[S.index('- (void)removeAllUserScripts'):S.index('- (void)removeAllContentRuleLists')]
 assert 'kADPDPChildUS7464,nil' in remove
-for h in ['## FULL — v7.466','## VIEWPORT — v7.466','## TRANSITION — v7.466']:
+for h in ['## FULL — v7.467','## VIEWPORT — v7.467','## TRANSITION — v7.467']:
     assert h in CMD
-print('PASS: v7.466 probe-backed PDP ad/book UI fixes and all-frame delivery contract')
+print('PASS: v7.467 probe-backed PDP ad/book UI fixes and all-frame delivery contract')

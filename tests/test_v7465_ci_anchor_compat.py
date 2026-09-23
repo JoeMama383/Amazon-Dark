@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.466~pdp-ad-book-ci-compat' in C
-assert '#define AD_VERSION "v7.466-pdp-ad-book-ci-compat"' in S
+assert 'Version: 7.467~pdp-ad-book-strict-repair' in C
+assert '#define AD_VERSION "v7.467-pdp-ad-book-strict-repair"' in S
 assert len(S.encode()) < 856000
 marker='// One immutable document-start program per strength replaces four separately\n// allocated/compiled WKUserScripts while preserving their proven execution order.'
 a=S.index('static NSString *ADAddressManagementJS7412(void){')
@@ -17,6 +17,6 @@ for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "
 # v7.464 visual ownership remains inherited.
 for tok in ['kADPDPChildUS7464','AmazonDarkPDP7464','#productInfoTabExpanderHeader0>.a-expander-content-fade','#ad>div>div>div:has(#offsite-buy-box)']:
     assert tok in S,tok
-for h in ['## FULL — v7.466','## VIEWPORT — v7.466','## TRANSITION — v7.466']:
+for h in ['## FULL — v7.467','## VIEWPORT — v7.467','## TRANSITION — v7.467']:
     assert h in CMD,h
-print('PASS: v7.466 restores the historical immutable-core sentinel while preserving v7.464 PDP ownership')
+print('PASS: v7.467 restores the historical immutable-core sentinel while preserving v7.464 PDP ownership')

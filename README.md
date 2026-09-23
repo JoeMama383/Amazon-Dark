@@ -1,11 +1,11 @@
-# AmazonDark v7.466 — legacy PDP CI anchor compatibility
+# AmazonDark v7.467 — strict PDP compatibility repair
 
-Direct parent: **v7.465~pdp-ad-book-ci-fix**.
+Direct parent: **v7.466~pdp-ad-book-ci-compat**.
 
-v7.465 cleared the earlier `ADAddressManagementJS7412()` boundary failure, and strict CI then advanced through the complete v7.438 regression before stopping in `test_v7439_pdp_ui_completion.py`. That test slices `ADPDPSafeFrameJS7432()` at the historical `// v7.439:` source marker. v7.464 had removed that marker while compacting source comments.
+v7.466 failed the frozen v7.448 performance-consolidation regression because it reintroduced a CSS redundancy (`background` immediately followed by the equivalent `background-color`) while trying to satisfy an older v7.439 source-contract assertion. The v7.448 history already updated that v7.439 assertion to accept the consolidated shorthand, so restoring the redundant declaration was incorrect.
 
-v7.466 restores the minimal `// v7.439:` boundary immediately before `ADPDPUICompletionJS7439()` and restores the exact historical OLED declaration token that the same v7.439 regression verifies. It also restores the minimal `// v7.388: WKUserScript` boundary before `ADSharedUserScript7387()` so the older user-style source-contract slicer cannot fail for the same reason later.
+v7.467 keeps the restored historical slicing markers (`// v7.439:`, `// One immutable document-start program...`, and `// v7.388: WKUserScript`) but restores the actual v7.448 CSS consolidation contract. The ILM shell again uses the single `background:#000!important` shorthand. The Book-details fade uses `background:none!important`, which preserves the requested transparent/no-image result without tripping the v7.448 redundant-background detector.
 
-These are source-contract compatibility repairs. The v7.464/v7.465 production UI ownership remains intact: top standalone-ad header/floor treatment, Books divider, Book-details fade/text, Customer-review text, half-carousel OLED/text controls, BTF duplicate-border removal, image taming, and all-frame delivery. The added `background-color:#000` / `background-image:none` declarations are behaviorally consistent with the already-owned OLED ILM shell.
+The v7.464 UI fixes remain intact: standalone-ad header/floor treatment, gray Books divider, transparent Book-details fade, white Book-details/review copy, OLED half-carousel treatment, BTF duplicate-border removal, and all-frame PDP delivery. No MutationObserver, polling loop, RAF loop, Web scroll listener, or recurring DOM traversal is added.
 
-No MutationObserver, polling loop, RAF loop, Web scroll listener, or recurring DOM walk is added. FULL, VIEWPORT, and TRANSITION identities are regenerated as v7.466.
+The new v7.467 regression reproduces both regex checks from the frozen v7.448 performance test and also verifies all three restored historical source boundaries in the same run.
