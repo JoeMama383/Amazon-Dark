@@ -9,8 +9,8 @@ W=(ROOT/'.github/workflows/build.yml').read_text()
 V=(ROOT/'scripts/validate.sh').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.459~viewport-terminal-home-hero-pill' in C
-assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in S
+assert 'Version: 7.460~home-hero-pill-owner-fix' in C
+assert '#define AD_VERSION "v7.460-home-hero-pill-owner-fix"' in S
 for key in ['hideSponsored','priceHistory']:
     assert key in S and f'<string>{key}</string>' in P
 assert '<string>Hide Sponsored Content</string>' in P

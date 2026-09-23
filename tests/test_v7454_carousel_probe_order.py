@@ -6,8 +6,8 @@ W=(R/'src/ADUIProbeScroll7446.js.inc').read_text()
 S=(R/'src/ADPDPMainStream7451.js.inc').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.459~viewport-terminal-home-hero-pill' in C
-assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in T
+assert 'Version: 7.460~home-hero-pill-owner-fix' in C
+assert '#define AD_VERSION "v7.460-home-hero-pill-owner-fix"' in T
 
 fn=T[T.index('static NSString *ADPDPGridCarouselFix7454'):T.index('static NSString *ADPDPCompletionJS7405')]
 for tok in ['[data-testid=gridContainer]','[data-testid=gridWrapper]','[data-testid=gridRegion]',
@@ -34,4 +34,4 @@ for tok in ['visibleVerticalPrimary(root)','elementsFromPoint','cw<innerWidth*.6
 for tok in ['window.__adPDPStreamSeen7454','catchup=!!priorSeen','catchup?96:24','catchup?4:6',
             'state.pass===0&&!state.truncated&&!catchup']:
     assert tok in S, tok
-print('PASS: v7.459 preserves exact carousel scope, manual PDP FULL, and automatic non-PDP walk')
+print('PASS: v7.460 preserves exact carousel scope, manual PDP FULL, and automatic non-PDP walk')

@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.459 — probe-backed PDP cleanup + selective screenshot Share suppression
+ * AmazonDark v7.460 — probe-backed PDP cleanup + selective screenshot Share suppression
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"
+#define AD_VERSION "v7.460-home-hero-pill-owner-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2227,9 +2227,9 @@ static NSString *ADFullRasterHostBridgeJS7266(void){
     return @"(function(){try{if(window.__adFullRasterHostBridge7266)return;window.__adFullRasterHostBridge7266=1;window.addEventListener('message',function(ev){try{var x=ev.data;if(!x||x.__adFullRaster7266!==1)return;var a=document.getElementsByTagName('iframe'),f=null;for(var i=0;i<a.length&&i<64;i++){if(a[i].contentWindow===ev.source){f=a[i];break}}if(f){function clear(e){try{if(!e)return;e.setAttribute('data-ad7266-full-raster-host','1');var s=e.style;if(s){s.setProperty('border','0','important');s.setProperty('border-width','0','important');s.setProperty('border-color','transparent','important');s.setProperty('outline','0','important');s.setProperty('box-shadow','none','important')}}catch(_){}}clear(f);var p=f;for(var d=0;d<5&&p;d++,p=p.parentElement){var id=String(p.id||''),cl=String(p.className||'');if(cl.indexOf('ape-placement')>=0||(id.indexOf('ape_')===0&&id.indexOf('_placement')>0)){clear(p);var b=p.getElementsByClassName('border-enforcement');for(var j=0;j<b.length&&j<8;j++){clear(b[j]);b[j].style.setProperty('display','none','important');b[j].style.setProperty('height','0','important');b[j].style.setProperty('margin','0','important');b[j].style.setProperty('padding','0','important')}break}}}if(window!==top)try{parent.postMessage({__adFullRaster7266:1},'*')}catch(_){}}catch(_){}} ,false)}catch(_){}})();";
 }
 
-// Home dashboard probe-backed floor; stays in the existing core document-start script.
+// Home hero probe-backed floor; exact single-video pill family, no dashboard ancestry assumption.
 static NSString *ADHomeAdShellFloorJS7381(void){
-    return @"(function(){try{var d=document;if(d.getElementById('ad7381-home-ad-shell-floor'))return;var s=d.createElement('style');s.id='ad7381-home-ad-shell-floor';s.textContent=\"#gwm-dashboard>li.gwm-tile{background:#000!important;background-color:#000!important;}#gwm-dashboard [class*='_single-video-card_style_sponsored-label-pill__']{background:rgba(0,0,0,.6)!important;background-color:rgba(0,0,0,.6)!important;}\";(d.head||d.documentElement).appendChild(s)}catch(_){}})();";
+    return @"(function(){try{var d=document;if(d.getElementById('ad7460-home-hero-pill'))return;var s=d.createElement('style');s.id='ad7460-home-hero-pill';s.textContent=\"#gwm-dashboard>li.gwm-tile{background:#000!important;background-color:#000!important;}[class*='_single-video-card_style_sponsored-label-pill__']{background:rgba(0,0,0,.6)!important;background-color:rgba(0,0,0,.6)!important;}\";(d.head||d.documentElement).appendChild(s)}catch(_){}})();";
 }
 
 // v7.388: Sponsored-content filtering follows AmznKiller's selector-level
@@ -2543,7 +2543,7 @@ static NSString *ADAddressManagementJS7412(void){
 // allocated/compiled WKUserScripts while preserving their proven execution order.
 static long gADCoreWebJSStrength7271=-1;
 static NSString *gADCoreWebJSCached7271=nil;
-// v7.459 probe-backed PDP owners; declarative only.
+// v7.460 probe-backed PDP owners; declarative only.
 static NSString *ADPDPProbeBackedFixesJS7458(void){
     CGFloat f=1.0;if(gP.whiteTame){CGFloat t=((CGFloat)MAX(0,MIN(100,gP.whiteTameStrength)))/100.0;f=1.0-(0.10+(0.48*t));}
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#offsite-buy-box :is([data-testid=brand-name],[data-testid=product-description],[data-testid=combined-brand-and-description]){color:#fff!important;opacity:1!important}#offsite-buy-box :is([data-testid=ratings-stars],[data-testid=rating-stars],[class*=rating],[class*=star]){opacity:1!important;visibility:visible!important}#offsite-buy-box button[data-testid=sponsored-container],#offsite-buy-box button[data-testid=sponsored-container] span{color:#b1aaa0!important}#offsite-buy-box svg[data-testid=info-icon] path:first-of-type{fill:#b1aaa0!important}#offsite-buy-box svg[data-testid=info-icon] path:not(:first-of-type){fill:#000!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]){filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');}catch(_){}})();",gP.whiteTame,f];
@@ -12002,7 +12002,7 @@ static void ADInstallPrivacyHooks7271(void){
     %init(ADPrivacyHooks7271);
 }
 
-// v7.459: v7.457 FULL evidence identified the screenshot Share opener exactly.
+// v7.460: v7.457 FULL evidence identified the screenshot Share opener exactly.
 // Suppress only that callback when the testing preference is enabled; screenshot
 // notification delivery and the normal/manual Share path remain untouched.
 %hook AXFScreenshotToastPresenter

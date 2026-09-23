@@ -6,12 +6,12 @@ UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
-assert 'Version: 7.459~viewport-terminal-home-hero-pill' in C
-assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in S
-assert 'VER=7.459' in UI
-assert 'AD_PROBE_VERSION=7.459' in SK and 'AD_PROBE_NAME=AmazonDark-v7.459' in SK
-assert '7.459~*)' in SK and 'Install the v7.459 Actions package first.' in SK
-assert 'AmazonDark-v7.459-viewport-terminal-home-hero-pill-source.zip' in CMD
+assert 'Version: 7.460~home-hero-pill-owner-fix' in C
+assert '#define AD_VERSION "v7.460-home-hero-pill-owner-fix"' in S
+assert 'VER=7.460' in UI
+assert 'AD_PROBE_VERSION=7.460' in SK and 'AD_PROBE_NAME=AmazonDark-v7.460' in SK
+assert '7.460~*)' in SK and 'Install the v7.460 Actions package first.' in SK
+assert 'AmazonDark-v7.460-home-hero-pill-owner-fix-source.zip' in CMD
 assert 'sh scripts/validate.sh' in CMD
 
 # New main-frame completion is injected into the core script.

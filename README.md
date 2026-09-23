@@ -1,9 +1,7 @@
-# AmazonDark v7.459 — reliable VIEWPORT + Home hero sponsored pill
+# AmazonDark v7.460 — Home hero Sponsored pill ownership correction
 
-v7.459 is built directly from the exact v7.458 source. It addresses the two failures captured on-device after v7.458: VIEWPORT captures that often remained nonterminal after Amazon was backgrounded, and the Home single-video hero card's bright translucent Sponsored pill.
+v7.460 is built directly from v7.459. The v7.458 VIEWPORT evidence correctly identified the visible Home hero Sponsored pill itself as `_single-video-card_style_sponsored-label-pill__*` with computed `rgba(255,255,255,0.6)`, but v7.459 mistakenly required that element to be beneath `#gwm-dashboard`. The captured ancestry instead shows the single-video card under the `wd-shoppable-1` / `ape_gateway_mobile-wd-1_mshop_placement` path and does not establish that dashboard ancestor.
 
-The supplied successful v7.458 VIEWPORT archive showed why the probe was unreliable: a 2,046-node capture was split across 107 WebKit continuation callbacks and took roughly six seconds to become terminal. On iOS, Amazon could be suspended before those continuations completed. v7.459 keeps FULL cooperative, but makes VIEWPORT one finite WebKit evaluation: it traverses the current document/shadow trees once, rejects off-screen nodes before computed-style serialization, records intersecting visible nodes, and returns terminal data without a continuation chain. The VIEWPORT final cross-frame flush is 200 ms instead of FULL's unchanged 900 ms. `ui-probe.sh export viewport` also waits up to ten seconds for an already in-flight terminal write, so switching quickly to NewTerm no longer creates a false failure.
+v7.460 targets the exact single-video Sponsored-pill class family directly and keeps the requested alpha unchanged at 0.6 while replacing white with black. It also uses a fresh style identity (`ad7460-home-hero-pill`) so the older `ad7381-home-ad-shell-floor` node cannot suppress the corrected rule in a surviving document.
 
-The same probe identifies the Home hero pill exactly as `_single-video-card_style_sponsored-label-pill__*`, computed as `rgba(255,255,255,0.6)`. v7.459 changes only that Home-dashboard family to `rgba(0,0,0,0.6)`: identical 60% opacity, black instead of white. The Sponsored text/glyph colors are not overwritten.
-
-No production MutationObserver, polling loop, RAF loop, scroll listener, or recurring hierarchy/document scan is added. The probe changes execute only when the explicitly armed diagnostic runs; the Home fix is declarative document-start CSS in the existing Home stylesheet.
+The v7.459 VIEWPORT terminal-state changes are retained. FULL, VIEWPORT, and TRANSITION probe identities are regenerated as v7.460.

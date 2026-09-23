@@ -5,8 +5,8 @@ J=(R/'src/ADPDPMainStream7451.js.inc').read_text()
 T=(R/'src/Tweak.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.459~viewport-terminal-home-hero-pill' in C
-assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in T
+assert 'Version: 7.460~home-hero-pill-owner-fix' in C
+assert '#define AD_VERSION "v7.460-home-hero-pill-owner-fix"' in T
 
 # The failed v7.450 path recursively re-entered evaluateJavaScript once per tiny DOM chunk.
 # The inherited mounted-DOM streamer remains one finite page-side stream for non-PDP catch-up.
@@ -39,4 +39,4 @@ for tok in ['getComputedStyle(el)', "getComputedStyle(el,'::before')", "getCompu
             "document.createTreeWalker(document.documentElement,1)"]:
     assert tok in J, tok
 
-print('PASS: v7.459 retains the finite read-only streamer for non-PDP catch-up without using it as the PDP primary path')
+print('PASS: v7.460 retains the finite read-only streamer for non-PDP catch-up without using it as the PDP primary path')

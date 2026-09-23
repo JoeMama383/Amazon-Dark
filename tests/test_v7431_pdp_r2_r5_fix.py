@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.459~viewport-terminal-home-hero-pill' in C
-assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in S
+assert 'Version: 7.460~home-hero-pill-owner-fix' in C
+assert '#define AD_VERSION "v7.460-home-hero-pill-owner-fix"' in S
 f=S[S.index('static NSString *ADPDPCompletionJS7405'):S.index('static NSString *ADPDPCompletionTWBJS7405')]
 # r2: live header is an AUI expander, not h2/h3; hero quick-promo is a separate APE iframe.
 for tok in [

@@ -2,8 +2,8 @@ from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.459~viewport-terminal-home-hero-pill' in C
-assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in S
+assert 'Version: 7.460~home-hero-pill-owner-fix' in C
+assert '#define AD_VERSION "v7.460-home-hero-pill-owner-fix"' in S
 sel='#checkoutDisplayPage .rcx-checkout-delivery-option-a-control-row-new.a-touch-press'
 assert sel in S
 f=S[S.index(sel):S.index(sel)+1000]

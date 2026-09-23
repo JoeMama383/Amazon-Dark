@@ -10,11 +10,11 @@ CTL=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text()
 SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 
-assert 'Version: 7.459~viewport-terminal-home-hero-pill' in CTL
-assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in S
-assert 'VER=7.459' in UI
-assert 'AD_PROBE_VERSION=7.459' in SK and 'AD_PROBE_NAME=AmazonDark-v7.459' in SK
-assert 'AmazonDark-v7.459-ui-viewport.arm' in INC
+assert 'Version: 7.460~home-hero-pill-owner-fix' in CTL
+assert '#define AD_VERSION "v7.460-home-hero-pill-owner-fix"' in S
+assert 'VER=7.460' in UI
+assert 'AD_PROBE_VERSION=7.460' in SK and 'AD_PROBE_NAME=AmazonDark-v7.460' in SK
+assert 'AmazonDark-v7.460-ui-viewport.arm' in INC
 
 # The bridge must exist before any frame document loads, including cross-origin SafeFrames.
 assert 'ADUIProbeAttach7362(ucc);' in S

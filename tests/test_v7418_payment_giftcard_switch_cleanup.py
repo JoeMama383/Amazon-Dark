@@ -3,8 +3,8 @@ import json
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7418-payment-giftcard-switch.json').read_text())
-assert 'Version: 7.459~viewport-terminal-home-hero-pill' in C
-assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in S
+assert 'Version: 7.460~home-hero-pill-owner-fix' in C
+assert '#define AD_VERSION "v7.460-home-hero-pill-owner-fix"' in S
 # Probe evidence: current visible family was unselected-balance, not the older selected-balance owner.
 assert F['gift_card']['testid']=='unselected-balance-pm-giftcard'
 assert F['gift_card']['bg']=='rgb(255, 255, 255)'

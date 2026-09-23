@@ -6,8 +6,8 @@ M=''.join(json.loads(x) for x in (R/'src/ADUniversalUIProbe7362.js.inc').read_te
 SC=''.join(json.loads(x) for x in (R/'src/ADUIProbeScroll7446.js.inc').read_text().splitlines())
 SAMPLE=''.join(json.loads(x) for x in (R/'src/ADUIProbeViewportSample7449.js.inc').read_text().splitlines())
 C=(R/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.459~viewport-terminal-home-hero-pill' in C
-assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in S
+assert 'Version: 7.460~home-hero-pill-owner-fix' in C
+assert '#define AD_VERSION "v7.460-home-hero-pill-owner-fix"' in S
 # Screenshot FULL may not synchronously format a full native hierarchy anymore.
 cap=I[I.index('static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){'):I.index('static NSString *ADUIViewportArmPath7362')]
 assert 'ADUINativeSnapshot7362(viewportOnly)' not in cap
@@ -24,7 +24,7 @@ assert 'PDP_STREAM_COMPLETE' in I
 assert 'SWEEP_SAMPLE_' in I and 'ADUIWebSampleJS7449' in I
 # Complete mounted-DOM inventory is cooperative and materially above the old 24k ceiling.
 assert 'maxNodes=viewportOnly?30000:120000' in M
-# v7.459 preserves FULL's 32-node/3ms cooperative walk while making VIEWPORT a
+# v7.460 preserves FULL's 32-node/3ms cooperative walk while making VIEWPORT a
 # one-evaluation pass so background suspension cannot strand continuation state.
 assert 'limit=viewportOnly?maxNodes:32,budget=3' in M
 assert 'viewportOnly||n===0||Date.now()-start<budget' in M

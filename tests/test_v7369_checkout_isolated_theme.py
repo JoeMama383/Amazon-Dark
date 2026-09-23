@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.459~viewport-terminal-home-hero-pill' in CTRL
-assert '#define AD_VERSION "v7.459-viewport-terminal-home-hero-pill"' in S
+assert 'Version: 7.460~home-hero-pill-owner-fix' in CTRL
+assert '#define AD_VERSION "v7.460-home-hero-pill-owner-fix"' in S
 
 from cart7423_delta import strip_cart7423
 from video7425_delta import strip_video7425

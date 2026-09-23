@@ -1,5 +1,5 @@
 {
-  "version": "7.459~viewport-terminal-home-hero-pill",
+  "version": "7.460~home-hero-pill-owner-fix",
   "direct_parent": "7.458~probe-backed-pdp-ui-screenshot-disable",
   "parent_source": "AmazonDark-v7.458-probe-backed-pdp-ui-screenshot-disable-source.zip",
   "scope": "Make armed VIEWPORT capture terminal reliably without changing FULL's cooperative scan architecture; change the exact Home single-video Sponsored pill from rgba(255,255,255,0.6) to rgba(0,0,0,0.6).",
