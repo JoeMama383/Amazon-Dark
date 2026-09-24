@@ -1,15 +1,15 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); UI=(R/'scripts/ui-probe.sh').read_text(); SK=(R/'scripts/skeleton-probe.sh').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.477~pdp-ad-ui-repair' in C
-assert '#define AD_VERSION "v7.477-pdp-ad-ui-repair"' in S
-assert 'VER=7.477' in UI and 'AD_PROBE_VERSION=7.477' in SK and 'AD_PROBE_NAME=AmazonDark-v7.477' in SK
+assert 'Version: 7.478~home-pdp-six-fix' in C
+assert '#define AD_VERSION "v7.478-home-pdp-six-fix"' in S
+assert 'VER=7.478' in UI and 'AD_PROBE_VERSION=7.478' in SK and 'AD_PROBE_NAME=AmazonDark-v7.478' in SK
 assert len(S.encode()) < 856000, len(S.encode())
 block=S.split('static NSString *ADProductScrollVideoBorderJS7405(void){',1)[1].split('static NSString *ADPDPCompletionJS7405',1)[0]
 assert 'overflow:hidden!important' not in block
 # The strict-CI clipping fix remains, but the later functional correction also removes the broad absoluteComponents painter.
 assert '#ad #absoluteComponents' not in block
 assert 'renderer-factory-ad-container]:has(#offsite-buy-box)>div:first-child' in block
-assert 'AmazonDark-v7.477-pdp-ad-ui-repair-source.zip' in CMD
-for h in ('## FULL — v7.477','## VIEWPORT — v7.477','## TRANSITION — v7.477'): assert h in CMD
-print('PASS: v7.477 retains the v7.476 no-clipping contract while restoring the working top-offsite ownership boundary')
+assert 'AmazonDark-v7.478-home-pdp-six-fix-source.zip' in CMD
+for h in ('## FULL — v7.478','## VIEWPORT — v7.478','## TRANSITION — v7.478'): assert h in CMD
+print('PASS: v7.478 retains the v7.476 no-clipping contract while restoring the working top-offsite ownership boundary')

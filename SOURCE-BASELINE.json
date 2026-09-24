@@ -1,9 +1,9 @@
 {
-  "version": "7.477~pdp-ad-ui-repair",
-  "direct_parent": "7.476~pdp-offsite-ci-repair",
-  "parent_source": "AmazonDark-v7.476-pdp-offsite-ci-repair-source.zip",
-  "scope": "Undo the v7.475/v7.476 top-ad regression, isolate the probe-proven modern-414x125 medium standalone renderer, correctly suppress the two native bottom-bar line owners, and instrument the actual PDP sticky Top/Details/Explore/Reviews row.",
-  "root_cause": "The v7.475 broad #absoluteComponents/offsite wrapper rule black-painted a full-frame overlay shared by the already-working top standalone creative. The medium family actually has its own modern-414x125-layout-container renderer. The bottom-bar line fix also targeted <=2px sublayers even though the probe shows a 1.10pt layer border plus a separate 44x5 indicator. Finally, the prior Top-label geometry patch targeted the unrelated mshop #nav-subnav row.",
-  "delivery": "Restore the v7.474 top-offsite survivor block exactly, add only exact modern-414x125 child-frame rules, narrow native hairline ownership to ANXTabBarView, remove the wrong mshop geometry override, and add bounded probe-only btfNav7477 metadata for the actual sticky row.",
-  "device_validation": "Pending v7.477 installation. Top ad behavior is restored to the last working v7.474 boundary; medium-card treatment is derived from the v7.463 r3 computed-state capture; native bottom-bar suppression uses exact v7.473 geometry. The sticky Top label requires one v7.477 capture for exact descendant geometry before further mutation."
+  "version": "7.478~home-pdp-six-fix",
+  "direct_parent": "7.477~pdp-ad-ui-repair",
+  "parent_source": "AmazonDark-v7.477-pdp-ad-ui-repair-source.zip",
+  "scope": "Resolve exactly six probe-backed regressions: Home Buy Again pill floors, Home countdown number boxes, Home Prime billboard raster taming, PDP Top inner tab geometry/type, PDP 402x125 standalone-ad content occlusion, and the PDP WKWebView horizontal scroll-indicator line.",
+  "root_cause": "Three Home families were simply outside the existing exact selectors. On PDP, v7.477 targeted the Top anchor instead of its unique 12px/icon inner structure; #sp_hqp_phoneapp_shared_inner was an opaque z-index 100 overlay above the ad's sibling content; and the remaining bottom white line was the root WKScrollView horizontal indicator rather than ANXTabBarView.",
+  "delivery": "Add exact Home selectors using existing OLED/whiteTame policy, normalize only the Top tab's unique inner markup, make the medium-ad overlay transparent while retaining the outer OLED card, and suppress only WKScrollView's horizontal indicator while retaining its vertical indicator.",
+  "device_validation": "Pending v7.478 installation. Every changed owner is identified in the supplied v7.477 FULL/VIEWPORT probes; static validation is required before handoff, but only a new v7.478 capture can confirm final on-device paint."
 }

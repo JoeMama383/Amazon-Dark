@@ -2,8 +2,8 @@ from pathlib import Path
 import hashlib
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); F=(R/'src/ADUniversalUIProbe7362.frame.js.inc').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.477~pdp-ad-ui-repair' in C
-assert '#define AD_VERSION "v7.477-pdp-ad-ui-repair"' in S
+assert 'Version: 7.478~home-pdp-six-fix' in C
+assert '#define AD_VERSION "v7.478-home-pdp-six-fix"' in S
 assert len(S.encode()) < 856000, len(S.encode())
 a=S.index('static NSString *ADStandalonePaintJS7104(void){'); b=S.index('static NSString *ADTWBJS(void){',a); stand=S[a:b]
 assert hashlib.sha256(stand.encode()).hexdigest()=='2734e76915bf577d60b9a012b6fee226035582aab2a499ee1c40e3a3130f7ebe'
@@ -15,5 +15,5 @@ for t in ('__ad7454PDPAdSurvivor','document.adoptedStyleSheets','data-ad7473-sur
 assert 'ADPDPStandalonePromoteJS7472' not in S
 for bad in ('ADPDPIsolatedFrameThemeJS7470','ADPDPIsolatedFrameThemeAttach7470','kADPDPIsolatedUS7470','_WKUserStyleSheet','ADPDPUserStyleAttach7469'): assert bad not in S,bad
 assert 'adopted:adopted' in F and 'survivor7473:survivor' in F
-for h in ['## FULL — v7.477','## VIEWPORT — v7.477','## TRANSITION — v7.477']: assert h in CMD,h
+for h in ['## FULL — v7.478','## VIEWPORT — v7.478','## TRANSITION — v7.478']: assert h in CMD,h
 print('PASS: v7.473 preserves the frozen mature standalone engine and adds exact hydration-surviving coverage for its uncovered PDP renderers')
