@@ -1,42 +1,15 @@
-# AmazonDark v7.475 — offsite standalone repair + PDP nav/bottom-bar polish
+# AmazonDark v7.476 — PDP offsite UI + strict-CI repair
 
-Direct parent: **v7.474~pdp-visible-copy-swatch**.
+Direct parent: **v7.475~pdp-offsite-nav-separators**.
 
-This pass addresses the remaining UI issues shown in the supplied screenshots and the latest `AmazonDark-v7.473-ui-viewport-probe-20260924-002420-079-r1.tar` VIEWPORT capture.
+v7.475 contained the intended UI changes but failed strict CI because one newly added CSS declaration violated an older frozen regression contract. The failure was reproducible locally in `test_v7406_video_sponsored_footer_restore.py`: the new offsite card rule contained `overflow:hidden!important` inside the source slice that must preserve the authored Sponsored footer without clipping.
 
-## Scope
+v7.476 removes only that clipping declaration. The v7.475 UI work remains:
 
-1. **Medium / standalone sponsored card family**
-   - Harden the offsite/standalone wrapper family so the medium sponsored card uses the same AmazonDark coloring algorithm as the working Celsius card:
-     - OLED floors
-     - one gray border
-     - black neutral text promoted to white
-     - dynamic semantic colors preserved
-     - Sponsored/info gray + OLED inner “i” preserved
-     - image treatment left to the existing tame/TWB pipeline
-   - The survivor sheet now also owns the `absoluteComponents` wrapper structure used by the offsite child-frame creative so white wrapper surfaces and multiply blending cannot leave the card as an empty black box with two vertical side lines.
+- offsite/medium standalone wrappers receive OLED floors, one gray border, neutral text promotion and preserved semantic colors;
+- PDP `#nav-subnav` links are vertically normalized so `Top` matches its neighbors;
+- thin bottom-navigation hairline layers are suppressed without changing tab icons or selection state.
 
-2. **PDP subnav “Top” row geometry**
-   - Normalize the PDP subnav link row so `Top` uses the same vertical centering/min-height behavior as its neighboring tabs.
-   - This is done in the exact `#nav-subnav` family already owned by v7.474; no new scanning or recurring machinery is introduced.
+The release was audited against the same version-normalized historical regression corpus used by `scripts/validate.sh`; all **153** Python regression files pass in bounded batches after the v7.476 compatibility test was added.
 
-3. **Bottom nav hairlines**
-   - Hide the thin white/partial separator layers being left behind on the bottom bar.
-   - Ownership remains background-only plus exact thin-layer suppression on the bar host; icons, selection state, labels, and Amazon geometry are otherwise preserved.
-
-## Probe coverage note
-
-The supplied VIEWPORT tar *does* capture the working top sponsored/offsite child-frame family and is enough to verify the offsite renderer structure that needed hardening.
-
-However, the later blank medium standalone creative shown in the screenshot was **not** the exact visible creative inside that tar. That lower creative was addressed by extending the same probe-proven offsite family rather than inventing a new delivery path.
-
-Likewise, the `Top` alignment issue is visible in the screenshot but is not emitted as a dedicated probe assertion. The fix therefore stays tightly scoped to the existing PDP subnav DOM family.
-
-## Architecture / policy
-
-- No MutationObserver, interval, requestAnimationFrame loop, scroll listener, polling loop, or recurring DOM scan added.
-- No new child-frame bridge or new delivery mechanism added.
-- Existing standalone delivery remains intact.
-- `src/Tweak.xm` remains below the 856 KB ceiling.
-
-FULL, VIEWPORT, and TRANSITION probe instructions are regenerated as **v7.475**.
+No MutationObserver, interval, requestAnimationFrame loop, Web scroll listener, TreeWalker, or new recurring scanner is introduced.

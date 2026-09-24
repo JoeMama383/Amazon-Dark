@@ -1,9 +1,9 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); F=(R/'src/ADUniversalUIProbe7362.frame.js.inc').read_text(); C=(R/'layout/DEBIAN/control').read_text(); UI=(R/'scripts/ui-probe.sh').read_text(); SK=(R/'scripts/skeleton-probe.sh').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.475~pdp-offsite-nav-separators' in C
-assert '#define AD_VERSION "v7.475-pdp-offsite-nav-separators"' in S
-assert 'VER=7.475' in UI and 'AD_PROBE_VERSION=7.475' in SK
+assert 'Version: 7.476~pdp-offsite-ci-repair' in C
+assert '#define AD_VERSION "v7.476-pdp-offsite-ci-repair"' in S
+assert 'VER=7.476' in UI and 'AD_PROBE_VERSION=7.476' in SK
 assert len(S.encode()) < 856000, len(S.encode())
 g=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSString *ADPDPCompletionJS7405')]
 # The exact all-frame core program now uses the same constructable-sheet survival mechanism as ADStandalonePaintJS7104.
@@ -23,5 +23,5 @@ assert 'ADPDPStandalonePromoteJS7472' not in S
 # Probe now exposes constructable sheets rather than only DOM <style>/<link> nodes.
 for t in ('var adopted=[]','document.adoptedStyleSheets||[]','survivor7473:survivor','adopted:adopted',"survivor7473:(document.documentElement&&document.documentElement.getAttribute('data-ad7473-survivor'))||''"):
     assert t in F,t
-for h in ['## FULL — v7.475','## VIEWPORT — v7.475','## TRANSITION — v7.475']: assert h in CMD,h
+for h in ['## FULL — v7.476','## VIEWPORT — v7.476','## TRANSITION — v7.476']: assert h in CMD,h
 print('PASS: v7.473 converts the uncovered PDP families to a persistent core survivor sheet and expands viewport proof for adopted stylesheets')

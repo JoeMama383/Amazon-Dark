@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.475~pdp-offsite-nav-separators' in C
-assert '#define AD_VERSION "v7.475-pdp-offsite-nav-separators"' in S
+assert 'Version: 7.476~pdp-offsite-ci-repair' in C
+assert '#define AD_VERSION "v7.476-pdp-offsite-ci-repair"' in S
 assert len(S.encode()) < 856000, len(S.encode())
 marker='// One immutable document-start program per strength replaces four separately\n// allocated/compiled WKUserScripts while preserving their proven execution order.'
 a=S.index('static NSString *ADAddressManagementJS7412(void){'); m=S.index(marker,a); g=S.index('static long gADCoreWebJSStrength7271=-1;',a)
@@ -14,5 +14,5 @@ for bad in ['kADPDPIsolatedUS7470','ADPDPIsolatedFrameThemeJS7470','ADPDPIsolate
 grid=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSString *ADPDPCompletionJS7405')]
 for tok in ['document.adoptedStyleSheets','__ad7454PDPAdSurvivor','data-ad7473-survivor']:
     assert tok in grid,tok
-for h in ['## FULL — v7.475','## VIEWPORT — v7.475','## TRANSITION — v7.475']: assert h in CMD
+for h in ['## FULL — v7.476','## VIEWPORT — v7.476','## TRANSITION — v7.476']: assert h in CMD
 print('PASS: v7.473 preserves legacy anchors and retires the failed promotion lane in favor of the core survivor sheet')

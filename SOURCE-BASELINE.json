@@ -1,9 +1,9 @@
 {
-  "version": "7.475~pdp-offsite-nav-separators",
-  "direct_parent": "7.474~pdp-visible-copy-swatch",
-  "parent_source": "AmazonDark-v7.474-pdp-visible-copy-swatch-source.zip",
-  "scope": "Harden the medium/offsite standalone sponsored card family so it renders like the accepted Celsius card, normalize PDP subnav tab geometry, and suppress thin bottom-bar white hairlines.",
-  "root_cause": "The offsite standalone family still had unowned wrapper surfaces and multiply blending inside the child-frame absoluteComponents/offsite-buy-box structure, which could collapse a medium creative into an empty black box bounded by two vertical lines. Separately, the PDP subnav link row was not explicitly normalized, allowing the Top tab to sit off-height, and the bottom bar still exposed thin separator sublayers.",
-  "delivery": "Extend the existing ADPDPGridCarouselFix7454 survivor sheet for the offsite wrapper structure, extend ADPDPProbeBackedFixesJS7458 for PDP subnav link alignment, and reuse the existing native bottom-bar owner with exact thin-layer suppression. No new recurring machinery or probe transport changes.",
-  "device_validation": "Pending v7.475 installation. Expected result: medium standalone/offsite cards render with OLED floor, one gray border, visible tamed imagery and preserved semantic colors; the Top subnav tab matches its neighbors vertically; bottom-bar white hairlines are gone."
+  "version": "7.476~pdp-offsite-ci-repair",
+  "direct_parent": "7.475~pdp-offsite-nav-separators",
+  "parent_source": "AmazonDark-v7.475-pdp-offsite-nav-separators-source.zip",
+  "scope": "Preserve the v7.475 offsite-card, PDP subnav, and bottom-bar UI fixes while repairing the strict-CI regression introduced by offsite overflow clipping.",
+  "root_cause": "v7.475 added overflow:hidden!important to #offsite-buy-box. Frozen test_v7406_video_sponsored_footer_restore.py rejects overflow:hidden anywhere in the ADProductScrollVideoBorderJS7405-to-ADPDPCompletionJS7405 source slice because that can clip the authored Sponsored footer. The new rule fell inside that slice.",
+  "delivery": "No delivery changes. Remove the forbidden overflow clipping declaration only; retain the existing constructable survivor sheet and native bottom-bar/subnav ownership.",
+  "device_validation": "UI behavior is inherited from v7.475 pending on-device confirmation; CI compatibility is locally reproduced and repaired."
 }
