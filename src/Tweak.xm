@@ -1,4 +1,4 @@
-/* AmazonDark v7.482 */
+/* AmazonDark v7.483 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"
+#define AD_VERSION "v7.483-pdp-books-returns-followup"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
