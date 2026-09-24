@@ -47,26 +47,46 @@ if command -v python3 >/dev/null 2>&1; then
   auto_cleanup="$test_tmp"
   trap 'rm -rf "${auto_cleanup:-}"' EXIT HUP INT TERM
   AD_TEST_TMP="$test_tmp" AD_CUR_VERSION="$cur_version" AD_CUR_PKG="$pkg_version" AD_CUR_TAG="$cur_tag" python3 - <<'PY'
-import os
+import os, re
 from pathlib import Path
 root=Path(os.environ['AD_TEST_TMP'])
 cur=os.environ['AD_CUR_VERSION']
 pkg=os.environ['AD_CUR_PKG']
 tag=os.environ['AD_CUR_TAG']
-# v7.460 is the frozen historical-test baseline. Only build/version identity
-# tokens are normalized; behavior/selectors/assertions are otherwise untouched.
-repls=(
-    ('7.460~home-hero-pill-owner-fix', pkg),
-    ('v7.460-home-hero-pill-owner-fix', tag),
-    ('AmazonDark-v7.460', 'AmazonDark-v'+cur),
-    ('ad7460-home-hero-pill', 'ad7461-home-hero-pill'),
-    ('v7.460', 'v'+cur),
-    ('7.460', cur),
-)
+slug=pkg.split('~',1)[1]
+# Historical regressions are behavior contracts, not permanent assertions that the
+# package must keep an old handoff/version identity. Normalize only identity-shaped
+# literals in the temporary regression copy; selectors and behavior assertions are
+# otherwise untouched. This prevents every version bump from breaking CI because a
+# previous release test still names that release's package/probe/export strings.
 for p in root.glob('test_*.py'):
     s=p.read_text()
-    for old,new in repls:
-        s=s.replace(old,new)
+    # Identify only the version(s) that this test treats as the current handoff.
+    # Historical fixture versions (for example an old v7.415 receipt or v7.444
+    # capture) are intentionally left alone.
+    package_ids=re.findall(r'(7\.\d+)~([A-Za-z0-9._-]+)', s)
+    tag_ids=re.findall(r'#define AD_VERSION \"v(7\.\d+)-([^\"]+)\"', s)
+    zip_ids=re.findall(r'AmazonDark-v(7\.\d+)-([A-Za-z0-9._-]+)-source\.zip', s)
+    candidates={v for v,_ in package_ids+tag_ids+zip_ids if int(v.split('.')[1])>=460}
+    candidates.update(v for v in re.findall(r'AD_PROBE_NAME=AmazonDark-v(7\.\d+)', s) if int(v.split('.')[1])>=460)
+    candidates.update(v for v in re.findall(r'AmazonDark-v(7\.\d+)-probe\.arm', s) if int(v.split('.')[1])>=460)
+    candidates.update(v for v in re.findall(r'## (?:FULL|VIEWPORT|TRANSITION) — v(7\.\d+)', s) if int(v.split('.')[1])>=460)
+    candidates.update(v for v in re.findall(r'(?<![A-Za-z0-9_])VER=(7\.\d+)', s) if int(v.split('.')[1])>=460)
+    if candidates:
+        # A test may also contain deliberately old/invalid package fixtures. The
+        # highest >=7.460 identity is the release that test treated as current;
+        # preserve lower historical/negative-control versions verbatim.
+        oldv=max(candidates, key=lambda v:int(v.split('.')[1]))
+        for pv,oldslug in package_ids:
+            if pv==oldv: s=s.replace(pv+'~'+oldslug, pkg)
+        for tv,oldslug in tag_ids:
+            if tv==oldv: s=s.replace('v'+tv+'-'+oldslug, tag)
+        for zv,oldslug in zip_ids:
+            if zv==oldv: s=s.replace('AmazonDark-v'+zv+'-'+oldslug+'-source.zip', 'AmazonDark-v'+cur+'-'+slug+'-source.zip')
+        s=s.replace('AmazonDark-v'+oldv, 'AmazonDark-v'+cur)
+        s=s.replace('v'+oldv, 'v'+cur)
+        s=s.replace(oldv, cur)
+    s=s.replace('ad7460-home-hero-pill', 'ad7461-home-hero-pill')
     p.write_text(s)
 PY
   for f in "$test_tmp"/test_*.py; do

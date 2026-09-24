@@ -7,9 +7,9 @@ JRET=''.join(json.loads(line) for line in (R/'src/ADReturnsTheme7480.js.inc').re
 C=(R/'layout/DEBIAN/control').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
-assert 'Version: 7.483~pdp-books-returns-followup' in C
-assert '#define AD_VERSION "v7.483-pdp-books-returns-followup"' in T
-for h in ('## FULL — v7.483','## VIEWPORT — v7.483','## TRANSITION — v7.483'):
+assert 'Version: 7.484~ci-build-repair-ui-followup' in C
+assert '#define AD_VERSION "v7.484-ci-build-repair-ui-followup"' in T
+for h in ('## FULL — v7.484','## VIEWPORT — v7.484','## TRANSITION — v7.484'):
     assert h in CMD, h
 assert ' status' not in CMD.lower()
 
@@ -51,4 +51,4 @@ for bad in ('MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addE
     assert bad not in JNEW, bad
     assert bad not in JRET, bad
 
-print('PASS: v7.483 fixes PUTB book fades/text, PDP related-book dark copy, and returns text/orange warning follow-up')
+print('PASS: v7.484 fixes PUTB book fades/text, PDP related-book dark copy, and returns text/orange warning follow-up')
