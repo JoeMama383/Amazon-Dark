@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.474~pdp-visible-copy-swatch' in C
-assert '#define AD_VERSION "v7.474-pdp-visible-copy-swatch"' in S
+assert 'Version: 7.475~pdp-offsite-nav-separators' in C
+assert '#define AD_VERSION "v7.475-pdp-offsite-nav-separators"' in S
 assert len(S.encode()) < 856000, len(S.encode())
 sf0=S.index('static NSString *ADPDPSafeFrameJS7432(void)'); m439=S.index('// v7.439:',sf0); u=S.index('static NSString *ADPDPUICompletionJS7439(void)',sf0)
 assert sf0 < m439 < u

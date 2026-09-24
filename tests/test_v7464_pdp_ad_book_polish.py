@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.474~pdp-visible-copy-swatch' in C
-assert '#define AD_VERSION "v7.474-pdp-visible-copy-swatch"' in S
+assert 'Version: 7.475~pdp-offsite-nav-separators' in C
+assert '#define AD_VERSION "v7.475-pdp-offsite-nav-separators"' in S
 assert len(S.encode()) < 856000, len(S.encode())
 g=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSString *ADPDPCompletionJS7405')]
 for x in ['[data-testid=gridContainer]{background:#000!important','[data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important','.grid.bg-zinc-100','.swiper-slide.bg-white','[data-testid=price-text]','[data-testid=currency]']:
@@ -17,5 +17,5 @@ main=S[S.index('static NSString *ADPDPProbeBackedFixesJS7458'):S.index('static N
 assert '.putb-read-more-primary-view::before' in main
 assert '[id^=putb-read-more-primary-view-][id$=-product-details-card_primary-view]::before' in main
 assert '.putb-main-text :is(.a-size-small,.a-text-bold)' in main
-for h in ['## FULL — v7.474','## VIEWPORT — v7.474','## TRANSITION — v7.474']: assert h in CMD
+for h in ['## FULL — v7.475','## VIEWPORT — v7.475','## TRANSITION — v7.475']: assert h in CMD
 print('PASS: v7.473 keeps frozen carousel scope and moves stubborn PDP ad paint onto a persistent core survivor sheet')

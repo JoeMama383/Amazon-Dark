@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); F=(R/'src/ADUniversalUIProbe7362.frame.js.inc').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.474~pdp-visible-copy-swatch' in C
-assert '#define AD_VERSION "v7.474-pdp-visible-copy-swatch"' in S
+assert 'Version: 7.475~pdp-offsite-nav-separators' in C
+assert '#define AD_VERSION "v7.475-pdp-offsite-nav-separators"' in S
 assert len(S.encode()) < 856000, len(S.encode())
 g=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSString *ADPDPCompletionJS7405')]
 assert 'new CSSStyleSheet()' in g and 'replaceSync(C)' in g and 'document.adoptedStyleSheets=a.concat([sh])' in g
@@ -13,5 +13,5 @@ for t in ('[data-testid=renderer-factory-ad-container]:has(#offsite-buy-box)>div
     assert t in g,t
 for bad in ('.a-icon-star{','.a-icon-prime{','swiper-button-prev','swiper-button-next','pictureHighQuality{filter:none','pictureLowQuality{filter:none','MutationObserver','setInterval(','requestAnimationFrame(' ,"addEventListener('scroll'",'createTreeWalker('): assert bad not in g,bad
 assert "survivor7473:(document.documentElement&&document.documentElement.getAttribute('data-ad7473-survivor'))||''" in F
-for h in ['## FULL — v7.474','## VIEWPORT — v7.474','## TRANSITION — v7.474']: assert h in CMD,h
+for h in ['## FULL — v7.475','## VIEWPORT — v7.475','## TRANSITION — v7.475']: assert h in CMD,h
 print('PASS: v7.473 carries all four probe-proven ad families in one persistent page-world survivor sheet without semantic repaint or recurring work')

@@ -1,9 +1,9 @@
 {
-  "version": "7.474~pdp-visible-copy-swatch",
-  "direct_parent": "7.473~standalone-survivor-sheet",
-  "parent_source": "AmazonDark-v7.473-standalone-survivor-sheet-source.zip",
-  "scope": "Use the v7.473 device probe to repair exact remaining visible-copy and selected-state misses: alternate offsite neutral subcopy/price, description-summary body text, and the selected Hardcover title cap.",
-  "root_cause": "v7.473 proves survivor-sheet delivery now works. Remaining failures are selector/state gaps: alternate offsite secondary text lanes are not fully owned; description-summary PUTB body text computes black; selected media_format_1 swatch title cap computes rgb(237,248,255) while its card body is rgb(48,51,53).",
-  "delivery": "No new delivery mechanism. Extend the existing hydration-surviving ADPDPGridCarouselFix7454 constructable sheet for offsite variants and the existing main-frame ADPDPProbeBackedFixesJS7458 style for description/format state.",
-  "device_validation": "Pending v7.474 installation. Expected computed state: offsite neutral price/subcopy white when present with dynamic semantic colors preserved; description-summary PUTB copy white; selected swatch title cap rgb(48,51,53)."
+  "version": "7.475~pdp-offsite-nav-separators",
+  "direct_parent": "7.474~pdp-visible-copy-swatch",
+  "parent_source": "AmazonDark-v7.474-pdp-visible-copy-swatch-source.zip",
+  "scope": "Harden the medium/offsite standalone sponsored card family so it renders like the accepted Celsius card, normalize PDP subnav tab geometry, and suppress thin bottom-bar white hairlines.",
+  "root_cause": "The offsite standalone family still had unowned wrapper surfaces and multiply blending inside the child-frame absoluteComponents/offsite-buy-box structure, which could collapse a medium creative into an empty black box bounded by two vertical lines. Separately, the PDP subnav link row was not explicitly normalized, allowing the Top tab to sit off-height, and the bottom bar still exposed thin separator sublayers.",
+  "delivery": "Extend the existing ADPDPGridCarouselFix7454 survivor sheet for the offsite wrapper structure, extend ADPDPProbeBackedFixesJS7458 for PDP subnav link alignment, and reuse the existing native bottom-bar owner with exact thin-layer suppression. No new recurring machinery or probe transport changes.",
+  "device_validation": "Pending v7.475 installation. Expected result: medium standalone/offsite cards render with OLED floor, one gray border, visible tamed imagery and preserved semantic colors; the Top subnav tab matches its neighbors vertically; bottom-bar white hairlines are gone."
 }

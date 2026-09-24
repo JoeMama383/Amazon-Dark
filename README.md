@@ -1,35 +1,42 @@
-# AmazonDark v7.474 — PDP visible-copy + selected-format repair
+# AmazonDark v7.475 — offsite standalone repair + PDP nav/bottom-bar polish
 
-Direct parent: **v7.473~standalone-survivor-sheet**.
+Direct parent: **v7.474~pdp-visible-copy-swatch**.
 
-The supplied v7.473 VIEWPORT is the acceptance evidence for this pass. It proves that the persistent survivor sheet is finally active inside the top standalone child frame (`survivor7473=1`, adopted survivor sheet present) and that the header leaves themselves are now white. The remaining misses are exact leaf/state ownership, not frame delivery.
+This pass addresses the remaining UI issues shown in the supplied screenshots and the latest `AmazonDark-v7.473-ui-viewport-probe-20260924-002420-079-r1.tar` VIEWPORT capture.
 
-## 1. Top standalone/offsite variants
+## Scope
 
-The current v7.473 capture contains visible `brand-name`, `product-description`, and Sponsored copy; those current header leaves already compute white/gray correctly. It does **not** contain a separate visible price/rating row in that particular creative. Historical v7.463 r1 evidence from the same offsite renderer family does contain the alternate secondary row: `formatted-price`, `#symbolOne`, `#price-integer`, `#price-fraction`, ratings and stars.
+1. **Medium / standalone sponsored card family**
+   - Harden the offsite/standalone wrapper family so the medium sponsored card uses the same AmazonDark coloring algorithm as the working Celsius card:
+     - OLED floors
+     - one gray border
+     - black neutral text promoted to white
+     - dynamic semantic colors preserved
+     - Sponsored/info gray + OLED inner “i” preserved
+     - image treatment left to the existing tame/TWB pipeline
+   - The survivor sheet now also owns the `absoluteComponents` wrapper structure used by the offsite child-frame creative so white wrapper surfaces and multiply blending cannot leave the card as an empty black box with two vertical side lines.
 
-v7.474 therefore extends the already-proven constructable survivor sheet rather than changing delivery again:
+2. **PDP subnav “Top” row geometry**
+   - Normalize the PDP subnav link row so `Top` uses the same vertical centering/min-height behavior as its neighboring tabs.
+   - This is done in the exact `#nav-subnav` family already owned by v7.474; no new scanning or recurring machinery is introduced.
 
-- `formatted-price` and its exact price leaves become white when that alternate row exists;
-- inline-authored neutral black (`rgb(0,0,0)`, Amazon `rgb(15,17,17)`, `rgb(0,0,17)`, and `#000`) on ordinary offsite text leaves is promoted to white;
-- the Sponsored selector remains later in the cascade and keeps its subdued gray ownership;
-- Prime/star/rating/deal semantic families are not recolored by the new fallback, so authored dynamic colors remain intact.
+3. **Bottom nav hairlines**
+   - Hide the thin white/partial separator layers being left behind on the bottom bar.
+   - Ownership remains background-only plus exact thin-layer suppression on the bar host; icons, selection state, labels, and Amazon geometry are otherwise preserved.
 
-The mature `ADStandalonePaintJS7104()` implementation remains byte-for-byte frozen.
+## Probe coverage note
 
-## 2. “What’s it about?” body copy
+The supplied VIEWPORT tar *does* capture the working top sponsored/offsite child-frame family and is enough to verify the offsite renderer structure that needed hardening.
 
-The v7.473 main-frame capture proves the invisible body copy is real DOM text, not missing content:
+However, the later blank medium standalone creative shown in the screenshot was **not** the exact visible creative inside that tar. That lower creative was addressed by extending the same probe-proven offsite family rather than inventing a new delivery path.
 
-- `#description-summary-card_primary-view .putb-main-text` at approximately 302×120 computes `rgb(0,0,0)`;
-- its direct text `span` contains 182 characters and also computes black.
+Likewise, the `Top` alignment issue is visible in the screenshot but is not emitted as a dedicated probe assertion. The fix therefore stays tightly scoped to the existing PDP subnav DOM family.
 
-v7.474 owns exactly that description-summary text family and makes it white. The separate Product-details card treatment remains unchanged.
+## Architecture / policy
 
-## 3. Selected Hardcover format cap
+- No MutationObserver, interval, requestAnimationFrame loop, scroll listener, polling loop, or recurring DOM scan added.
+- No new child-frame bridge or new delivery mechanism added.
+- Existing standalone delivery remains intact.
+- `src/Tweak.xm` remains below the 856 KB ceiling.
 
-The selected `#media_format_1` card body already computes the accepted dark gray `rgb(48,51,53)` (`#303335`). Its `.swatch-title-text-container` alone computes `rgb(237,248,255)`, producing the light-blue top cap and a light-on-light risk while the text is already white.
-
-v7.474 changes only the selected-state title cap to `#303335`, matching the lower half exactly, while retaining white text and existing Prime artwork. Unselected format cards are not broadened.
-
-No MutationObserver, interval, requestAnimationFrame loop, Web scroll listener, polling loop, or recurring DOM scan is added. FULL, VIEWPORT and TRANSITION probe identities are regenerated as v7.474.
+FULL, VIEWPORT, and TRANSITION probe instructions are regenerated as **v7.475**.
