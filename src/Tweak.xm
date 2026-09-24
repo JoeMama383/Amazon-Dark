@@ -1,4 +1,4 @@
-/* AmazonDark v7.471 — persistent isolated-world PDP ad-card ownership. */
+/* AmazonDark v7.472 — PDP standalone-engine unification. */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.471-pdp-four-adcard-repair"
+#define AD_VERSION "v7.472-pdp-standalone-unification"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -556,7 +556,6 @@ static const void *kADPrivacyUS7117=&kADPrivacyUS7117;
 static const void *kADPrivacyRule7117=&kADPrivacyRule7117;
 static const void *kADTrackedWebView7191=&kADTrackedWebView7191;
 static const void *kADUniversalProbeUS7433=&kADUniversalProbeUS7433;
-static const void *kADPDPIsolatedUS7470=&kADPDPIsolatedUS7470;
 static void ADUIProbeAttach7362(WKUserContentController *ucc);
 static WKContentWorld *ADUIProbeWorld7453(void);
 static NSHashTable *gADWebViews=nil;
@@ -2402,13 +2401,14 @@ static void ADInjectFrameNode7440(WKWebView *wv,id node,NSString *js,id world){
     } @catch(...) {}
 }
 
+static NSString *ADPDPStandalonePromoteJS7472(void);
+
 static void ADForceChildFrameTheme7440(WKWebView *wv){
     if(!gP.enabled||!wv)return;
     @try {
-        SEL frames=NSSelectorFromString(@"_frames:"); if(![wv respondsToSelector:frames])return;
-        NSString *js=ADForcedPDPFrameThemeJS7440(); id world=ADPageWorld7440(); if(!world||!js.length)return;
-        void (^completion)(id)=^(id root){ ADInjectFrameNode7440(wv,root,js,world); };
-        ((void(*)(id,SEL,id))objc_msgSend)(wv,frames,completion);
+        NSString *js=[ADForcedPDPFrameThemeJS7440() stringByAppendingString:ADPDPStandalonePromoteJS7472()]; id world=ADPageWorld7440(); if(!world||!js.length)return;
+        SEL trees=NSSelectorFromString(@"_frameTrees:");if([wv respondsToSelector:trees])((void(*)(id,SEL,id))objc_msgSend)(wv,trees,^(id roots){if([roots isKindOfClass:NSSet.class])for(id r in (NSSet*)roots)ADInjectFrameNode7440(wv,r,js,world);else if([roots isKindOfClass:NSArray.class])for(id r in (NSArray*)roots)ADInjectFrameNode7440(wv,r,js,world);});
+        SEL frames=NSSelectorFromString(@"_frames:");if([wv respondsToSelector:frames])((void(*)(id,SEL,id))objc_msgSend)(wv,frames,^(id root){ADInjectFrameNode7440(wv,root,js,world);});
     } @catch(...) {}
 }
 
@@ -2495,13 +2495,13 @@ static NSString *ADCoreWebJS7271(void){
     return gADCoreWebJSCached7271;
 }
 
-static NSString *ADPDPIsolatedFrameThemeJS7470(void){
-    return @"(function(){try{var d=document,h=d.documentElement;if(!h)return;h.setAttribute('data-ad7470-pdp-theme','1');h.setAttribute('data-ad7471-pdp-adcards','1');var C=`#ad [data-testid=renderer-factory-ad-container],#ad [data-testid=renderer-factory-ad-container]>div,#ad [data-testid=renderer-factory-ad-container] [data-testid=main-content],#ad [data-testid=renderer-factory-ad-container] [data-testid=content],#ad [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container]{background:#000!important;border-color:#494d4d!important;box-shadow:none!important}#offsite-buy-box :is([data-testid=brand-name],[data-testid=brand-name] *,[data-testid=product-description],[data-testid=product-description] *,[data-testid=combined-brand-and-description],[data-testid=combined-brand-and-description] *){color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}#offsite-buy-box button[data-testid=sponsored-container],#offsite-buy-box button[data-testid=sponsored-container] span{color:#b1aaa0!important}#offsite-buy-box svg[data-testid=info-icon] path:first-of-type{fill:#b1aaa0!important}#offsite-buy-box svg[data-testid=info-icon] path:not(:first-of-type){fill:#000!important}#ad [data-testid=gridContainer]{background:#000!important;border:0!important;outline:0!important;box-shadow:none!important}#ad [data-testid=gridContainer] :is([data-testid=gridWrapper],[data-testid=gridRegion],.grid-inset-carousel,.grid.bg-zinc-100,.swiper-slide.bg-white){background:#000!important;box-shadow:none!important}#ad [data-testid=gridContainer] .swiper-slide.bg-white{border:0!important;outline:0!important}#ad [data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important}#ad [data-testid=gridContainer] :is([data-testid=productTitle],[data-testid=price],[data-testid=price-text],[data-testid=currency]){color:#fff!important;-webkit-text-fill-color:#fff!important}#ad [data-testid=gridContainer] [data-testid=dealprice-stack]>img.inline-block{filter:none!important;-webkit-filter:none!important}[data-csa-c-slot-id=sp_hqp_phoneapp_shared] .sp_hqp_phoneapp_shared_responsive_box_rem{background:#000!important;border-color:#494d4d!important;box-shadow:none!important}#sp_hqp_phoneapp_shared_inner{background:#000!important;background-image:none!important;box-shadow:none!important}#sp_hqp_phoneapp_shared_display_title,.sp_hqp_phoneapp_shared_rating_rem,.sp_hqp_phoneapp_shared_price_rem{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp :is(#ape_detail_mobile-hero-quick-promo_mshop_placement,#ape_detail_btf_mshop_placement,#ape_detail_btf2_mshop_placement){border:0!important;outline:0!important;box-shadow:none!important}`;function put(){var s=d.getElementById('ad7470-pdp-isolated-theme');if(!s){s=d.createElement('style');s.id='ad7470-pdp-isolated-theme';(d.head||h).appendChild(s)}if(s.textContent!==C)s.textContent=C}function q(sel,p){try{var e=d.querySelector(sel);if(e)for(var j=0;j<p.length;j++)e.style.setProperty(p[j][0],p[j][1],'important')}catch(_){}}function pin(){var T=[['color','#fff'],['-webkit-text-fill-color','#fff'],['opacity','1']];q('#offsite-buy-box [data-testid=brand-name]',T);q('#offsite-buy-box [data-testid=product-description]',T);q('#offsite-buy-box [data-testid=combined-brand-and-description]',T)}function apply(){pin()}put();apply();if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',apply,{once:true});d.addEventListener('readystatechange',apply);window.addEventListener('load',apply,{once:true});window.addEventListener('pageshow',apply,false)}catch(_){}})();";
-}
-
-static void ADPDPIsolatedFrameThemeAttach7470(WKUserContentController *ucc){
-    if(!ucc||!gP.enabled)return;
-    @try{WKUserScript *old=objc_getAssociatedObject(ucc,kADPDPIsolatedUS7470);if(old&&[ucc.userScripts containsObject:old])return;WKUserScript *us=[[WKUserScript alloc] initWithSource:ADPDPIsolatedFrameThemeJS7470() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO inContentWorld:ADUIProbeWorld7453()];[ucc addUserScript:us];objc_setAssociatedObject(ucc,kADPDPIsolatedUS7470,us,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}@catch(...){}
+static NSString *ADPDPStandalonePromoteJS7472(void){
+    static long k=-2; static NSString *c=nil; long n=MAX(0,MIN(100,gP.whiteTameStrength));
+    if(c&&k==n)return c; k=n;
+    NSString *b=[ADStandalonePaintJS7104() stringByReplacingOccurrencesOfString:@"if(productish)return;" withString:@"if(productish&&!h.hasAttribute('data-ad7472-pdp-standalone'))return;"];
+    NSString *pre=@"(function(){try{var d=document,h=d.documentElement;if(!h||window.top===window)return;var q=d.getElementById('ad')||d.getElementById('offsite-buy-box')||d.getElementById('dynamic-bb')||d.querySelector('[data-testid=renderer-factory-ad-container],[data-testid=gridContainer],[data-csa-c-slot-id=sp_hqp_phoneapp_shared]');if(!q)return;h.setAttribute('data-ad7472-pdp-standalone','1')}catch(_){}})();";
+    NSString *post=@"(function(){try{var d=document,h=d.documentElement;if(!h||!h.hasAttribute('data-ad7472-pdp-standalone'))return;var C=`html[data-ad7472-pdp-standalone] #ad:has(#offsite-buy-box) :is(div,section,article,main):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not([class*=star]):not([class*=rating]):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)){background-color:transparent!important;box-shadow:none!important}html[data-ad7472-pdp-standalone] #offsite-buy-box :is([data-testid=brand-name],[data-testid=brand-name] *,[data-testid=product-description],[data-testid=product-description] *,[data-testid=combined-brand-and-description],[data-testid=combined-brand-and-description] *){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;opacity:1!important}html[data-ad7472-pdp-standalone] #offsite-buy-box button[data-testid=sponsored-container],html[data-ad7472-pdp-standalone] #offsite-buy-box button[data-testid=sponsored-container] span{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important}html[data-ad7472-pdp-standalone] #offsite-buy-box svg[data-testid=info-icon] path:first-of-type{fill:#b1aaa0!important}html[data-ad7472-pdp-standalone] #offsite-buy-box svg[data-testid=info-icon] path:not(:first-of-type){fill:#000!important}html[data-ad7472-pdp-standalone] #ad [data-testid=gridContainer]{background:#000!important;border:0!important;outline:0!important;box-shadow:none!important}html[data-ad7472-pdp-standalone] #ad [data-testid=gridContainer] :is([data-testid=gridWrapper],[data-testid=gridRegion],.grid-inset-carousel,.bg-zinc-100,.bg-white){background:#000!important;box-shadow:none!important}html[data-ad7472-pdp-standalone] #ad [data-testid=gridContainer] .swiper-slide.bg-white{border:0!important;outline:0!important}html[data-ad7472-pdp-standalone] #ad [data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important}html[data-ad7472-pdp-standalone] #ad [data-testid=gridContainer] :is([data-testid=productTitle],[data-testid=price],[data-testid=price-text],[data-testid=currency]){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important}html[data-ad7472-pdp-standalone] #ad [data-testid=gridContainer] [data-testid=dealprice-stack]>img.inline-block{filter:none!important;-webkit-filter:none!important}html[data-ad7472-pdp-standalone] [data-csa-c-slot-id=sp_hqp_phoneapp_shared] .sp_hqp_phoneapp_shared_responsive_box_rem{background:#000!important;border-color:#494d4d!important;box-shadow:none!important}html[data-ad7472-pdp-standalone] #sp_hqp_phoneapp_shared_inner{background:#000!important;background-image:none!important;box-shadow:none!important}html[data-ad7472-pdp-standalone] #sp_hqp_phoneapp_shared_display_title,html[data-ad7472-pdp-standalone] .sp_hqp_phoneapp_shared_rating_rem,html[data-ad7472-pdp-standalone] .sp_hqp_phoneapp_shared_price_rem{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important}`;if(window.CSSStyleSheet&&'adoptedStyleSheets'in d){var sh=window.__ad7472PDPStandaloneSheet;if(!sh){sh=new CSSStyleSheet();window.__ad7472PDPStandaloneSheet=sh}sh.replaceSync(C);var a=d.adoptedStyleSheets||[];if(a.indexOf(sh)<0)d.adoptedStyleSheets=a.concat([sh])}h.setAttribute('data-ad7472-pdp-unified','1')}catch(_){}})();";
+    c=[NSString stringWithFormat:@"%@%@%@",pre,b,post]; return c;
 }
 
 // v7.388: WKUserScript
@@ -2520,7 +2520,6 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
     ADSkelAttach7339(ucc); // v7.339 diagnostic integration
     ADUIProbeAttach7362(ucc); // universal FULL/VIEWPORT bridge
-    ADPDPIsolatedFrameThemeAttach7470(ucc); // same proven named isolated world, all frames, document start
     ADFrameOwnerAttach7440(ucc); // v7.448 event-driven child-frame ownership bridge
     @try {
         if(!objc_getAssociatedObject(ucc,kADCoreWebUS7271)){
@@ -2627,7 +2626,6 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
     objc_setAssociatedObject(self,kADCheckoutBYGHydrateUS7375,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADPrivacyUS7117,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADUniversalProbeUS7433,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    objc_setAssociatedObject(self,kADPDPIsolatedUS7470,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(gP.enabled)ADAttachScriptsToUCC710(self);
 }
 - (void)removeAllContentRuleLists {

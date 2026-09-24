@@ -1,11 +1,16 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.471~pdp-four-adcard-repair' in C
-assert '#define AD_VERSION "v7.471-pdp-four-adcard-repair"' in S
+assert 'Version: 7.472~pdp-standalone-unification' in C
+assert '#define AD_VERSION "v7.472-pdp-standalone-unification"' in S
 assert len(S.encode()) < 856000, len(S.encode())
-# v7.469 repeated the abandoned v7.442/v7.443 private user-style route; do not silently restore it.
+# Do not regress to the abandoned private _WKUserStyleSheet branch.
 for bad in ('_WKUserStyleSheet','_addUserStyleSheet:','ADPDPExactUserCSS7469','ADPDPUserStyleAttach7469','kADPDPUserStyle7469'):
     assert bad not in S,bad
-assert 'ADPDPIsolatedFrameThemeAttach7470(ucc);' in S[S.index('static void ADAttachScriptsToUCC710'):S.index('static void ADPaintWrapperChildren7129')]
-print('PASS: v7.470 retires the failed v7.469 private user-style route')
+# v7.472 also retires the isolated-world DOM-style experiment: the working standalone engine
+# is promoted in the existing page-world frame bridge instead.
+for bad in ('ADPDPIsolatedFrameThemeJS7470','ADPDPIsolatedFrameThemeAttach7470','kADPDPIsolatedUS7470'):
+    assert bad not in S,bad
+f=S[S.index('static void ADForceChildFrameTheme7440'):S.index('@interface ADFrameOwnerBridge7440')]
+assert 'ADPDPStandalonePromoteJS7472()' in f and 'ADPageWorld7440()' in f
+print('PASS: v7.472 keeps private user-style/isolated experiments retired and promotes PDP ads in the established page-world bridge')

@@ -1,22 +1,22 @@
-# AmazonDark v7.471 — persistent PDP ad-card ownership
+# AmazonDark v7.472 — PDP standalone-engine unification
 
-Direct parent: **v7.470~pdp-isolated-frame-ownership**.
+Direct parent: **v7.471~pdp-four-adcard-repair**.
 
-v7.471 fixes the timing defect proven by the two v7.470 VIEWPORT captures and applies the established standalone-ad coloring policy to all four currently outstanding PDP ad-card families.
+The remaining PDP ad failures were not caused by a lack of selectors. They were caused by a route split that kept the mature, device-proven standalone-ad engine away from product/search-referrer child frames.
 
-## Root cause found in v7.470
+`ADStandalonePaintJS7104()` is the established working implementation used by the standalone ads that already theme correctly. It owns OLED floors, structured-vs-raster classification, semantic text preservation, Prime/star exclusions, TWB media treatment, border ownership, and a constructable `document.adoptedStyleSheets` survivor sheet. But it deliberately exits on `/dp/`, product, and `/s` referrers. The outstanding PDP ads therefore fell into separate PDP child-frame code paths instead of the mature standalone contract. That also meant `ADTWBJS` did not see `data-ad7104-standalone` and could darken media leaves such as the 53x15 Prime artwork in the large 402x283 card.
 
-v7.470 finally proved that the production program reaches the isolated ad documents: both new captures report `frameMeta.theme7470=1`. The problem was inside that program. It set the marker at document start, but it did **not** insert `ad7470-pdp-isolated-theme` until one of its target selectors already existed. The affected renderers hydrate after the finite DOM-ready/load callbacks, so the child document could carry the v7.470 marker while never receiving the persistent stylesheet. The main PDP did receive the style because `#dp` already existed, which explains why source-level validation looked correct while the cross-origin cards remained white.
+v7.472 does not rewrite the mature standalone function. Its frozen function bytes remain unchanged. Instead, the existing native page-world frame bridge now post-hydration-promotes only child frames that prove an exact ad renderer (`#ad`, `#offsite-buy-box`, `#dynamic-bb`, renderer-factory, gridContainer, or the AUI `sp_hqp_phoneapp_shared` family). The bridge enumerates both `_frameTrees:` (site-isolated WebContent process trees) and `_frames:` (ordinary tree), then uses `evaluateJavaScript:inFrame:inContentWorld:` in `WKContentWorld.pageWorld`. For those frames only, a runtime copy of `ADStandalonePaintJS7104()` bypasses the historical product-referrer return, so the same working standalone engine that themes Home/Menu ads now owns the PDP ad frame too.
 
-v7.471 inserts the stylesheet unconditionally at document start in the already-proven `AmazonDarkUIProbe7453` isolated `WKContentWorld`. Late Amazon hydration now matches an already-present style instead of requiring another callback or scan.
+A small v7.472 delta is appended directly to the mature constructable standalone sheet for the four outstanding families:
 
-## Four outstanding ad-card families
+- 430x74 offsite compact card: brand/product copy light; Sponsored/info semantics retained.
+- 402x125 grid/Swiper card: OLED grid/slides, gray real card edge, neutral text light, existing arrows/media semantics preserved.
+- AUI `sp_hqp_phoneapp_shared` medium card: OLED A-box/gradient floor, neutral title/rating count/price light; orange star sprite and blue/orange Prime sprite untouched.
+- 402x283 grid single-product card: OLED structural floor, neutral title/price light, product art remains TWB-tamed, exact dealprice Prime image is released from the generic child-media filter.
 
-1. **Compact/top offsite card** — reuse the established renderer-factory algorithm: OLED renderer/main/content floors, standard gray edge, white neutral brand/product copy, preserved ratings/Sponsored semantics, and the requested gray Sponsored circle with OLED inner `i`.
-2. **Odd half-carousel/grid card** — OLED `gridContainer`/zinc/slide floors, remove the square duplicate slide edge, retain the rounded gray `gridRegionCarousel` edge, white neutral product/price text, and leave arrows/media/semantic colors alone.
-3. **AUI `sp_hqp_phoneapp_shared` 402x125 card** — OLED `.a-box`/background floor, remove its light gradient, white title/rating-count/price copy, keep the orange star sprite and blue/orange Prime sprite untouched, and keep the product image on the existing configurable TWB path.
-4. **Large 402x283 grid product card** — OLED structural floor, white title and price, keep the product image tamed, and explicitly release the 53x15 Prime artwork from TWB so its orange check and blue `prime` text render at authored intensity. If Amazon supplies this family as a single raster instead of the structured grid, these DOM rules do not recolor it; the existing TWB path simply tames that raster.
+The existing dominant-raster classifier is reused unchanged. If a qualifying standalone frame is actually a single raster, the mature engine marks/tames only that raster and removes renderer chrome instead of trying to recolor nonexistent structured text.
 
-The Book-details fix from v7.470 remains: the actual PUTB read-more `::before` gradient is removed rather than the unrelated expander-fade owner previously targeted.
+The v7.470 Book-details PUTB `::before` gradient removal remains intact.
 
-No MutationObserver, interval, RAF loop, Web scroll listener, recurring DOM traversal, or recurring frame-tree walk is added. FULL, VIEWPORT, and TRANSITION probes are regenerated as v7.471. Cross-frame captures now also report `frameMeta.theme7471=1` so delivery and computed paint can be verified separately.
+No MutationObserver, interval, requestAnimationFrame loop, Web scroll listener, polling loop, or recurring hierarchy scan is added. FULL, VIEWPORT, and TRANSITION probes are regenerated as v7.472.

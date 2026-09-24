@@ -2,8 +2,8 @@ from pathlib import Path
 import re
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.471~pdp-four-adcard-repair' in C
-assert '#define AD_VERSION "v7.471-pdp-four-adcard-repair"' in S
+assert 'Version: 7.472~pdp-standalone-unification' in C
+assert '#define AD_VERSION "v7.472-pdp-standalone-unification"' in S
 assert len(S.encode()) < 856000, len(S.encode())
 def fn(name,next_name=None):
     a=S.index('static NSString *'+name); b=S.index('static NSString *'+next_name,a) if next_name else len(S); return S[a:b]
@@ -14,12 +14,10 @@ for pat in (r'background:([^;]+)!important;background-color:\1!important',r'back
 sf=S.index('static NSString *ADPDPSafeFrameJS7432(void)'); assert sf < S.index('// v7.439:',sf) < S.index('static NSString *ADPDPUICompletionJS7439(void)',sf)
 a=S.index('static NSString *ADAddressManagementJS7412(void){'); assert a < S.index('// One immutable document-start program',a) < S.index('static long gADCoreWebJSStrength7271=-1;',a)
 shared=S.index('static WKUserScript *ADSharedUserScript7387'); assert S.rfind('// v7.388: WKUserScript',0,shared) > 0
-u=S[S.index('static NSString *ADPDPIsolatedFrameThemeJS7470'):S.index('static void ADPDPIsolatedFrameThemeAttach7470')]
-for tok in ['#offsite-buy-box :is([data-testid=brand-name]','[data-testid=product-description]','[data-testid=gridContainer]{background:#000!important;border:0!important','[data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important','#ape_detail_btf_mshop_placement','style.setProperty']:
+u=S[S.index('static NSString *ADPDPStandalonePromoteJS7472'):S.index('// v7.388: WKUserScript')]
+for tok in ['#offsite-buy-box :is([data-testid=brand-name]','[data-testid=product-description]','[data-testid=gridContainer]{background:#000!important;border:0!important','[data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important','ADStandalonePaintJS7104() stringByReplacingOccurrencesOfString']:
     assert tok in u,tok
-for bad in (':has(','swiper-button-prev','swiper-button-next','new MutationObserver(','setInterval(','requestAnimationFrame(',"addEventListener('scroll'"):
-    assert bad not in u,bad
+for bad in ('swiper-button-prev','swiper-button-next','new MutationObserver(','setInterval(','requestAnimationFrame(',"addEventListener('scroll'",'createTreeWalker('): assert bad not in u,bad
 assert '_WKUserStyleSheet' not in S
-for h in ['## FULL — v7.471','## VIEWPORT — v7.471','## TRANSITION — v7.471']:
-    assert h in CMD,h
-print('PASS: v7.470 satisfies frozen consolidation anchors and exact isolated-world ownership')
+for h in ['## FULL — v7.472','## VIEWPORT — v7.472','## TRANSITION — v7.472']: assert h in CMD,h
+print('PASS: v7.472 satisfies frozen consolidation anchors and exact page-world standalone promotion')

@@ -1,8 +1,9 @@
 {
-  "version": "7.460~home-hero-pill-owner-fix",
-  "direct_parent": "7.458~probe-backed-pdp-ui-screenshot-disable",
-  "parent_source": "AmazonDark-v7.458-probe-backed-pdp-ui-screenshot-disable-source.zip",
-  "scope": "Make armed VIEWPORT capture terminal reliably without changing FULL's cooperative scan architecture; change the exact Home single-video Sponsored pill from rgba(255,255,255,0.6) to rgba(0,0,0,0.6).",
-  "device_evidence": "AmazonDark-v7.458-ui-viewport-probe-20260923-073220-076-r2.tar plus IMG_7101/IMG_7103. The completed VIEWPORT evidence required 107 WebKit continuation chunks for 2,046 visited nodes and about six seconds to terminal state. The Home hero pill owner is _single-video-card_style_sponsored-label-pill__* with computed rgba(255,255,255,0.6).",
-  "device_validation": "Pending installation. Expected: every armed next-background VIEWPORT reaches completed/partial terminal state without a continuation chain; export waits for an in-flight state write; Home hero Sponsored pill remains 60% translucent but paints black rather than white."
+  "version": "7.472~pdp-standalone-unification",
+  "direct_parent": "7.471~pdp-four-adcard-repair",
+  "parent_source": "AmazonDark-v7.471-pdp-four-adcard-repair-source.zip",
+  "scope": "Route probe-proven PDP standalone ad child frames through the unchanged mature ADStandalonePaintJS7104 page-world engine, while retaining exact per-family PDP deltas and the v7.470 Book-details PUTB pseudo-gradient fix.",
+  "root_cause": "The mature standalone engine that already themes working ads deliberately returns for product/search-like referrers. The stubborn PDP ad frames therefore never entered its persistent adoptedStyleSheets/classifier/semantic-preservation path and were repeatedly handled by weaker PDP-specific delivery experiments.",
+  "delivery": "Finite event-driven native frame ownership only: enumerate both _frameTrees: and _frames:, evaluate in WKContentWorld.pageWorld, prove an ad renderer, set a PDP promotion marker, then reuse the mature standalone engine. No observer, polling, RAF, Web scroll listener, or recurring hierarchy scan.",
+  "device_validation": "Pending v7.472 installation. VIEWPORT must show frameMeta.theme7472=1 and standalone7104=1 in each stubborn child frame, followed by computed OLED floors/light neutral copy with authored Prime/star/deal semantics preserved."
 }
