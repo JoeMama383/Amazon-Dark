@@ -1,9 +1,9 @@
 {
-  "version": "7.472~pdp-standalone-unification",
-  "direct_parent": "7.471~pdp-four-adcard-repair",
-  "parent_source": "AmazonDark-v7.471-pdp-four-adcard-repair-source.zip",
-  "scope": "Route probe-proven PDP standalone ad child frames through the unchanged mature ADStandalonePaintJS7104 page-world engine, while retaining exact per-family PDP deltas and the v7.470 Book-details PUTB pseudo-gradient fix.",
-  "root_cause": "The mature standalone engine that already themes working ads deliberately returns for product/search-like referrers. The stubborn PDP ad frames therefore never entered its persistent adoptedStyleSheets/classifier/semantic-preservation path and were repeatedly handled by weaker PDP-specific delivery experiments.",
-  "delivery": "Finite event-driven native frame ownership only: enumerate both _frameTrees: and _frames:, evaluate in WKContentWorld.pageWorld, prove an ad renderer, set a PDP promotion marker, then reuse the mature standalone engine. No observer, polling, RAF, Web scroll listener, or recurring hierarchy scan.",
-  "device_validation": "Pending v7.472 installation. VIEWPORT must show frameMeta.theme7472=1 and standalone7104=1 in each stubborn child frame, followed by computed OLED floors/light neutral copy with authored Prime/star/deal semantics preserved."
+  "version": "7.473~standalone-survivor-sheet",
+  "direct_parent": "7.472~pdp-standalone-unification",
+  "parent_source": "AmazonDark-v7.472-pdp-standalone-unification-source.zip",
+  "scope": "Keep the frozen mature standalone engine and add exact constructable-sheet coverage for the four PDP renderer families proven uncovered by the v7.472 VIEWPORT capture; retain the actual Book-details PUTB pseudo-gradient fix.",
+  "root_cause": "The v7.472 child frame reports standalone7104=1 while its newer gridContainer remains white. The working engine is present, but its historical selector contract does not include these PDP renderer variants. The probe also omitted document.adoptedStyleSheets, which hid the working engine's persistent sheet from style inventory.",
+  "delivery": "Normal all-frame document-start core WKUserScript; ADPDPGridCarouselFix7454 owns one constructable CSSStyleSheet through document.adoptedStyleSheets and re-owns it on pageshow. The failed v7.472 page-world promotion copy is retired.",
+  "device_validation": "Pending v7.473 installation. VIEWPORT now reports frameMeta.survivor7473 and adopted stylesheet metadata in addition to computed paint, allowing direct proof of persistent-sheet delivery and selector effect."
 }

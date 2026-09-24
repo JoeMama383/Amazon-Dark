@@ -1,4 +1,4 @@
-/* AmazonDark v7.472 — PDP standalone-engine unification. */
+/* AmazonDark v7.473 — PDP standalone-engine unification. */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.472-pdp-standalone-unification"
+#define AD_VERSION "v7.473-standalone-survivor-sheet"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2277,7 +2277,7 @@ static NSString *ADProductScrollVideoBorderJS7405(void){
 }
 
 static NSString *ADPDPGridCarouselFix7454(void){
-    return @"(function(){try{var d=document;if(window.top===window)return;var s=d.getElementById('ad7454-pdp-grid-carousel');if(!s){s=d.createElement('style');s.id='ad7454-pdp-grid-carousel';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`html body #ad#ad [data-testid=gridContainer]{background:#000!important;border:0!important;outline:0!important;box-shadow:none!important}html body #ad#ad :is([data-testid=gridWrapper],[data-testid=gridRegion],.grid-inset-carousel,.grid.bg-zinc-100,.swiper-slide.bg-white){background:#000!important;box-shadow:none!important}html body #ad#ad .swiper-slide.bg-white{border:0!important;outline:0!important}html body #ad#ad [data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important}html body #ad#ad :is([data-testid=price-text],[data-testid=currency]){color:#fff!important;-webkit-text-fill-color:#fff!important}`;}catch(_){}})();";
+    return @"(function(){try{if(window.top===window)return;var d=document,h=d.documentElement;if(!h||!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype.replaceSync))return;var C=`html body #ad#ad [data-testid=gridContainer]{background:#000!important;box-shadow:none!important}html body #ad#ad [data-testid=gridContainer]:has(.swiper-wrapper){border:0!important;outline:0!important}html body #ad#ad [data-testid=gridContainer]:not(:has(.swiper-wrapper)){border:1px solid #494d4d!important;outline:0!important}html body #ad#ad :is([data-testid=gridWrapper],[data-testid=gridRegion],.grid-inset-carousel,.grid.bg-zinc-100,.swiper-slide.bg-white){background:#000!important;box-shadow:none!important}html body #ad#ad .swiper-slide.bg-white{border:0!important;outline:0!important}html body #ad#ad [data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important}html body #ad#ad :is([data-testid=productTitle],[data-testid=price],[data-testid=price-text],[data-testid=currency]){color:#fff!important;-webkit-text-fill-color:#fff!important}html body #ad#ad [data-testid=dealprice-stack]>img.inline-block{filter:none!important;-webkit-filter:none!important}html body [data-testid=renderer-factory-ad-container]:has(#offsite-buy-box)>div:first-child{background:#000!important;border-color:#494d4d!important;box-shadow:none!important;mix-blend-mode:normal!important}html body #offsite-buy-box :is([data-testid=brand-name],[data-testid=product-description],[data-testid=combined-brand-and-description]){color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}html body #offsite-buy-box button[data-testid=sponsored-container],html body #offsite-buy-box button[data-testid=sponsored-container] span{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important}html body #offsite-buy-box svg[data-testid=info-icon] path:first-of-type{fill:#b1aaa0!important}html body #offsite-buy-box svg[data-testid=info-icon] path:not(:first-of-type){fill:#000!important}html body [data-csa-c-slot-id=sp_hqp_phoneapp_shared] .sp_hqp_phoneapp_shared_responsive_box_rem{background:#000!important;border-color:#494d4d!important;box-shadow:none!important}html body #sp_hqp_phoneapp_shared_inner{background-color:#000!important;background-image:none!important;box-shadow:none!important}html body :is(#sp_hqp_phoneapp_shared_display_title,.sp_hqp_phoneapp_shared_rating_rem,.sp_hqp_phoneapp_shared_price_rem){color:#fff!important;-webkit-text-fill-color:#fff!important}`;var K='__ad7454PDPAdSurvivor',sh=window[K];if(!sh){sh=new CSSStyleSheet();sh.replaceSync(C);window[K]=sh}var a=document.adoptedStyleSheets||[];if(a.indexOf(sh)<0)document.adoptedStyleSheets=a.concat([sh]);h.setAttribute('data-ad7473-survivor','1');window.addEventListener('pageshow',function(){try{var a=document.adoptedStyleSheets||[];if(a.indexOf(sh)<0)document.adoptedStyleSheets=a.concat([sh])}catch(_){}},{passive:true});}catch(_){}})();";
 }
 
 static NSString *ADPDPCompletionJS7405(void){
@@ -2401,12 +2401,10 @@ static void ADInjectFrameNode7440(WKWebView *wv,id node,NSString *js,id world){
     } @catch(...) {}
 }
 
-static NSString *ADPDPStandalonePromoteJS7472(void);
-
 static void ADForceChildFrameTheme7440(WKWebView *wv){
     if(!gP.enabled||!wv)return;
     @try {
-        NSString *js=[ADForcedPDPFrameThemeJS7440() stringByAppendingString:ADPDPStandalonePromoteJS7472()]; id world=ADPageWorld7440(); if(!world||!js.length)return;
+        NSString *js=ADForcedPDPFrameThemeJS7440(); id world=ADPageWorld7440(); if(!world||!js.length)return;
         SEL trees=NSSelectorFromString(@"_frameTrees:");if([wv respondsToSelector:trees])((void(*)(id,SEL,id))objc_msgSend)(wv,trees,^(id roots){if([roots isKindOfClass:NSSet.class])for(id r in (NSSet*)roots)ADInjectFrameNode7440(wv,r,js,world);else if([roots isKindOfClass:NSArray.class])for(id r in (NSArray*)roots)ADInjectFrameNode7440(wv,r,js,world);});
         SEL frames=NSSelectorFromString(@"_frames:");if([wv respondsToSelector:frames])((void(*)(id,SEL,id))objc_msgSend)(wv,frames,^(id root){ADInjectFrameNode7440(wv,root,js,world);});
     } @catch(...) {}
@@ -2495,14 +2493,6 @@ static NSString *ADCoreWebJS7271(void){
     return gADCoreWebJSCached7271;
 }
 
-static NSString *ADPDPStandalonePromoteJS7472(void){
-    static long k=-2; static NSString *c=nil; long n=MAX(0,MIN(100,gP.whiteTameStrength));
-    if(c&&k==n)return c; k=n;
-    NSString *b=[ADStandalonePaintJS7104() stringByReplacingOccurrencesOfString:@"if(productish)return;" withString:@"if(productish&&!h.hasAttribute('data-ad7472-pdp-standalone'))return;"];
-    NSString *pre=@"(function(){try{var d=document,h=d.documentElement;if(!h||window.top===window)return;var q=d.getElementById('ad')||d.getElementById('offsite-buy-box')||d.getElementById('dynamic-bb')||d.querySelector('[data-testid=renderer-factory-ad-container],[data-testid=gridContainer],[data-csa-c-slot-id=sp_hqp_phoneapp_shared]');if(!q)return;h.setAttribute('data-ad7472-pdp-standalone','1')}catch(_){}})();";
-    NSString *post=@"(function(){try{var d=document,h=d.documentElement;if(!h||!h.hasAttribute('data-ad7472-pdp-standalone'))return;var C=`html[data-ad7472-pdp-standalone] #ad:has(#offsite-buy-box) :is(div,section,article,main):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not([class*=star]):not([class*=rating]):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)){background-color:transparent!important;box-shadow:none!important}html[data-ad7472-pdp-standalone] #offsite-buy-box :is([data-testid=brand-name],[data-testid=brand-name] *,[data-testid=product-description],[data-testid=product-description] *,[data-testid=combined-brand-and-description],[data-testid=combined-brand-and-description] *){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;opacity:1!important}html[data-ad7472-pdp-standalone] #offsite-buy-box button[data-testid=sponsored-container],html[data-ad7472-pdp-standalone] #offsite-buy-box button[data-testid=sponsored-container] span{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important}html[data-ad7472-pdp-standalone] #offsite-buy-box svg[data-testid=info-icon] path:first-of-type{fill:#b1aaa0!important}html[data-ad7472-pdp-standalone] #offsite-buy-box svg[data-testid=info-icon] path:not(:first-of-type){fill:#000!important}html[data-ad7472-pdp-standalone] #ad [data-testid=gridContainer]{background:#000!important;border:0!important;outline:0!important;box-shadow:none!important}html[data-ad7472-pdp-standalone] #ad [data-testid=gridContainer] :is([data-testid=gridWrapper],[data-testid=gridRegion],.grid-inset-carousel,.bg-zinc-100,.bg-white){background:#000!important;box-shadow:none!important}html[data-ad7472-pdp-standalone] #ad [data-testid=gridContainer] .swiper-slide.bg-white{border:0!important;outline:0!important}html[data-ad7472-pdp-standalone] #ad [data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important;outline:0!important;box-shadow:none!important}html[data-ad7472-pdp-standalone] #ad [data-testid=gridContainer] :is([data-testid=productTitle],[data-testid=price],[data-testid=price-text],[data-testid=currency]){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important}html[data-ad7472-pdp-standalone] #ad [data-testid=gridContainer] [data-testid=dealprice-stack]>img.inline-block{filter:none!important;-webkit-filter:none!important}html[data-ad7472-pdp-standalone] [data-csa-c-slot-id=sp_hqp_phoneapp_shared] .sp_hqp_phoneapp_shared_responsive_box_rem{background:#000!important;border-color:#494d4d!important;box-shadow:none!important}html[data-ad7472-pdp-standalone] #sp_hqp_phoneapp_shared_inner{background:#000!important;background-image:none!important;box-shadow:none!important}html[data-ad7472-pdp-standalone] #sp_hqp_phoneapp_shared_display_title,html[data-ad7472-pdp-standalone] .sp_hqp_phoneapp_shared_rating_rem,html[data-ad7472-pdp-standalone] .sp_hqp_phoneapp_shared_price_rem{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important}`;if(window.CSSStyleSheet&&'adoptedStyleSheets'in d){var sh=window.__ad7472PDPStandaloneSheet;if(!sh){sh=new CSSStyleSheet();window.__ad7472PDPStandaloneSheet=sh}sh.replaceSync(C);var a=d.adoptedStyleSheets||[];if(a.indexOf(sh)<0)d.adoptedStyleSheets=a.concat([sh])}h.setAttribute('data-ad7472-pdp-unified','1')}catch(_){}})();";
-    c=[NSString stringWithFormat:@"%@%@%@",pre,b,post]; return c;
-}
 
 // v7.388: WKUserScript
 static WKUserScript *ADSharedUserScript7387(NSUInteger slot,NSString *(*source)(void),BOOL mainOnly,BOOL strengthDependent){
