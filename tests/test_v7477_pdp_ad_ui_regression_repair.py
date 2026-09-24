@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); U=(R/'src/ADUniversalUIProbe7362.js.inc').read_text(); V=(R/'src/ADUIProbeViewportSample7449.js.inc').read_text(); P=(R/'src/ADPDPMainStream7451.js.inc').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.478~home-pdp-six-fix' in C
-assert '#define AD_VERSION "v7.478-home-pdp-six-fix"' in S
+assert 'Version: 7.479~timer-actionbar-edge' in C
+assert '#define AD_VERSION "v7.479-timer-actionbar-edge"' in S
 assert len(S.encode()) < 856000, len(S.encode())
 g=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSString *ADPDPCompletionJS7405')]
 # Keep v7.477's exact top/offsite ownership and isolated 414x125 renderer contract.
@@ -22,5 +22,5 @@ for x in (U,V,P):
     assert 'btf-sub-nav-top-navigation-bar' in x
     assert 'btfNav7477' in x
 assert 'querySelectorAll' not in V and 'createTreeWalker' not in V
-for h in ('## FULL — v7.478','## VIEWPORT — v7.478','## TRANSITION — v7.478'): assert h in CMD
+for h in ('## FULL — v7.479','## VIEWPORT — v7.479','## TRANSITION — v7.479'): assert h in CMD
 print('PASS: v7.478 preserves v7.477 exact PDP ownership while correcting its opaque medium-ad overlay and failed outer Top-tab geometry strategy')

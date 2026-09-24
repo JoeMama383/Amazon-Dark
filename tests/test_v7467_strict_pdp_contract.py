@@ -2,8 +2,8 @@ from pathlib import Path
 import re
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.478~home-pdp-six-fix' in C
-assert '#define AD_VERSION "v7.478-home-pdp-six-fix"' in S
+assert 'Version: 7.479~timer-actionbar-edge' in C
+assert '#define AD_VERSION "v7.479-timer-actionbar-edge"' in S
 assert len(S.encode()) < 856000, len(S.encode())
 def fn(name,next_name=None):
     a=S.index('static NSString *'+name); b=S.index('static NSString *'+next_name,a) if next_name else len(S); return S[a:b]
@@ -17,5 +17,5 @@ g=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSStrin
 for tok in ['#offsite-buy-box :is([data-testid=brand-name]','[data-testid=product-description]','[data-testid=gridContainer]{background:#000!important','[data-testid^=gridRegionCarousel]{background:#000!important;border:1px solid #494d4d!important','document.adoptedStyleSheets','replaceSync(C)']: assert tok in g,tok
 for bad in ('swiper-button-prev','swiper-button-next','new MutationObserver(','setInterval(','requestAnimationFrame(' ,"addEventListener('scroll'",'createTreeWalker('): assert bad not in g,bad
 assert '_WKUserStyleSheet' not in S and 'ADPDPStandalonePromoteJS7472' not in S
-for h in ['## FULL — v7.478','## VIEWPORT — v7.478','## TRANSITION — v7.478']: assert h in CMD,h
+for h in ['## FULL — v7.479','## VIEWPORT — v7.479','## TRANSITION — v7.479']: assert h in CMD,h
 print('PASS: v7.473 satisfies consolidation anchors with a persistent non-recurring PDP ad survivor sheet')

@@ -1,4 +1,4 @@
-/* AmazonDark v7.478 */
+/* AmazonDark v7.479 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.478-home-pdp-six-fix"
+#define AD_VERSION "v7.479-timer-actionbar-edge"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -54,8 +54,6 @@ extern char *__progname;
 @interface GlowIngressView : UIView @end
 @interface AMSModalLayoutFullScreenViewController : UIViewController @end
 
-// v7.129: exact UIKit transition / WebKit text-selection surfaces proven by the
-// v7.128 held-row probe. These remain Amazon-process-local through the tweak filter.
 @interface UILayoutContainerView : UIView @end
 @interface UITransitionView : UIView @end
 @interface UINavigationTransitionView : UIView @end
@@ -65,7 +63,6 @@ extern char *__progname;
 @interface _UIPlatterSoftShadowView : UIView @end
 @interface _UIPlatterShadowView : UIView @end
 
-// v7.130: exact owners proven by the v7.129 transition probe.
 @interface AWLoadingIndicatorFullScreenModalBar : UIView @end
 @interface AWLoadingIndicatorWidgets_BkgView : UIView @end
 // v7.407: exact Product Search -> PDP image-backed skeleton owner from transition probe.
@@ -2475,11 +2472,17 @@ static NSString *ADAddressManagementJS7412(void){
 
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
+static NSString *ADReturnsThemeJS7480(void){
+    return [NSString stringWithUTF8String:
+#include "ADReturnsTheme7480.js.inc"
+    ];
+}
+
 static long gADCoreWebJSStrength7271=-1;
 static NSString *gADCoreWebJSCached7271=nil;
 static NSString *ADPDPProbeBackedFixesJS7458(void){
     CGFloat f=1.0;if(gP.whiteTame){CGFloat t=((CGFloat)MAX(0,MIN(100,gP.whiteTameStrength)))/100.0;f=1.0-(0.10+(0.48*t));}
-    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav .mshop-subnav-bar{box-shadow:0 1px 0 #494d4d!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#dp #relatedProductZone4_feature_div .a-carousel-container,#dp #heimdallShoppingCxFeedback_feature_div fieldset{background:#000!important}#dp #cm_cr_top_reviews_to_arp_button>.a-box-inner{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #va-related-videos-widget_feature_div [class*=_dnNlL_vseUploadButton_] i.a-icon-supplemental{filter:brightness(0) invert(1)!important}#dp #product-details-card_primary-view .putb-read-more-primary-view::before,#dp [id^=putb-read-more-primary-view-][id$=-product-details-card_primary-view]::before{content:none!important;display:none!important;background:none!important;box-shadow:none!important}#dp #product-details-card_primary-view .putb-main-text :is(.a-size-small,.a-text-bold){color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #description-summary-card_primary-view .putb-main-text,#dp #description-summary-card_primary-view .putb-main-text>span{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #inline-twister-scroller .a-button-selected .swatch-title-text-container{background:#303335!important;color:#fff!important;-webkit-text-fill-color:#fff!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]),[class*=_billboard-card_regularStyle_gwm-BillboardCard] img{filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');s.textContent+=`[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_]{background:#000!important;border-color:#747a7c!important;color:#fff!important;box-shadow:none!important}[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_] [class*=_pillText_],[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{color:#fff!important;-webkit-text-fill-color:#fff!important}[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__],[class*=_billboard-card_regularStyle_gwm-BillboardCard--cropped__]{background:#000!important;box-shadow:none!important}#btfSubNavTopTab .top-tab-content,#btfSubNavTopTab .top-tab-content>div{display:contents!important;font:inherit!important}#btfSubNavTopTab .a-icon-section-collapse{display:none!important}#btfSubNavTopTab .a-size-mini{font:inherit!important}`;}catch(_){}})();",gP.whiteTame,f];
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav .mshop-subnav-bar{box-shadow:0 1px 0 #494d4d!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#dp #relatedProductZone4_feature_div .a-carousel-container,#dp #heimdallShoppingCxFeedback_feature_div fieldset{background:#000!important}#dp #cm_cr_top_reviews_to_arp_button>.a-box-inner{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #va-related-videos-widget_feature_div [class*=_dnNlL_vseUploadButton_] i.a-icon-supplemental{filter:brightness(0) invert(1)!important}#dp #product-details-card_primary-view .putb-read-more-primary-view::before,#dp [id^=putb-read-more-primary-view-][id$=-product-details-card_primary-view]::before{content:none!important;display:none!important;background:none!important;box-shadow:none!important}#dp #product-details-card_primary-view .putb-main-text :is(.a-size-small,.a-text-bold){color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #description-summary-card_primary-view .putb-main-text,#dp #description-summary-card_primary-view .putb-main-text>span{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #inline-twister-scroller .a-button-selected .swatch-title-text-container{background:#303335!important;color:#fff!important;-webkit-text-fill-color:#fff!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]),[class*=_billboard-card_regularStyle_gwm-BillboardCard] img{filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');s.textContent+=`[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_]{background:#000!important;border-color:#747a7c!important;color:#fff!important;box-shadow:none!important}[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_] [class*=_pillText_],[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{color:#fff!important;-webkit-text-fill-color:#fff!important}[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{background:#000!important;box-shadow:inset 0 0 0 64px #000!important}[class*=_billboard-card_regularStyle_gwm-BillboardCard--cropped__]{background:#000!important;box-shadow:none!important}#btfSubNavTopTab .top-tab-content,#btfSubNavTopTab .top-tab-content>div{display:contents!important;font:inherit!important}#btfSubNavTopTab .a-icon-section-collapse{display:none!important}#btfSubNavTopTab .a-size-mini{font:inherit!important}`;}catch(_){}})();",gP.whiteTame,f] stringByAppendingString:ADReturnsThemeJS7480()];
 }
 
 static NSString *ADCoreWebJS7271(void){
@@ -8954,6 +8957,7 @@ static BOOL ADInPDPActionBar7426(UIView *v){
 static void ADPDPActionBarOwn7426(UIView *v){
     if(!gP.enabled||!v||!ADInPDPActionBar7426(v))return;
     ADSetViewBackground7226(v,ADOLED(),YES);
+    if([v.accessibilityIdentifier isEqualToString:@"AXFActionBarContainer"])ADMenuSetSingleRCTBorder7258(v,0.0,nil);
     if([v.accessibilityIdentifier isEqualToString:@"AXFActionBarTextButton"])
         ADMenuSetSingleRCTBorder7258(v,1.0,ADMenuButtonBorder7255());
 }
@@ -10155,11 +10159,14 @@ static void ADHideThinBarHairlines7475(UIView *v){
         [CATransaction commit];
     } @catch(...) {}
 }
+#include "ADReturnsNative7480.inc"
+
 static void ADOwnBottomBar708(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
         ADSetViewBackground7226(v,ADOLED(),YES);
         ADHideThinBarHairlines7475(v);
+        ADNeutralizeBottomFadeSibling7480(v);
     } @catch(...) {}
 }
 %hook UIVisualEffectView

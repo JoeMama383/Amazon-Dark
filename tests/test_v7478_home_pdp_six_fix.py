@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.478~home-pdp-six-fix' in C
-assert '#define AD_VERSION "v7.478-home-pdp-six-fix"' in S
+assert 'Version: 7.479~timer-actionbar-edge' in C
+assert '#define AD_VERSION "v7.479-timer-actionbar-edge"' in S
 assert len(S.encode()) < 856000, len(S.encode())
 # 1: Home Buy Again Rufus pill rows: exact family only, OLED/gray/white.
 for t in ('[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_]{background:#000!important;border-color:#747a7c!important;color:#fff!important;box-shadow:none!important}',
@@ -10,7 +10,7 @@ for t in ('[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_]{bac
     assert t in S,t
 # 2: Countdown numeric chips exclude the -Bottom label family by requiring the exact _Timer-Numeric__ class fragment.
 assert '[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]' in S
-assert '[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__],[class*=_billboard-card_regularStyle_gwm-BillboardCard--cropped__]{background:#000!important' in S
+assert '[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{background:#000!important;box-shadow:inset 0 0 0 64px #000!important}' in S
 # 3: Home billboard raster joins the existing configured whiteTame selector, not a hard-coded filter value.
 assert '[class*=_billboard-card_regularStyle_gwm-BillboardCard] img' in S
 assert '[class*=_billboard-card_regularStyle_gwm-BillboardCard--cropped__]{background:#000!important' in S
@@ -32,6 +32,6 @@ assert '- (void)setShowsHorizontalScrollIndicator:(BOOL)show' in w
 assert 'strcmp(object_getClassName(self), "WKScrollView")==0){' in w and '%orig(NO);' in w
 assert '- (void)setIndicatorStyle:(UIScrollViewIndicatorStyle)style' in w
 # Three independent probe workflows remain versioned and TAR-based.
-for h in ('## FULL — v7.478','## VIEWPORT — v7.478','## TRANSITION — v7.478'): assert h in CMD
+for h in ('## FULL — v7.479','## VIEWPORT — v7.479','## TRANSITION — v7.479'): assert h in CMD
 assert 'export full' in CMD and 'export viewport' in CMD and 'skeleton-probe.sh export' in CMD
-print('PASS: v7.478 statically covers all six supplied Home/PDP probe owners without adding recurring production traversal')
+print('PASS: v7.479 preserves the six v7.478 Home/PDP ownership repairs while hardening the countdown owner')

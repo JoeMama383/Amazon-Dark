@@ -1,9 +1,9 @@
 {
-  "version": "7.478~home-pdp-six-fix",
-  "direct_parent": "7.477~pdp-ad-ui-repair",
-  "parent_source": "AmazonDark-v7.477-pdp-ad-ui-repair-source.zip",
-  "scope": "Resolve exactly six probe-backed regressions: Home Buy Again pill floors, Home countdown number boxes, Home Prime billboard raster taming, PDP Top inner tab geometry/type, PDP 402x125 standalone-ad content occlusion, and the PDP WKWebView horizontal scroll-indicator line.",
-  "root_cause": "Three Home families were simply outside the existing exact selectors. On PDP, v7.477 targeted the Top anchor instead of its unique 12px/icon inner structure; #sp_hqp_phoneapp_shared_inner was an opaque z-index 100 overlay above the ad's sibling content; and the remaining bottom white line was the root WKScrollView horizontal indicator rather than ANXTabBarView.",
-  "delivery": "Add exact Home selectors using existing OLED/whiteTame policy, normalize only the Top tab's unique inner markup, make the medium-ad overlay transparent while retaining the outer OLED card, and suppress only WKScrollView's horizontal indicator while retaining its vertical indicator.",
-  "device_validation": "Pending v7.478 installation. Every changed owner is identified in the supplied v7.477 FULL/VIEWPORT probes; static validation is required before handoff, but only a new v7.478 capture can confirm final on-device paint."
+  "version": "7.479~timer-actionbar-edge",
+  "direct_parent": "7.478~home-pdp-six-fix",
+  "parent_source": "AmazonDark-v7.478-home-pdp-six-fix-source.zip",
+  "scope": "Resolve the two v7.478 residuals using already-captured probe owners: the Home TNF countdown number chips that still paint white, and the PDP Add-to-Cart action-bar top separator that appears only when the bottom action bar is mounted.",
+  "root_cause": "The TNF numeric spans are the correct v7.478 selector family, but their white chip paint remains visible; the v7.477 FULL native probe separately identifies RCTView#AXFActionBarContainer with borderTopWidth=1.00 above the Add-to-Cart button.",
+  "delivery": "Keep the exact countdown owner and add a full inset OLED paint layer behind its white numbers; clear only AXFActionBarContainer React border channels with the existing single-border normalizer at width 0 while preserving AXFActionBarTextButton at its 1 pt gray ring.",
+  "device_validation": "v7.478 device feedback confirmed the other four fixes and left two residuals. Both v7.479 owners are already present in the supplied v7.477 probes; post-install v7.479 capture is required only to confirm final device paint."
 }

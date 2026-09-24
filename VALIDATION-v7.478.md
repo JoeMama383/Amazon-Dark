@@ -1,6 +1,6 @@
 # AmazonDark v7.478 validation
 
-Package: `7.478~home-pdp-six-fix`
+Package: `7.479~timer-actionbar-edge`
 
 Direct source parent: `AmazonDark-v7.477-pdp-ad-ui-repair-source.zip`.
 
