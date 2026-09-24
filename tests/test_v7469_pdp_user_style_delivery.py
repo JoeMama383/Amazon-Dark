@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.479~timer-actionbar-edge' in C
-assert '#define AD_VERSION "v7.479-timer-actionbar-edge"' in S
+assert 'Version: 7.480~camera-permission-build-repair' in C
+assert '#define AD_VERSION "v7.480-camera-permission-build-repair"' in S
 assert len(S.encode()) < 856000, len(S.encode())
 for bad in ('_WKUserStyleSheet','_addUserStyleSheet:','ADPDPExactUserCSS7469','ADPDPUserStyleAttach7469','kADPDPUserStyle7469','ADPDPIsolatedFrameThemeJS7470','ADPDPIsolatedFrameThemeAttach7470','kADPDPIsolatedUS7470','ADPDPStandalonePromoteJS7472'):
     assert bad not in S,bad

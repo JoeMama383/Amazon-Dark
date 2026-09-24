@@ -2,9 +2,9 @@ from pathlib import Path
 import hashlib
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); UI=(R/'scripts/ui-probe.sh').read_text(); SK=(R/'scripts/skeleton-probe.sh').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.479~timer-actionbar-edge' in C
-assert '#define AD_VERSION "v7.479-timer-actionbar-edge"' in S
-assert 'VER=7.479' in UI and 'AD_PROBE_VERSION=7.479' in SK and 'AD_PROBE_NAME=AmazonDark-v7.479' in SK
+assert 'Version: 7.480~camera-permission-build-repair' in C
+assert '#define AD_VERSION "v7.480-camera-permission-build-repair"' in S
+assert 'VER=7.480' in UI and 'AD_PROBE_VERSION=7.480' in SK and 'AD_PROBE_NAME=AmazonDark-v7.480' in SK
 assert len(S.encode()) < 856000, len(S.encode())
 # Keep the mature standalone implementation frozen while extending only the persistent PDP survivor sheet.
 a=S.index('static NSString *ADStandalonePaintJS7104(void){'); b=S.index('static NSString *ADTWBJS(void){',a)
@@ -25,6 +25,6 @@ for t in ('#description-summary-card_primary-view .putb-main-text','#description
     assert t in r,t
 # Do not normalize every swatch title; only the selected-state cap is owned.
 assert '#inline-twister-scroller .swatch-title-text-container{background:#303335' not in r
-for h in ['## FULL — v7.479','## VIEWPORT — v7.479','## TRANSITION — v7.479']:
+for h in ['## FULL — v7.480','## VIEWPORT — v7.480','## TRANSITION — v7.480']:
     assert h in CMD,h
 print('PASS: v7.478 restores variant offsite neutral subcopy, PUTB description copy, and selected format cap without flattening dynamic ad colors')

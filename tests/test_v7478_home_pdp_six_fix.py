@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.479~timer-actionbar-edge' in C
-assert '#define AD_VERSION "v7.479-timer-actionbar-edge"' in S
+assert 'Version: 7.480~camera-permission-build-repair' in C
+assert '#define AD_VERSION "v7.480-camera-permission-build-repair"' in S
 assert len(S.encode()) < 856000, len(S.encode())
 # 1: Home Buy Again Rufus pill rows: exact family only, OLED/gray/white.
 for t in ('[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_]{background:#000!important;border-color:#747a7c!important;color:#fff!important;box-shadow:none!important}',
@@ -32,6 +32,6 @@ assert '- (void)setShowsHorizontalScrollIndicator:(BOOL)show' in w
 assert 'strcmp(object_getClassName(self), "WKScrollView")==0){' in w and '%orig(NO);' in w
 assert '- (void)setIndicatorStyle:(UIScrollViewIndicatorStyle)style' in w
 # Three independent probe workflows remain versioned and TAR-based.
-for h in ('## FULL — v7.479','## VIEWPORT — v7.479','## TRANSITION — v7.479'): assert h in CMD
+for h in ('## FULL — v7.480','## VIEWPORT — v7.480','## TRANSITION — v7.480'): assert h in CMD
 assert 'export full' in CMD and 'export viewport' in CMD and 'skeleton-probe.sh export' in CMD
-print('PASS: v7.479 preserves the six v7.478 Home/PDP ownership repairs while hardening the countdown owner')
+print('PASS: v7.480 preserves the six v7.478 Home/PDP ownership repairs while hardening the countdown owner')

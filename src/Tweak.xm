@@ -1,4 +1,4 @@
-/* AmazonDark v7.479 */
+/* AmazonDark v7.480 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.479-timer-actionbar-edge"
+#define AD_VERSION "v7.480-camera-permission-build-repair"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2482,7 +2482,7 @@ static long gADCoreWebJSStrength7271=-1;
 static NSString *gADCoreWebJSCached7271=nil;
 static NSString *ADPDPProbeBackedFixesJS7458(void){
     CGFloat f=1.0;if(gP.whiteTame){CGFloat t=((CGFloat)MAX(0,MIN(100,gP.whiteTameStrength)))/100.0;f=1.0-(0.10+(0.48*t));}
-    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav .mshop-subnav-bar{box-shadow:0 1px 0 #494d4d!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#dp #relatedProductZone4_feature_div .a-carousel-container,#dp #heimdallShoppingCxFeedback_feature_div fieldset{background:#000!important}#dp #cm_cr_top_reviews_to_arp_button>.a-box-inner{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #va-related-videos-widget_feature_div [class*=_dnNlL_vseUploadButton_] i.a-icon-supplemental{filter:brightness(0) invert(1)!important}#dp #product-details-card_primary-view .putb-read-more-primary-view::before,#dp [id^=putb-read-more-primary-view-][id$=-product-details-card_primary-view]::before{content:none!important;display:none!important;background:none!important;box-shadow:none!important}#dp #product-details-card_primary-view .putb-main-text :is(.a-size-small,.a-text-bold){color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #description-summary-card_primary-view .putb-main-text,#dp #description-summary-card_primary-view .putb-main-text>span{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #inline-twister-scroller .a-button-selected .swatch-title-text-container{background:#303335!important;color:#fff!important;-webkit-text-fill-color:#fff!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]),[class*=_billboard-card_regularStyle_gwm-BillboardCard] img{filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');s.textContent+=`[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_]{background:#000!important;border-color:#747a7c!important;color:#fff!important;box-shadow:none!important}[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_] [class*=_pillText_],[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{color:#fff!important;-webkit-text-fill-color:#fff!important}[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{background:#000!important;box-shadow:inset 0 0 0 64px #000!important}[class*=_billboard-card_regularStyle_gwm-BillboardCard--cropped__]{background:#000!important;box-shadow:none!important}#btfSubNavTopTab .top-tab-content,#btfSubNavTopTab .top-tab-content>div{display:contents!important;font:inherit!important}#btfSubNavTopTab .a-icon-section-collapse{display:none!important}#btfSubNavTopTab .a-size-mini{font:inherit!important}`;}catch(_){}})();",gP.whiteTame,f] stringByAppendingString:ADReturnsThemeJS7480()];
+    return [[NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav .mshop-subnav-bar{box-shadow:0 1px 0 #494d4d!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#dp #relatedProductZone4_feature_div .a-carousel-container,#dp #heimdallShoppingCxFeedback_feature_div fieldset{background:#000!important}#dp #cm_cr_top_reviews_to_arp_button>.a-box-inner{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #va-related-videos-widget_feature_div [class*=_dnNlL_vseUploadButton_] i.a-icon-supplemental{filter:brightness(0) invert(1)!important}#dp #product-details-card_primary-view .putb-read-more-primary-view::before,#dp [id^=putb-read-more-primary-view-][id$=-product-details-card_primary-view]::before{content:none!important;display:none!important;background:none!important;box-shadow:none!important}#dp #product-details-card_primary-view .putb-main-text :is(.a-size-small,.a-text-bold){color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #description-summary-card_primary-view .putb-main-text,#dp #description-summary-card_primary-view .putb-main-text>span{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #inline-twister-scroller .a-button-selected .swatch-title-text-container{background:#303335!important;color:#fff!important;-webkit-text-fill-color:#fff!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]),[class*=_billboard-card_regularStyle_gwm-BillboardCard] img{filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');s.textContent+=`[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_]{background:#000!important;border-color:#747a7c!important;color:#fff!important;box-shadow:none!important}[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_] [class*=_pillText_],[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{color:#fff!important;-webkit-text-fill-color:#fff!important}[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{background:#000!important;box-shadow:inset 0 0 0 64px #000!important}[class*=_billboard-card_regularStyle_gwm-BillboardCard--cropped__]{background:#000!important;box-shadow:none!important}#btfSubNavTopTab .top-tab-content,#btfSubNavTopTab .top-tab-content>div{display:contents!important;font:inherit!important}#btfSubNavTopTab .a-icon-section-collapse{display:none!important}#btfSubNavTopTab .a-size-mini{font:inherit!important}`;}catch(_){}})();",gP.whiteTame,f] stringByAppendingString:ADReturnsThemeJS7480()];
 }
 
 static NSString *ADCoreWebJS7271(void){
@@ -7940,30 +7940,20 @@ static void ADMenuOwnText7255(UIView *v){
 
 
 
-// v7.408 FULL r1/r2: camera and microphone permission prompts are foreground
-// React `sheet-view` families in AppCXWindow.  They are not the older hidden
-// AppCXBottomSheet tree, so own them only after an exact probe marker appears.
-// Once marked, one bounded mount-time pass repairs already-mounted siblings;
-// normal paint/text ownership remains event-driven through the existing React hooks.
+// v7.408 FULL r1/r2: camera and microphone permission prompts
 static const void *kADPermissionSheetKind7408=&kADPermissionSheetKind7408;
 static const void *kADPermissionSheetPrimed7408=&kADPermissionSheetPrimed7408;
 static const void *kADPermissionMicFilterOwned7408=&kADPermissionMicFilterOwned7408;
 static const void *kADPermissionMicOldFilters7408=&kADPermissionMicOldFilters7408;
-static void ADPermissionPrimeSheet7408(UIView *root,int kind);
+static void ADPermissionPrimeSheet7408(UIView *root,int kind); static void ADPermissionOwnVector7480(UIView *v);
 static UIView *ADPermissionSheetRoot7408(UIView *v){
     if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return nil;
-    @try {
-        NSUInteger d=0;
-        for(UIView *n=v;n&&d++<32;n=n.superview){
-            if(ADClassNameIs7183(n,"RCTView")&&[n.accessibilityIdentifier isEqualToString:@"sheet-view"]){
-                CGRect r=[n convertRect:n.bounds toView:v.window],wb=v.window.bounds;
-                if(r.size.width>=wb.size.width*0.95&&r.size.height>=250.0&&r.size.height<=430.0&&CGRectGetMinY(r)>=wb.size.height*0.50)return n;
-                return nil;
-            }
-            if([n isKindOfClass:[UIWindow class]])break;
-        }
-    } @catch(...) {}
-    return nil;
+    @try { NSUInteger d=0; CGRect wb=v.window.bounds; for(UIView *n=v;n&&d++<32;n=n.superview){
+        if(ADClassNameIs7183(n,"RCTView")){ NSString *a=n.accessibilityIdentifier?:@""; CGRect r=[n convertRect:n.bounds toView:v.window];
+            if([a isEqualToString:@"sheet-view"])return r.size.width>=wb.size.width*.95&&r.size.height>=250&&r.size.height<=430&&CGRectGetMinY(r)>=wb.size.height*.5?n:nil;
+            if([a isEqualToString:@"fullscreen-inflight-animated-view"])return r.size.width>=wb.size.width*.95&&r.size.height>=wb.size.height*.9?n:nil;
+        } if([n isKindOfClass:[UIWindow class]])break;
+    }} @catch(...) {} return nil;
 }
 static int ADPermissionDetectKind7408(UIView *root){
     if(!root)return 0;
@@ -7974,17 +7964,10 @@ static int ADPermissionDetectKind7408(UIView *root){
         while(seen<q.count&&seen<128){
             UIView *x=q[seen++]; if(!x)continue;
             NSString *aid=x.accessibilityIdentifier?:@"";
-            // v7.410 transition capture: the first unique text marker arrives before
-            // the final action control. Classify from that earliest stable identity so
-            // no stock-dark text can reach first paint while waiting for hydration.
-            if([aid isEqualToString:@"inflight-prompt"]||[aid isEqualToString:@"inflight-prompt-allow-button"]||
-               [aid isEqualToString:@"allow-all-CAMERA"]||[aid isEqualToString:@"inflight-prompt-title"]||
-               [aid isEqualToString:@"inflight-prompt-description"]){ camera=YES; break; }
+            if([aid isEqualToString:@"inflight-prompt"]||[aid isEqualToString:@"inflight-prompt-allow-button"]||[aid isEqualToString:@"allow-all-CAMERA"]||[aid isEqualToString:@"inflight-prompt-title"]||[aid isEqualToString:@"inflight-prompt-description"]||[aid isEqualToString:@"fullscreen-inflight-permission-header"]||[aid isEqualToString:@"fullscreen-inflight-prompt-allow-button"]||[aid isEqualToString:@"allow-all-checkbox"]||[aid isEqualToString:@"permission-icon-camera"]){camera=YES;break;}
             if([aid isEqualToString:@"allowTitle"])micTitle=YES;
             if(x.subviews.count)[q addObjectsFromArray:x.subviews];
         }
-        // `allowTitle` is unique to the probe-proven voice permission sheet and
-        // precedes actionButton by two display frames. Do not wait for both.
         int kind=camera?1:(micTitle?2:0);
         if(kind){
             objc_setAssociatedObject(root,kADPermissionSheetKind7408,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -8005,7 +7988,7 @@ static BOOL ADPermissionHasAncestorAid7408(UIView *v,NSString *aid,NSUInteger ma
         NSUInteger d=0;
         for(UIView *n=v.superview;n&&d++<maxDepth;n=n.superview){
             if([n.accessibilityIdentifier isEqualToString:aid])return YES;
-            if([n.accessibilityIdentifier isEqualToString:@"sheet-view"]||[n isKindOfClass:[UIWindow class]])break;
+            if([n.accessibilityIdentifier isEqualToString:@"sheet-view"]||[n.accessibilityIdentifier isEqualToString:@"fullscreen-inflight-animated-view"]||[n isKindOfClass:[UIWindow class]])break;
         }
     } @catch(...) {}
     return NO;
@@ -8018,15 +8001,22 @@ static BOOL ADPermissionCameraCheckbox7408(UIView *v){
                ADPermissionHasAncestorAid7408(v,@"allow-all-CAMERA",4);
     } @catch(...) { return NO; }
 }
+static BOOL ADPermissionFullscreenCheckbox7480(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView")||ADPermissionSheetKind7408(v)!=1)return NO;
+    @try {
+        CGRect b=v.bounds;
+        return b.size.width>=20.0&&b.size.width<=28.0&&b.size.height>=20.0&&b.size.height<=28.0&&
+               ADPermissionHasAncestorAid7408(v,@"allow-all-checkbox",4);
+    } @catch(...) { return NO; }
+}
 static UIColor *ADPermissionTargetBackground7408(UIView *v,UIColor *candidate,int kind){
     if(!v||!kind)return nil;
     NSString *aid=v.accessibilityIdentifier?:@"";
     if(kind==1){
-        if([aid isEqualToString:@"inflight-prompt-dismiss-button"])return ADMenuButtonFill7255();
-        if([aid isEqualToString:@"inflight-prompt-allow-button"])return ADOLED();
-        // v7.409: the 24x24 camera opt-in square is authored checkbox UI, not a
-        // neutral sheet floor. Preserve its stock fill/edge/state exactly.
+        if([aid isEqualToString:@"inflight-prompt-dismiss-button"]||[aid isEqualToString:@"fullscreen-inflight-prompt-dismiss-button"])return ADMenuButtonFill7255();
+        if([aid isEqualToString:@"inflight-prompt-allow-button"]||[aid isEqualToString:@"fullscreen-inflight-prompt-allow-button"])return ADOLED();
         if(ADPermissionCameraCheckbox7408(v))return nil;
+        if(ADPermissionFullscreenCheckbox7480(v))return ADMenuButtonFill7255();
     } else if(kind==2 && [aid isEqualToString:@"actionButton"])return ADOLED();
     UIColor *layerBG=nil; @try{ if(v.layer.backgroundColor)layerBG=[UIColor colorWithCGColor:v.layer.backgroundColor]; }@catch(...){}
     if(ADNeutralNearWhite7255(candidate)||ADNeutralNearWhite7255(v.backgroundColor)||ADNeutralNearWhite7255(layerBG))return ADOLED();
@@ -8039,17 +8029,15 @@ static void ADPermissionOwnView7408(UIView *v){
         NSString *aid=v.accessibilityIdentifier?:@"";
         UIColor *want=ADPermissionTargetBackground7408(v,v.backgroundColor,kind);
         if(want)ADSetViewBackground7226(v,want,YES);
-        BOOL button=(kind==2&&[aid isEqualToString:@"actionButton"])||
-                    (kind==1&&([aid isEqualToString:@"inflight-prompt-dismiss-button"]||[aid isEqualToString:@"inflight-prompt-allow-button"]));
+        BOOL fullButton=[aid isEqualToString:@"fullscreen-inflight-prompt-dismiss-button"]||[aid isEqualToString:@"fullscreen-inflight-prompt-allow-button"];
+        BOOL button=(kind==2&&[aid isEqualToString:@"actionButton"])||(kind==1&&([aid isEqualToString:@"inflight-prompt-dismiss-button"]||[aid isEqualToString:@"inflight-prompt-allow-button"]||fullButton));
+        if(ADPermissionFullscreenCheckbox7480(v)){ADMenuSetSingleRCTBorder7258(v,1,ADBorderGray706());SEL sr=NSSelectorFromString(@"setBorderRadius:");if([v respondsToSelector:sr])((void(*)(id,SEL,CGFloat))objc_msgSend)(v,sr,3.0);}
         if(button){
-            // v7.409: React already owns the rounded button border. Rewrite that
-            // existing owner instead of adding a second CALayer ring (which left
-            // Amazon yellow visible underneath and produced mismatched corners).
             UIColor *gray=ADBorderGray706();
             SEL sw=NSSelectorFromString(@"setBorderWidth:"),sc=NSSelectorFromString(@"setBorderColor:"),sr=NSSelectorFromString(@"setBorderRadius:");
             if([v respondsToSelector:sw])((void(*)(id,SEL,CGFloat))objc_msgSend)(v,sw,1.0);
             if([v respondsToSelector:sc])((void(*)(id,SEL,id))objc_msgSend)(v,sc,gray);
-            if([v respondsToSelector:sr])((void(*)(id,SEL,CGFloat))objc_msgSend)(v,sr,8.0);
+            if([v respondsToSelector:sr])((void(*)(id,SEL,CGFloat))objc_msgSend)(v,sr,fullButton?24.0:8.0);
             v.layer.borderWidth=0.0; v.layer.borderColor=nil; v.layer.shadowOpacity=0.0;
         }
     } @catch(...) {}
@@ -8060,16 +8048,13 @@ static BOOL ADPermissionButtonText7409(UIView *v){
         NSUInteger d=0;
         for(UIView *n=v.superview;n&&d++<6;n=n.superview){
             NSString *aid=n.accessibilityIdentifier?:@"";
-            if([aid isEqualToString:@"actionButton"]||[aid isEqualToString:@"inflight-prompt-dismiss-button"]||[aid isEqualToString:@"inflight-prompt-allow-button"])return YES;
-            if([aid isEqualToString:@"sheet-view"]||[n isKindOfClass:[UIWindow class]])break;
+            if([aid isEqualToString:@"actionButton"]||[aid isEqualToString:@"inflight-prompt-dismiss-button"]||[aid isEqualToString:@"inflight-prompt-allow-button"]||[aid isEqualToString:@"fullscreen-inflight-prompt-dismiss-button"]||[aid isEqualToString:@"fullscreen-inflight-prompt-allow-button"])return YES;
+            if([aid isEqualToString:@"sheet-view"]||[aid isEqualToString:@"fullscreen-inflight-animated-view"]||[n isKindOfClass:[UIWindow class]])break;
         }
     } @catch(...) {}
     return NO;
 }
 static BOOL ADPermissionNeutralText7410(UIColor *color){
-    // Permission copy is intentionally neutral white on OLED. Preserve authored
-    // saturated semantic runs (permissions/settings/Privacy/Learn more links), but
-    // normalize every neutral gray/black run regardless of Amazon's hydration shade.
     if(!color)return YES;
     @try {
         CGFloat r=0,g=0,b=0,a=0,w=0; UIColor *probe=color;
@@ -8096,6 +8081,7 @@ static void ADPermissionTextStorage7409(UIView *v,NSTextStorage *ts){
     if(!ADPermissionButtonText7409(v)){ ADPermissionLightStorage7408(ts); return; }
     @try { [ts beginEditing]; [ts addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,ts.length)]; [ts endEditing]; } @catch(...) {}
 }
+// some React loads use ParagraphComponentView; recover their attributed string without widening ownership.
 static NSAttributedString *ADPermissionAttributedString7410(UIView *v){
     if(!v)return nil;
     @try {
@@ -8114,17 +8100,10 @@ static NSAttributedString *ADPermissionAttributedString7410(UIView *v){
 }
 static void ADPermissionOwnText7408(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
-    // v7.411: button labels have exact, probe-proven parent IDs. Do not make
-    // their white text depend on the surrounding sheet having finished hydrating
-    // or being classified first; that late dependency caused the intermittent
-    // stock-dark Continue / Not now / Allow access labels.
     BOOL exactButton=ADPermissionButtonText7409(v);
     if(!exactButton&&!ADPermissionSheetKind7408(v))return;
     NSTextStorage *ts=ADPersonTextStorage7206(v);
     if(ts){ ADPermissionTextStorage7409(v,ts); return; }
-    // v7.410: some React loads use ParagraphComponentView rather than RCTTextView.
-    // Repair its current attributed string at final layout as well as at assignment,
-    // so a late hydration rewrite cannot leave neutral Camera/Mic copy stock-dark.
     @try {
         NSAttributedString *a=ADPermissionAttributedString7410(v); if(!a.length)return;
         NSAttributedString *r=ADPermissionTextString7409(v,a);
@@ -8183,23 +8162,18 @@ static void ADPermissionPrimeSheet7408(UIView *root,int kind){
                 for(UIView *c in x.subviews)if([c isKindOfClass:[UIImageView class]])((UIImageView *)c).tintColor=ADLightText706();
             }
             if([x isKindOfClass:[UIImageView class]])ADPermissionOwnImage7408((UIImageView *)x);
+            if(ADClassNameIs7183(x,"RNSVGSvgView"))ADPermissionOwnVector7480(x);
             if(x.subviews.count)[q addObjectsFromArray:x.subviews];
         }
     } @catch(...) {}
 }
+static BOOL ADPermissionVector7480(UIView *v){@try{for(UIView *n=v;n;n=n.superview){NSString *a=n.accessibilityIdentifier?:@"";if([a isEqualToString:@"permission-icon-camera"]||[a isEqualToString:@"fullscreen-feature-content-icon"]||[a isEqualToString:@"fullscreen-inflight-link-to-dashboard-icon"])return ADPermissionSheetKind7408(n)==1;if([a isEqualToString:@"fullscreen-inflight-animated-view"])break;}}@catch(...){}return NO;}
+static id ADPermissionBrush7480(UIView *v,id b){if(!gP.enabled||!b||!ADPermissionVector7480(v))return b;@try{if(![NSStringFromClass([b class]) isEqualToString:@"RNSVGSolidColorBrush"])return b;UIColor *c=[b valueForKey:@"color"];if(![c isKindOfClass:UIColor.class]||!ADPermissionNeutralText7410(c))return b;Class k=[b class];SEL z=sel_registerName("initWithColor:");return [k instancesRespondToSelector:z]?((id(*)(id,SEL,id))objc_msgSend)([k alloc],z,ADLightText706()):b;}@catch(...){return b;}}
+static void ADPermissionOwnVector7480(UIView *v){if(!ADPermissionVector7480(v))return;@try{NSMutableArray *q=[NSMutableArray arrayWithObject:v];for(NSUInteger i=0;i<q.count&&i<64;i++){UIView *n=q[i];for(NSString *k in @[@"fill",@"stroke"]){SEL z=NSSelectorFromString([k isEqualToString:@"fill"]?@"setFill:":@"setStroke:");if([n respondsToSelector:z]){id a=[n valueForKey:k],b=ADPermissionBrush7480(n,a);if(a!=b)[n setValue:b forKey:k];}}if(q.count+n.subviews.count<=64)[q addObjectsFromArray:n.subviews];}}@catch(...) {}}
 
-// v7.408 r4: the location sheet interior was already correct, including Amazon's
-// orange selected-address edge and blue action links.  One anonymous 430x376 React
-// backing remained white, which appeared only as the two vertical side strips because
-// the inner scroller is 394pt wide.  Own that exact full-width shell after the proven
-// location root has been marked; bypass the older cached surface classification so a
-// shell mounted before the address wrappers cannot stay white for the rest of its life.
-// v7.411 transition replay correction: v7.410's regression fixture accidentally
-// combined observations from different frames. In the real failing sequence the
-// 18pt white rail appears first, then the white clipping shell, and only later does
-// the 394pt RCTScrollView itself mount. Own the two earliest neutral transition
-// plates directly, and recognize the already-mounted 394pt scroll-content child
-// before the concrete RCTScrollView class exists.
+
+// v7.408 r4: the location sheet interior
+// v7.411 transition replay correction:
 static BOOL ADAppCXNeutralTransitionPlate7411(UIView *v,UIColor *candidate){
     if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow")||
        !ADClassNameIs7183(v,"RCTView")||!ADBrightNeutralColor708(candidate))return NO;
@@ -8239,10 +8213,6 @@ static BOOL ADLocationInsetScrollerWitness7409(UIView *v){
             UIView *x=q[seen++]; if(!x)continue;
             if(ADClassNameIs7183(x,"RCTScrollView")){
                 CGRect xr=[x convertRect:x.bounds toView:v.window]; UIColor *bg=x.backgroundColor;
-                // v7.410 transition probe: the inset scroller is already at its final
-                // 394x375.7 geometry while the clipping outer shell is still expanding
-                // from 10.7pt upward. Compare against the window/final scroller geometry,
-                // never against the shell's transient presentation height.
                 if(xr.size.width>=wb.size.width*0.89&&xr.size.width<=wb.size.width*0.94&&
                    xr.size.height>=330.0&&xr.size.height<=430.0&&
                    CGRectGetMinX(xr)>=14.0&&CGRectGetMinX(xr)<=22.0&&
@@ -8259,9 +8229,6 @@ static BOOL ADLocationOuterWhiteShell7408(UIView *v,UIColor *candidate){
     @try {
         CGRect r=[v convertRect:v.bounds toView:v.window],wb=v.window.bounds;
         if(r.size.width<wb.size.width*0.98||!v.clipsToBounds||v.subviews.count!=1)return NO;
-        // v7.411: the early 394pt RCTScrollContentView child is present roughly ten
-        // frames before the RCTScrollView object. Use either witness; never wait for
-        // the final scroller class or final shell height.
         if(ADLocationInsetContentWitness7411(v)||ADLocationInsetScrollerWitness7409(v))return YES;
         UIView *root=ADLocationRootAny7202(v); if(!root)return NO;
         BOOL finalGeometry=r.size.height>=300.0&&r.size.height<=430.0&&
@@ -8270,9 +8237,6 @@ static BOOL ADLocationOuterWhiteShell7408(UIView *v,UIColor *candidate){
     } @catch(...) { return NO; }
 }
 static BOOL ADLocationTransitionTopRail7410(UIView *v,UIColor *candidate){
-    // The first bad frame exists before any location-specific child is available.
-    // A full-width 8-24pt neutral plate in the lower half of AppCXWindow is sheet
-    // transition chrome, not semantic content; own it immediately.
     if(ADAppCXNeutralTransitionPlate7411(v,candidate))return YES;
     if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow")||!ADClassNameIs7183(v,"RCTView")||!ADBrightNeutralColor708(candidate)||!v.superview)return NO;
     @try {
@@ -8288,12 +8252,7 @@ static BOOL ADLocationTransitionTopRail7410(UIView *v,UIColor *candidate){
     } @catch(...) {}
     return NO;
 }
-// v7.401 FULL r5/r6: the two checkout payment menus are native React sheets, not
-// WebUI. They share RCTView#bottom-sheet, but ownership is not granted by that generic
-// id alone. The sheet is marked only after one of the probe-proven payment families
-// mounts: r5's card/input field wrappers or r6's creatable-sleeve payment rows.
-// Once marked, one bounded mount-time pass repairs already-mounted siblings; normal
-// steady-state ownership remains event-driven through the existing React hooks.
+// v7.401 FULL r5/r6:
 static const void *kADPaymentSheet7401=&kADPaymentSheet7401;
 static const void *kADPaymentSheetPrimed7401=&kADPaymentSheetPrimed7401;
 static const void *kADPaymentVectorOwned7401=&kADPaymentVectorOwned7401;
@@ -8340,9 +8299,6 @@ static BOOL ADPaymentMarker7401(UIView *v){
     if(!v)return NO;
     @try {
         NSString *aid=v.accessibilityIdentifier?:@"";
-        // v7.402: the centered 51x12 Amazon smile mounts while the sheet is still mostly
-        // offscreen. It is a payment-specific early marker, allowing the white root/header to
-        // be claimed before the slide-up reaches the visible viewport.
         if(ADPaymentHeaderBrandLogo7402(v))return YES;
         if([aid isEqualToString:@"card-wrapper"]&&ADPaymentHasAncestorAid7401(v,@"card-pressable-wrapper",5))return YES;
         if([aid isEqualToString:@"input-wrapper"]&&ADPaymentHasAncestorAid7401(v,@"input-pressable-wrapper",5))return YES;
@@ -8353,9 +8309,6 @@ static BOOL ADPaymentMarker7401(UIView *v){
 }
 static BOOL ADInPaymentSheet7401(UIView *v){
     if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return NO;
-    // A view is marked the first time it is proven to belong to the payment sheet.  This keeps
-    // subsequent paint/text callbacks O(1); only a newly mounted unmarked view pays the bounded
-    // ancestor walk once.
     if(objc_getAssociatedObject(v,kADPaymentSheet7401))return YES;
     UIView *root=ADPaymentBottomSheet7401(v); if(!root)return NO;
     if(objc_getAssociatedObject(root,kADPaymentSheet7401)){
@@ -8462,12 +8415,6 @@ static BOOL ADPaymentIsSelectedRowFill7401(UIView *v){
                ADNeutralNearWhite7255(v.backgroundColor);
     } @catch(...) { return NO; }
 }
-// v7.402 FULL r6 + device screenshot: the five left-side payment-method artworks are
-// raster RCTUIImageViewAnimated leaves under exact creatable-sleeve-*-image-wrapper
-// owners. Card/EBT/BankAccount/DirectedSpend are monochrome transparent icons and
-// disappear on OLED when left in their stock dark ink. HealthBenefits is a wider
-// authored raster whose white-backed shield is already legible; preserve it exactly.
-// This classifier never touches payment card/logo artwork outside the Add-new chooser.
 static int ADPaymentCreateImageKind7402(UIImageView *iv,BOOL discover){
     if(!iv||!gP.enabled||!iv.window||!iv.image||!ADClassNameIs7183(iv,"RCTUIImageViewAnimated")||!ADInPaymentSheet7401(iv))return 0;
     @try {
@@ -8499,8 +8446,6 @@ static void ADPaymentFinalizeCreateImage7402(UIImageView *iv,BOOL discover){
             if(fixed){ gADPaymentImageWrite7402=YES; iv.image=fixed; gADPaymentImageWrite7402=NO; }
         }
         if(kind==1)iv.tintColor=ADLightText706();
-        // These exact 24pt control artworks already fall below the generic native-TWB media
-        // threshold, so no broad product/media eligibility override is needed here.
     } @catch(...) { gADPaymentImageWrite7402=NO; }
 }
 static void ADPaymentOwnView7401(UIView *v){
@@ -8508,7 +8453,6 @@ static void ADPaymentOwnView7401(UIView *v){
     @try {
         NSString *aid=v.accessibilityIdentifier?:@"";
         if([aid hasPrefix:@"creatable-sleeve-"]&&[aid hasSuffix:@"-image-wrapper"]){
-            // Icon/image wrapper itself must stay transparent on the OLED row.
             ADSetViewBackground7226(v,[UIColor clearColor],YES); v.layer.backgroundColor=nil;
         }
         if(ADPaymentIsRowDivider7401(v)){
@@ -8517,8 +8461,6 @@ static void ADPaymentOwnView7401(UIView *v){
         if(ADPaymentIsInput7401(v)){
             UIColor *fill=ADMenuButtonFill7255(); ADSetViewBackground7226(v,fill,YES);
             if([v.accessibilityIdentifier isEqualToString:@"card-wrapper"]||[v.accessibilityIdentifier isEqualToString:@"input-wrapper"]){
-                // Install the neutral resting edge, but do not flatten a future authored chromatic
-                // focus/validation edge if React has already supplied one.
                 CGColorRef edge=v.layer.borderColor;
                 BOOL neutralEdge=!edge||CGColorGetAlpha(edge)<=0.05||ADNeutralCGColor706(edge);
                 v.layer.borderWidth=MAX(1.0,v.layer.borderWidth);
@@ -8554,9 +8496,6 @@ static void ADPaymentOwnText7401(UIView *v){
 static void ADPaymentOwnVector7401(UIView *svg){
     if(!gP.enabled||!svg||!svg.window||!ADClassNameIs7183(svg,"RNSVGSvgView")||!ADInPaymentSheet7401(svg))return;
     @try {
-        // v7.402 probe correction: the centered 51x12 SVG is Amazon's authored orange smile,
-        // not a neutral sheet handle. Never color-invert/filter it. It doubles as the early
-        // payment-sheet marker above. Neutral privacy/close/chevron glyphs remain lightened.
         if(ADPaymentHeaderBrandLogo7402(svg)){
             if(objc_getAssociatedObject(svg,kADPaymentVectorOwned7401))svg.layer.filters=nil;
             objc_setAssociatedObject(svg,kADPaymentVectorOwned7401,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -8587,11 +8526,7 @@ static void ADPaymentPrimeSheet7401(UIView *root){
 }
 
 
-// v7.416: canonical ownership for Search's location navigation family.
-// Recent probes expose two React roots at once. The visible location controls live in the
-// full-screen SNPRootView and under a stable inset ~394pt RCTScrollView; the parallel
-// AppCXBottomSheet/Nile tree is not the pixel owner. Scope directly by that ancestry and
-// geometry, with no route strings, descendant scans, timers, observers or retries.
+// v7.416: canonical ownership for Search
 static const void *kADLocationApply7416=&kADLocationApply7416;
 static BOOL ADLocationWarmYellow7416(UIColor *c){
     if(!c)return NO;
@@ -8733,8 +8668,6 @@ static int ADReactSurface7226(UIView *v){
     } @catch(...) {}
     return ADReactSurfaceNone7226;
 }
-// v7.427 FULL r1: the AI results screen is native, not a WK product page.
-// root-container alone is not unique: require its shallow cardboard header marker.
 static UIView *ADAlexaResultsRoot7427(UIView *v){
     UIView *n=v;
     for(int depth=0;n&&depth<40;depth++,n=n.superview){
@@ -8761,8 +8694,6 @@ static BOOL ADAlexaResultsHasChild7427(UIView *v,const char *cls,NSString *aid){
     }
     return NO;
 }
-// v7.430 FULL: native long-press product review/action menu.
-// The exact modal identifier bounds every change, including the blur backdrop.
 static UIView *ADReviewMenuRoot7430(UIView *v){
     for(int i=0;v&&i<32;i++,v=v.superview){
         if([v.accessibilityIdentifier isEqualToString:@"long-press-modal"])return v;
@@ -8800,14 +8731,11 @@ static void ADReviewMenuOwn7430(UIView *v){
 static void ADAlexaInvertVectorRoot7285(UIView *svg);
 static BOOL ADReviewMenuVector7430(UIView *svg){
     if(!gP.enabled||!ADReviewMenuRoot7430(svg))return NO;
-    // Only the full-width gradient SVG below the Ask Alexa label is decorative.
     if(ADReviewMenuButton7430(svg.superview.superview)==3){
         svg.hidden=YES;
         ADReviewMenuOwn7430(svg.superview.superview);
         return YES;
     }
-    // Monochrome generated-review mark sits beside the attribution text;
-    // aspect status SVGs and the three black action glyphs are left authored.
     if(ADAlexaResultsHasChild7427(svg.superview,"RCTTextView",nil)&&ADAlexaResultsHasChild7427(svg.superview.superview,NULL,@"aspect-list"))ADAlexaInvertVectorRoot7285(svg);
     return YES;
 }
@@ -8818,8 +8746,6 @@ static BOOL ADReviewMenuBlur7430(UIVisualEffectView *v){
     return YES;
 }
 
-// v7.428: previous FULL native tree places input backing and send control
-// beside the multiline editor; only the full-width backing owns its outline.
 static BOOL ADAlexaResultsInputBacking7428(UIView *v){
     return ADClassNameIs7183(v,"RCTView")&&ADAlexaResultsHasChild7427(v.superview,"RCTMultilineTextInputView",nil)&&v.bounds.size.width>=v.superview.bounds.size.width*0.75&&v.bounds.size.height>=40;
 }
@@ -8846,7 +8772,6 @@ static BOOL ADAlexaResultsNeutral7427(UIColor *c){
 static UIColor *ADAlexaResultsFill7427(UIView *v,UIColor *incoming){
     if(!ADAlexaResultsRoot7427(v))return nil;
     if([v.accessibilityIdentifier isEqualToString:@"cardboard-background"])return ADOLED();
-    // The translucent image wash must stay transparent; an OLED overlay hides art.
     if(ADAlexaResultsHasChild7427(v.superview,"RCTImageView",nil)&&!ADAlexaResultsHasChild7427(v,"RCTImageView",nil))return UIColor.clearColor;
     if(ADAlexaResultsHasChild7427(v.superview,NULL,@"back-button")&&ADAlexaResultsHasChild7427(v,"RCTTextView",nil))return ADMenuButtonFill7255();
     if(ADAlexaResultsSendWrapper7428(v))return UIColor.clearColor;
@@ -8866,7 +8791,6 @@ static void ADAlexaResultsOwnView7427(UIView *v){
     UIColor *fill=ADAlexaResultsFill7427(v,v.backgroundColor);
     if(fill)ADSetViewBackground7226(v,fill,YES);
     if([v.accessibilityIdentifier isEqualToString:@"cardboard-background"]){
-        // Only the three decorative stripe/gradient stacks, never header controls.
         for(UIView *decoration in v.subviews)decoration.hidden=YES;
     }
     BOOL search=ADAlexaResultsHasChild7427(v.superview,NULL,@"back-button")&&ADAlexaResultsHasChild7427(v,"RCTTextView",nil);
@@ -8887,11 +8811,8 @@ static void ADAlexaResultsOwnText7427(UIView *v){
     if(!gP.enabled||!ADAlexaResultsRoot7427(v))return;
     ADMenuLightStorage7255(ADPersonTextStorage7206(v));
 }
-// Read only solid UIColor brushes. Gradient/painter references (Alexa/ratings)
-// and authored saturated colors never enter the neutral-text conversion.
 static id ADAlexaResultsBrush7427(UIView *v,id brush){
     if(!gP.enabled||!brush||!ADAlexaResultsRoot7427(v))return brush;
-    // Neutral navigation roots use the existing compositor path, never double-invert brushes.
     if(ADAlexaResultsNavigationVector7428(v))return brush;
     @try {
         if(![NSStringFromClass([brush class]) isEqualToString:@"RNSVGSolidColorBrush"])return brush;
@@ -8916,7 +8837,6 @@ static void ADAlexaResultsOwnVector7427(UIView *svg){
     }
     if(!gP.enabled)return;
     if(ADAlexaResultsFooterVector7427(svg)){
-        // Decorative blue/white fade underneath Ask anything; retain input siblings.
         svg.hidden=YES;
         ADSetViewBackground7226(svg.superview,ADOLED(),YES);
         return;
@@ -8937,16 +8857,17 @@ static void ADAlexaResultsOwnVector7427(UIView *svg){
 }
 %hook RNSVGRenderable
 - (void)setFill:(id)brush {
-    id paint=ADAlexaResultsBrush7427((UIView *)self,brush);
+    id paint=ADPermissionBrush7480((UIView *)self,brush);
+    paint=ADAlexaResultsBrush7427((UIView *)self,paint);
     %orig(paint);
 }
 - (void)setStroke:(id)brush {
-    id paint=ADAlexaResultsBrush7427((UIView *)self,brush);
+    id paint=ADPermissionBrush7480((UIView *)self,brush);
+    paint=ADAlexaResultsBrush7427((UIView *)self,paint);
     %orig(paint);
 }
 %end
 
-// v7.426: native PDP action bar from FULL r2; never classify unrelated RN buttons.
 static BOOL ADInPDPActionBar7426(UIView *v){
     UIView *n=v;
     for(int depth=0;n&&depth<12;depth++,n=n.superview){
@@ -8984,6 +8905,7 @@ static void ADOwnReactView7226(UIView *v){
         if(ADReviewMenuRoot7430(v)){ ADReviewMenuOwn7430(v); return; }
         if(ADAlexaResultsRoot7427(v)){ ADAlexaResultsOwnView7427(v); return; }
         if(ADInPDPActionBar7426(v)){ ADPDPActionBarOwn7426(v); return; }
+        if([v.accessibilityIdentifier isEqualToString:@"fullscreen-inflight-animated-view"])ADSetViewBackground7226(v,ADOLED(),YES);
         ADAlexaOwnReactControl7285(v);
         if(ADLocationCard7416(v)||ADInLocationCanonical7416(v)){
             ADLocationOwnCanonicalView7416(v);
@@ -9056,8 +8978,14 @@ static void ADOwnReactView7226(UIView *v){
         return;
     }
     if(gP.enabled&&ADInPDPActionBar7426(v)){
-        UIColor *paint=ADOLED();
-        %orig(paint);
+        UIColor *black=ADOLED();
+        %orig(black);
+        return;
+    }
+    if(gP.enabled&&[v.accessibilityIdentifier isEqualToString:@"fullscreen-inflight-animated-view"]){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
         return;
     }
     // Direct card ownership is valid even before window attachment; this closes the
@@ -9181,6 +9109,10 @@ static void ADOwnReactView7226(UIView *v){
         %orig(8.0);
         return;
     }
+    if(pk&&([paid isEqualToString:@"fullscreen-inflight-prompt-dismiss-button"]||[paid isEqualToString:@"fullscreen-inflight-prompt-allow-button"])){
+        %orig(24.0);
+        return;
+    }
     int alexaRole=gP.enabled?ADAlexaReactControlRole7285((UIView *)self):0;
     if(alexaRole==1){
         %orig(value);
@@ -9209,7 +9141,7 @@ static void ADOwnReactView7226(UIView *v){
     }
     int pk=(gP.enabled&&pv.window)?ADPermissionSheetKind7408(pv):0;
     NSString *paid=pv.accessibilityIdentifier?:@"";
-    if(pk&&([paid isEqualToString:@"actionButton"]||[paid isEqualToString:@"inflight-prompt-dismiss-button"]||[paid isEqualToString:@"inflight-prompt-allow-button"])){
+    if(pk&&([paid isEqualToString:@"actionButton"]||[paid isEqualToString:@"inflight-prompt-dismiss-button"]||[paid isEqualToString:@"inflight-prompt-allow-button"]||[paid isEqualToString:@"fullscreen-inflight-prompt-dismiss-button"]||[paid isEqualToString:@"fullscreen-inflight-prompt-allow-button"])){
         %orig(1.0);
         pv.layer.borderWidth=0.0; pv.layer.borderColor=nil;
         return;
@@ -9232,7 +9164,7 @@ static void ADOwnReactView7226(UIView *v){
     }
     int pk=(gP.enabled&&pv.window)?ADPermissionSheetKind7408(pv):0;
     NSString *paid=pv.accessibilityIdentifier?:@"";
-    if(pk&&([paid isEqualToString:@"actionButton"]||[paid isEqualToString:@"inflight-prompt-dismiss-button"]||[paid isEqualToString:@"inflight-prompt-allow-button"])){
+    if(pk&&([paid isEqualToString:@"actionButton"]||[paid isEqualToString:@"inflight-prompt-dismiss-button"]||[paid isEqualToString:@"inflight-prompt-allow-button"]||[paid isEqualToString:@"fullscreen-inflight-prompt-dismiss-button"]||[paid isEqualToString:@"fullscreen-inflight-prompt-allow-button"])){
         UIColor *gray=ADBorderGray706();
         %orig(gray);
         pv.layer.borderWidth=0.0; pv.layer.borderColor=nil;
@@ -9285,9 +9217,7 @@ static void ADOwnReactView7226(UIView *v){
 }
 %end
 
-// v7.285 Alexa/Rufus vector controls. Exact IDs come from the v7.282 Alexa probe.
-// Root-only CAFilter inversion preserves authored geometry; the bottom full-size
-// backing shape is hidden so the gray parent circle remains visible behind a white glyph.
+// v7.285 Alexa/Rufus vector controls
 static const void *kADAlexaVectorOwned7285=&kADAlexaVectorOwned7285;
 static int ADAlexaVectorRole7285(UIView *svg){
     if(!svg||!svg.window||!ADClassNameIs7183(svg,"RNSVGSvgView")||!ADClassNameIs7183(svg.window,"AppCXWindow"))return 0;
@@ -9355,17 +9285,17 @@ static void ADAlexaOwnVector7285(UIView *svg){
     %orig;
     ADAlexaOwnVector7285((UIView *)self);
     ADPaymentOwnVector7401((UIView *)self);
-    ADAlexaResultsOwnVector7427((UIView *)self);
+    ADAlexaResultsOwnVector7427((UIView *)self); ADPermissionOwnVector7480((UIView *)self);
 }
 - (void)didMoveToSuperview {
     %orig;
-    if(((UIView *)self).window){ ADAlexaOwnVector7285((UIView *)self); ADPaymentOwnVector7401((UIView *)self); ADAlexaResultsOwnVector7427((UIView *)self); }
+    if(((UIView *)self).window){ ADAlexaOwnVector7285((UIView *)self); ADPaymentOwnVector7401((UIView *)self); ADAlexaResultsOwnVector7427((UIView *)self); ADPermissionOwnVector7480((UIView *)self); }
 }
 - (void)layoutSubviews {
     %orig;
     ADAlexaOwnVector7285((UIView *)self);
     ADPaymentOwnVector7401((UIView *)self);
-    ADAlexaResultsOwnVector7427((UIView *)self);
+    ADAlexaResultsOwnVector7427((UIView *)self); ADPermissionOwnVector7480((UIView *)self);
 }
 %end
 

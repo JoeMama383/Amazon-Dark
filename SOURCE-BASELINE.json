@@ -1,9 +1,9 @@
 {
-  "version": "7.479~timer-actionbar-edge",
-  "direct_parent": "7.478~home-pdp-six-fix",
-  "parent_source": "AmazonDark-v7.478-home-pdp-six-fix-source.zip",
-  "scope": "Resolve the two v7.478 residuals using already-captured probe owners: the Home TNF countdown number chips that still paint white, and the PDP Add-to-Cart action-bar top separator that appears only when the bottom action bar is mounted.",
-  "root_cause": "The TNF numeric spans are the correct v7.478 selector family, but their white chip paint remains visible; the v7.477 FULL native probe separately identifies RCTView#AXFActionBarContainer with borderTopWidth=1.00 above the Add-to-Cart button.",
-  "delivery": "Keep the exact countdown owner and add a full inset OLED paint layer behind its white numbers; clear only AXFActionBarContainer React border channels with the existing single-border normalizer at width 0 while preserving AXFActionBarTextButton at its 1 pt gray ring.",
-  "device_validation": "v7.478 device feedback confirmed the other four fixes and left two residuals. Both v7.479 owners are already present in the supplied v7.477 probes; post-install v7.479 capture is required only to confirm final device paint."
+  "version": "7.480~camera-permission-build-repair",
+  "direct_parent": "7.479~timer-actionbar-edge",
+  "parent_source": "AmazonDark-v7.479-timer-actionbar-edge-source.zip",
+  "scope": "Preserve v7.479 Home/PDP/Returns repairs, theme the probe-backed full-screen Camera permission family, and repair the v7.479 Objective-C++ build failure.",
+  "root_cause": "Camera uses a full-screen React permission renderer whose white root, neutral text, new checkbox, buttons, and neutral SVG brushes were outside the older sheet-view family. The v7.479 build failure is independently reproduced by Clang: ADPDPProbeBackedFixesJS7458 chained stringByAppendingString: without the required outer Objective-C message bracket.",
+  "delivery": "Extend event-driven permission ownership to fullscreen-inflight-animated-view and exact descendants while preserving saturated semantic runs and the historical allow-all-CAMERA checkbox; repair the nested NSString message send; add an exact Objective-C++ preflight regression before Theos; keep production source under the 856000-byte gate.",
+  "device_validation": "Camera owners come from AmazonDark-v7.478-ui-viewport-probe-20260924-115300-443-r2. On-device v7.480 confirmation remains required after install."
 }
