@@ -1,9 +1,9 @@
 {
-  "version": "7.476~pdp-offsite-ci-repair",
-  "direct_parent": "7.475~pdp-offsite-nav-separators",
-  "parent_source": "AmazonDark-v7.475-pdp-offsite-nav-separators-source.zip",
-  "scope": "Preserve the v7.475 offsite-card, PDP subnav, and bottom-bar UI fixes while repairing the strict-CI regression introduced by offsite overflow clipping.",
-  "root_cause": "v7.475 added overflow:hidden!important to #offsite-buy-box. Frozen test_v7406_video_sponsored_footer_restore.py rejects overflow:hidden anywhere in the ADProductScrollVideoBorderJS7405-to-ADPDPCompletionJS7405 source slice because that can clip the authored Sponsored footer. The new rule fell inside that slice.",
-  "delivery": "No delivery changes. Remove the forbidden overflow clipping declaration only; retain the existing constructable survivor sheet and native bottom-bar/subnav ownership.",
-  "device_validation": "UI behavior is inherited from v7.475 pending on-device confirmation; CI compatibility is locally reproduced and repaired."
+  "version": "7.477~pdp-ad-ui-repair",
+  "direct_parent": "7.476~pdp-offsite-ci-repair",
+  "parent_source": "AmazonDark-v7.476-pdp-offsite-ci-repair-source.zip",
+  "scope": "Undo the v7.475/v7.476 top-ad regression, isolate the probe-proven modern-414x125 medium standalone renderer, correctly suppress the two native bottom-bar line owners, and instrument the actual PDP sticky Top/Details/Explore/Reviews row.",
+  "root_cause": "The v7.475 broad #absoluteComponents/offsite wrapper rule black-painted a full-frame overlay shared by the already-working top standalone creative. The medium family actually has its own modern-414x125-layout-container renderer. The bottom-bar line fix also targeted <=2px sublayers even though the probe shows a 1.10pt layer border plus a separate 44x5 indicator. Finally, the prior Top-label geometry patch targeted the unrelated mshop #nav-subnav row.",
+  "delivery": "Restore the v7.474 top-offsite survivor block exactly, add only exact modern-414x125 child-frame rules, narrow native hairline ownership to ANXTabBarView, remove the wrong mshop geometry override, and add bounded probe-only btfNav7477 metadata for the actual sticky row.",
+  "device_validation": "Pending v7.477 installation. Top ad behavior is restored to the last working v7.474 boundary; medium-card treatment is derived from the v7.463 r3 computed-state capture; native bottom-bar suppression uses exact v7.473 geometry. The sticky Top label requires one v7.477 capture for exact descendant geometry before further mutation."
 }
