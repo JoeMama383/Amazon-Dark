@@ -50,7 +50,7 @@ assert 'a *{-webkit-text-fill-color:currentColor!important;}' in J
 assert '.a-icon-checkbox{filter:none!important' in J
 
 # Exact native gradient sibling gate from FULL r1.
-for token in ('CAGradientLayer','ADBrightNeutralUIView708','f.size.width<vr.size.width*0.90','f.size.height<40.0','f.size.height>110.0','sib.alpha=0.0'):
+for token in ('CAGradientLayer','f.size.width<vr.size.width*0.90','f.size.height<40.0','f.size.height>110.0','sib.alpha=0.0'):
     assert token in N, token
 
 # No recurring production work introduced.
@@ -58,7 +58,7 @@ for bad in ('MutationObserver(', 'setInterval(', 'requestAnimationFrame(', 'addE
     assert bad not in J
 
 # Standing handoff contract: separated probes, no status commands.
-for h in ('## FULL — v7.480','## VIEWPORT — v7.480','## TRANSITION — v7.480'):
+for h in ('## FULL — v7.482','## VIEWPORT — v7.482','## TRANSITION — v7.482'):
     assert h in CMD
 assert ' status' not in CMD
-print('PASS: v7.480 Returns main + email secondary views are probe-backed and preserve semantic colors')
+print('PASS: v7.482 Returns main + email secondary views are probe-backed and preserve semantic colors')

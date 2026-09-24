@@ -1,9 +1,9 @@
 {
-  "version": "7.480~camera-permission-build-repair",
-  "direct_parent": "7.479~timer-actionbar-edge",
-  "parent_source": "AmazonDark-v7.479-timer-actionbar-edge-source.zip",
-  "scope": "Preserve v7.479 Home/PDP/Returns repairs, theme the probe-backed full-screen Camera permission family, and repair the v7.479 Objective-C++ build failure.",
-  "root_cause": "Camera uses a full-screen React permission renderer whose white root, neutral text, new checkbox, buttons, and neutral SVG brushes were outside the older sheet-view family. The v7.479 build failure is independently reproduced by Clang: ADPDPProbeBackedFixesJS7458 chained stringByAppendingString: without the required outer Objective-C message bracket.",
-  "delivery": "Extend event-driven permission ownership to fullscreen-inflight-animated-view and exact descendants while preserving saturated semantic runs and the historical allow-all-CAMERA checkbox; repair the nested NSString message send; add an exact Objective-C++ preflight regression before Theos; keep production source under the 856000-byte gate.",
-  "device_validation": "Camera owners come from AmazonDark-v7.478-ui-viewport-probe-20260924-115300-443-r2. On-device v7.480 confirmation remains required after install."
+  "version": "7.482~pdp-immersive-review-profile-theme",
+  "direct_parent": "7.480~camera-permission-build-repair",
+  "parent_source": "AmazonDark-v7.480-camera-permission-build-repair-source.zip",
+  "scope": "Preserve v7.480 Camera/build repairs; dark-theme the probe-backed ORC return details and Your Returns history/recommendation families; collapse the Return Authorization Slip residual fade/divider box.",
+  "root_cause": "FULL r1/r2 show route-specific white AUI base planes/cards and untamed images that were outside the original Return Instructions selector. FULL r3 shows the native tab fade already transparent, while the visible residual is a 404x42 AUI divider family in the web document.",
+  "delivery": "Add declarative route-scoped OLED/white/gray/image-taming rules for the r1/r2 owners, collapse the r3 42pt AUI divider to a 1px gray line including pseudo-elements, and keep the exact native gradient sibling suppressed without relying on its current background brightness.",
+  "device_validation": "Owners come from v7.480 VIEWPORT r1-r4 plus the retained v7.480 FULL Returns captures supplied on 2026-09-24. Post-install v7.482 capture remains required for final device confirmation."
 }

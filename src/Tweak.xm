@@ -1,4 +1,4 @@
-/* AmazonDark v7.480 */
+/* AmazonDark v7.482 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.480-camera-permission-build-repair"
+#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2478,6 +2478,12 @@ static NSString *ADReturnsThemeJS7480(void){
     ];
 }
 
+static NSString *ADNewMenusJS7482(void){
+    return [NSString stringWithUTF8String:
+#include "ADNewMenus7482.js.inc"
+    ];
+}
+
 static long gADCoreWebJSStrength7271=-1;
 static NSString *gADCoreWebJSCached7271=nil;
 static NSString *ADPDPProbeBackedFixesJS7458(void){
@@ -2489,10 +2495,10 @@ static NSString *ADCoreWebJS7271(void){
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
     if(gADCoreWebJSCached7271&&gADCoreWebJSStrength7271==strength)return gADCoreWebJSCached7271;
     gADCoreWebJSStrength7271=strength;
-    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
+    gADCoreWebJSCached7271=[[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
         ADStandalonePaintJS7104(),ADFloorJS(),ADHomeAdShellFloorJS7381(),ADProductShareThemeJS7403(),
         ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403(),ADProductScrollPolishJS7404(),
-        ADProductScrollVideoBorderJS7405(),ADPDPGridCarouselFix7454(),ADPDPCompletionJS7405(),ADPDPSafeFrameJS7432(),ADPDPCompletionTWBJS7405(),ADPDPUICompletionJS7439(),ADPDPMainResidualJS7440(),ADPDPProbeBackedFixesJS7458(),ADFrameOwnerTriggerJS7440(),ADAddressManagementJS7412()];
+        ADProductScrollVideoBorderJS7405(),ADPDPGridCarouselFix7454(),ADPDPCompletionJS7405(),ADPDPSafeFrameJS7432(),ADPDPCompletionTWBJS7405(),ADPDPUICompletionJS7439(),ADPDPMainResidualJS7440(),ADPDPProbeBackedFixesJS7458(),ADFrameOwnerTriggerJS7440(),ADAddressManagementJS7412()] stringByAppendingString:ADNewMenusJS7482()];
     return gADCoreWebJSCached7271;
 }
 
@@ -3786,6 +3792,7 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
 // that hydrated sheet.  Only neutral light floors and neutral dark text change;
 // authored orange/yellow/blue and other saturated Amazon semantics remain stock.
 static const void *kADPersonSavingsSheet7259=&kADPersonSavingsSheet7259;
+static const void *kADProfilePickerSheet7482=&kADProfilePickerSheet7482;
 static BOOL ADDarkNeutral7259(UIColor *color,BOOL nilIsDark){
     if(!color)return nilIsDark;
     @try {
@@ -3812,17 +3819,19 @@ static UIView *ADPersonSavingsSheetRoot7259(UIView *v){
         }
         if(!root)return nil;
         if([objc_getAssociatedObject(root,kADPersonSavingsSheet7259) boolValue])return root;
-        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0; BOOL inset=NO,title=NO;
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0; BOOL inset=NO,title=NO,profile=NO;
         while(seen<q.count&&seen<96){
             UIView *x=q[seen++]; if(!x)continue;
             NSString *aid=x.accessibilityIdentifier?:@"";
             if([aid isEqualToString:@"sheet-inset-view"])inset=YES;
             if([aid isEqualToString:@"cvm-metab-bottomsheet-titlettl"])title=YES;
-            if(inset&&title)break;
+            if([aid isEqualToString:@"profile-picker-close-bottomsheet-button"])profile=YES;
+            if(inset&&(title||profile))break;
             if(x.subviews.count)[q addObjectsFromArray:x.subviews];
         }
-        if(inset&&title){
+        if(inset&&(title||profile)){
             objc_setAssociatedObject(root,kADPersonSavingsSheet7259,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            if(profile)objc_setAssociatedObject(root,kADProfilePickerSheet7482,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             return root;
         }
     } @catch(...) {}
@@ -3835,11 +3844,22 @@ static NSAttributedString *ADPersonSavingsLightString7259(NSAttributedString *in
 static void ADPersonSavingsLightStorage7259(NSTextStorage *ts){
     ADLightNeutralStorage7271(ts,ADPersonSavingsDarkNeutral7259);
 }
+static BOOL ADProfilePickerSheet7482(UIView *v){
+    UIView *root=ADPersonSavingsSheetRoot7259(v);
+    return root&&[objc_getAssociatedObject(root,kADProfilePickerSheet7482) boolValue];
+}
+static BOOL ADProfilePickerDivider7482(UIView *v,UIColor *color){
+    if(!ADProfilePickerSheet7482(v)||!ADNeutralNearWhite7255(color))return NO;
+    CGRect r=v.bounds; return r.size.height>0.0&&r.size.height<=1.5&&r.size.width>=100.0;
+}
 static void ADOwnPersonSavingsFloor7259(UIView *v){
     if(!gP.enabled||!v||!v.window||!ADInPersonSavingsSheet7259(v))return;
     @try {
         UIColor *bg=v.backgroundColor,*layerBG=nil;
         if(v.layer.backgroundColor)layerBG=[UIColor colorWithCGColor:v.layer.backgroundColor];
+        if(ADProfilePickerDivider7482(v,bg)||ADProfilePickerDivider7482(v,layerBG)){
+            ADSetViewBackground7226(v,ADBorderGray706(),YES); return;
+        }
         if(ADNeutralNearWhite7255(bg)||ADNeutralNearWhite7255(layerBG))ADSetViewBackground7226(v,ADOLED(),YES);
     } @catch(...) {}
 }
@@ -3961,6 +3981,11 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
         if(!react&&ADInAppCXPassthrough7256(self)&&ADNeutralNearWhite7255(color)){
             UIColor *black=ADOLED();
             %orig(black);
+            return;
+        }
+        if(ADProfilePickerDivider7482(self,color)){
+            UIColor *gray=ADBorderGray706();
+            %orig(gray);
             return;
         }
         if((ADInAppCXBottomSheet7255(self)||ADInPersonSavingsSheet7259(self))&&ADNeutralNearWhite7255(color)){
@@ -8923,6 +8948,10 @@ static void ADOwnReactView7226(UIView *v){
             ADPaymentOwnView7401(v);
             return;
         }
+        if(ADClassNameIs7183(v.window,"AppCXWindow")&&ADProfilePickerSheet7482(v)){
+            ADOwnPersonSavingsFloor7259(v);
+            return;
+        }
         int surface=ADReactSurface7226(v);
         if(surface==ADReactSurfacePerson7226){
             ADPersonOwnView7206(v);
@@ -9072,11 +9101,12 @@ static void ADOwnReactView7226(UIView *v){
     BOOL location=surface==ADReactSurfaceLocation7226&&(ADLocationSheetFloor7196(v,color)||ADLocationMarkedWideBrightFloor7205(v,color));
     BOOL appWindow=ADClassNameIs7183(v.window,"AppCXWindow");
     BOOL appcx=appWindow&&ADInAppCXBottomSheet7255(v)&&ADNeutralNearWhite7255(color);
+    BOOL profileDivider=appWindow&&ADProfilePickerDivider7482(v,color);
     BOOL savings=appWindow&&ADInPersonSavingsSheet7259(v)&&ADNeutralNearWhite7255(color);
     int menuRole=gP.enabled?ADMenuLocalFooterRole7277(v):0;
     if(!menuRole&&surface==ADReactSurfaceMenu7255)menuRole=ADMenuViewRole7255(v);
     UIColor *menuColor=(menuRole==2)?ADMenuButtonFill7255():((menuRole==3||menuRole==6)?[UIColor clearColor]:ADOLED());
-    UIColor *finalColor=menuRole?menuColor:(personShell?[UIColor clearColor]:((person||location||appcx||savings)?ADOLED():color));
+    UIColor *finalColor=profileDivider?ADBorderGray706():(menuRole?menuColor:(personShell?[UIColor clearColor]:((person||location||appcx||savings)?ADOLED():color)));
 
     // One original React setter call, guarded across its super-call chain.  This is
     // the critical v7.226 recursion barrier: UIView and RCTView can no longer repaint
@@ -9092,7 +9122,7 @@ static void ADOwnReactView7226(UIView *v){
             self.layer.backgroundColor=finalColor.CGColor;
         } else {
             %orig(finalColor);
-            if(person||menuRole||appcx||savings)self.layer.backgroundColor=finalColor.CGColor;
+            if(person||menuRole||appcx||savings||profileDivider)self.layer.backgroundColor=finalColor.CGColor;
         }
     } @finally {
         if(transactionOpen)[CATransaction commit];
