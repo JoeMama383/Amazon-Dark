@@ -7,8 +7,8 @@ K=(R/'scripts/skeleton-probe.sh').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
 assert len(S.encode()) < 856000, len(S.encode())
-assert 'Version: 7.473~standalone-survivor-sheet' in C
-assert '#define AD_VERSION "v7.473-standalone-survivor-sheet"' in S
+assert 'Version: 7.474~pdp-visible-copy-swatch' in C
+assert '#define AD_VERSION "v7.474-pdp-visible-copy-swatch"' in S
 
 block=S[S.index('static NSString *ADPDPProbeBackedFixesJS7458(void)'):S.index('static NSString *ADCoreWebJS7271(void)')]
 for sel in [
@@ -18,9 +18,9 @@ for sel in [
 ]:
     assert sel in block
 
-assert 'VER=7.473' in U
-assert 'AD_PROBE_VERSION=7.473' in K and 'AD_PROBE_NAME=AmazonDark-v7.473' in K
-assert 'AmazonDark-v7.473-standalone-survivor-sheet-source.zip' in CMD
-for h in ['## FULL — v7.473','## VIEWPORT — v7.473','## TRANSITION — v7.473']:
+assert 'VER=7.474' in U
+assert 'AD_PROBE_VERSION=7.474' in K and 'AD_PROBE_NAME=AmazonDark-v7.474' in K
+assert 'AmazonDark-v7.474-pdp-visible-copy-swatch-source.zip' in CMD
+for h in ['## FULL — v7.474','## VIEWPORT — v7.474','## TRANSITION — v7.474']:
     assert h in CMD
 print('PASS: v7.473 handoff stays below the 856000-byte gate and regenerates all probes')
