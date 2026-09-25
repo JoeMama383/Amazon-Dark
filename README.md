@@ -1,6 +1,6 @@
-# AmazonDark v7.491 — Your Orders follow-up + retained Book transition fix
+# AmazonDark v7.492 — Your Orders follow-up + retained Book transition fix
 
-- Direct parent: **v7.490~orders-followup**.
+- Direct parent: **v7.491~orders-followup**.
 - Keeps the v7.490 `#a-white` transition-canvas OLED repaint for the Book `See more` flow.
 - On **Your Orders**, the two blue Prime/reminder information tiles are now fully tamed, not just their small image wells.
 - The extra border treatment on those blue tiles is removed.
@@ -8,7 +8,7 @@
 - The search-bar center seam is collapsed so the Filter separator matches the surrounding 1 px stroke width.
 - The multi-item order-count bubble on purchase-history thumbnails is re-themed to gray fill + gray border + white number.
 
-- The new v7.489 transition capture identifies the actual visible white canvas as `DIV#a-white`; v7.491 repaints that exact temporary canvas OLED at document start without changing geometry, opacity, animation, or timing.
+- The new v7.489 transition capture identifies the actual visible white canvas as `DIV#a-white`; v7.492 retains that exact temporary canvas OLED at document start without changing geometry, opacity, animation, or timing.
 
 # AmazonDark v7.489 — Active Returns header + expanded Book transition probe
 
