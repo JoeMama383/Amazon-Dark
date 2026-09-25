@@ -1,17 +1,22 @@
-# AmazonDark v7.482 — PDP immersive, review, and profile-picker completion
+# AmazonDark v7.486 — PUTB book overlay fade removal
 
-v7.482 preserves the v7.481 Returns completion and adds three probe-backed menu families from the supplied v7.480 VIEWPORT captures.
+Direct parent: **v7.485~ci-validator-identity-repair**.
 
-## PUTB immersive Book details / What's it about
+v7.486 keeps the v7.485 CI/validator repair and all v7.483/v7.484 UI work, and corrects the remaining white fade in the two immersive PDP book menus.
 
-VIEWPORT r1/r2 identifies the exact secondary-view owner as `.a-popover.putb-immersive-view-gallery`, with the white wrapper/header, `li.putb-card` white card, `putb-card-immersive-view`, raster icon bullets, and `#putb-pagination-dots`. v7.482 makes the shell and cards OLED, neutral copy white/light-gray, dividers/borders gray, safely inverts the monochrome detail glyph rasters, and preserves the authored blue selected pagination dot.
+## Probe-backed root cause
 
-## In-context review form
+The supplied v7.485 VIEWPORT r1 capture identifies the visible fade as the `::after` pseudo-element of the exact immersive carousel card:
 
-VIEWPORT r3 identifies `#react-app.ryp__mobile`, `#in-context-ryp-form`, the review textarea/title input, white media-upload tile, yellow primary submit control, product thumbnail, orange star family, and blue Clear link. v7.482 applies OLED floors, white/light-gray neutral text, dark controls with gray borders, a dark upload tile with visible camera glyph, and the standard OLED primary button. The orange star graphics and blue Clear link are explicitly preserved; the product thumbnail receives the existing image-taming treatment.
+- owner: `li.a-carousel-card.davinci-triad-background-color.putb-card`
+- parent carousel: `#putb_immersive_view_carousel.image-block-putb-grey-overlay-enabled`
+- pseudo: `::after`
+- computed pseudo background: gradient
+- computed pseudo size: `360 × 48` px
+- WebKit compositing layer: positioned `<pseudo>` at the lower edge of the card
 
-## Switch Accounts bottom sheet
+The earlier v7.480 Book details and What's it about VIEWPORT r1/r2 captures show the same owner and the same 48 px pseudo overlay (362 × 48 px in those captures). The previous v7.483-v7.485 rule targeted an AUI divider fade instead, so it could not remove this overlay.
 
-VIEWPORT r4 identifies the visible React sheet as `RCTView#sheet-view` / `#sheet-inset-view`, uniquely gated by `profile-picker-close-bottomsheet-button`. v7.482 extends the existing exact sheet owner rather than introducing a generic React traversal. Neutral white sheet/row planes become OLED, neutral dark header/close/account text becomes light, the 1 px separator becomes the standard gray divider, while the authored blue selected-account outline and teal account actions remain untouched.
+v7.486 removes only that exact `image-block-putb-grey-overlay-enabled` PUTB card `::after` pseudo. The card itself, gray border, text treatment, image taming, and authored blue pagination selection remain intact.
 
-No MutationObserver, polling, requestAnimationFrame loop, scroll listener, or recurring production hierarchy walk is added by these fixes.
+No MutationObserver, polling, requestAnimationFrame loop, scroll listener, or recurring production hierarchy scan was added.
