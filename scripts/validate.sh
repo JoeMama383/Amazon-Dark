@@ -34,7 +34,7 @@ require_literal src/AmazonDarkSB.xm "AmazonDark-v$cur_version-launch-sb-probe.tx
 # Superseded handoff tests must not survive an overlay copy from an older build.
 # They encode mutually exclusive assertions for the same evolving Your Orders owner
 # and can fail CI even when the clean source archive itself passes.
-for stale in tests/test_v7490_your_orders_theme.py tests/test_v7491_your_orders_followup.py tests/test_v7492_ci_handoff_repair.py tests/test_v7493_orders_endtext_ci_repair.py; do
+for stale in tests/test_v7490_your_orders_theme.py tests/test_v7491_your_orders_followup.py tests/test_v7492_ci_handoff_repair.py tests/test_v7493_orders_endtext_ci_repair.py tests/test_v7494_orders_exact_fix.py; do
   [ ! -e "$stale" ] || { echo "validate: stale superseded regression present: $stale" >&2; exit 1; }
 done
 
