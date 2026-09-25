@@ -1,4 +1,4 @@
-/* AmazonDark v7.489 */
+/* AmazonDark v7.490 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.489-active-returns-ami-lifecycle-probe"
+#define AD_VERSION "v7.490-orders-book-transition"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;

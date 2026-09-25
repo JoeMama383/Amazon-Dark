@@ -1,3 +1,13 @@
+# AmazonDark v7.490 — Your Orders dark theme + probe-proven Book Details transition canvas fix
+
+- Themes the exact `section.your-orders-mobile-content-container.aok-relative.js-yo-container` family from the supplied v7.488 FULL capture.
+- `Your Orders` and `Purchase history` headers become white; `Past three months` becomes light secondary gray.
+- White top reminder cards and purchase-history cards become OLED with project gray borders.
+- Search controls use dark neutral fills; the authored blue magnifying-glass raster is explicitly preserved, while the Filter chevron becomes white.
+- Visible Your Orders product/ad raster families are tamed; authored blue informational-card/link colors are preserved.
+- Expanded v7.489 AMI lifecycle diagnostics remain available in TRANSITION for confirmation.
+- The new v7.489 transition capture identifies the actual visible white canvas as `DIV#a-white`; v7.490 repaints that exact temporary canvas OLED at document start without changing geometry, opacity, animation, or timing.
+
 # AmazonDark v7.489 — Active Returns header + expanded Book transition probe
 
 Direct parent: **v7.488~returns-geometry-header-cta**.

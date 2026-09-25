@@ -152,7 +152,7 @@ static NSArray *ADSkelAnimations7339(CALayer *layer){
     return out;
 }
 
-// v7.489 transition expansion: capture the exact AMIWebViewController/root lifecycle
+// v7.490 transition expansion: capture the exact AMIWebViewController/root lifecycle
 // ordering needed to explain the Book Details See more presentation/dismissal flashes.
 // Probe-only: no color, alpha, geometry, timing, hierarchy, or transition state is written.
 static const void *kADSkelBookAMIRoot7489=&kADSkelBookAMIRoot7489;
@@ -380,8 +380,8 @@ static void ADSkelInstall7339(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(!docs.length)return;
-        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.489-probe.arm"];
-        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.489-probe-status.json"];
+        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.490-probe.arm"];
+        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.490-probe-status.json"];
         NSError *error=nil;
         NSString *arm=[NSString stringWithContentsOfFile:ADSkelArmPath7339 encoding:NSUTF8StringEncoding error:&error];
         if(!arm){
@@ -401,7 +401,7 @@ static void ADSkelInstall7339(void){
         ADSkelTransition7339=[label isEqualToString:@"transition"];
         ADSkelUntil7339=MIN(expiry,now+(ADSkelLaunchOnly7339?20:(ADSkelTransition7339?120:120)));
         ADSkelSession7339=[NSString stringWithFormat:@"%.0f-%d-%@",now*1000,getpid(),label];
-        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.489-skeleton-%@.jsonl",ADSkelSession7339]];
+        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.490-skeleton-%@.jsonl",ADSkelSession7339]];
         int fd=open(ADSkelPath7339.fileSystemRepresentation,O_WRONLY|O_CREAT|O_EXCL,0600);
         if(fd<0){ADSkelStatus7339(@"capture-create-failed",errno);ADSkelUntil7339=0;return;}
         close(fd);ADSkelStatus7339(@"capture-started",0);
