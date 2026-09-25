@@ -1,12 +1,14 @@
-# AmazonDark v7.490 — Your Orders dark theme + probe-proven Book Details transition canvas fix
+# AmazonDark v7.491 — Your Orders follow-up + retained Book transition fix
 
-- Themes the exact `section.your-orders-mobile-content-container.aok-relative.js-yo-container` family from the supplied v7.488 FULL capture.
-- `Your Orders` and `Purchase history` headers become white; `Past three months` becomes light secondary gray.
-- White top reminder cards and purchase-history cards become OLED with project gray borders.
-- Search controls use dark neutral fills; the authored blue magnifying-glass raster is explicitly preserved, while the Filter chevron becomes white.
-- Visible Your Orders product/ad raster families are tamed; authored blue informational-card/link colors are preserved.
-- Expanded v7.489 AMI lifecycle diagnostics remain available in TRANSITION for confirmation.
-- The new v7.489 transition capture identifies the actual visible white canvas as `DIV#a-white`; v7.490 repaints that exact temporary canvas OLED at document start without changing geometry, opacity, animation, or timing.
+- Direct parent: **v7.490~orders-followup**.
+- Keeps the v7.490 `#a-white` transition-canvas OLED repaint for the Book `See more` flow.
+- On **Your Orders**, the two blue Prime/reminder information tiles are now fully tamed, not just their small image wells.
+- The extra border treatment on those blue tiles is removed.
+- The thick reminder-tile divider line is forced OLED black.
+- The search-bar center seam is collapsed so the Filter separator matches the surrounding 1 px stroke width.
+- The multi-item order-count bubble on purchase-history thumbnails is re-themed to gray fill + gray border + white number.
+
+- The new v7.489 transition capture identifies the actual visible white canvas as `DIV#a-white`; v7.491 repaints that exact temporary canvas OLED at document start without changing geometry, opacity, animation, or timing.
 
 # AmazonDark v7.489 — Active Returns header + expanded Book transition probe
 
