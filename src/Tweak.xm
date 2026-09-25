@@ -1,4 +1,4 @@
-/* AmazonDark v7.487 */
+/* AmazonDark v7.488 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.487-book-transition-signout-v6185"
+#define AD_VERSION "v7.488-returns-geometry-header-cta"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;

@@ -1,6 +1,18 @@
-# AmazonDark v7.487 — Book transition + v6.0.185 Sign Out visual port
+# AmazonDark v7.488 — Returns geometry/header/CTA correction
 
-Direct parent: **v7.486~book-overlay-fade-removal**.
+Direct parent: **v7.487~book-transition-signout-v6185**.
+
+## Probe-backed Returns correction
+
+The v7.486 FULL captures supplied for the two Returns surfaces show two separate issues in the prior rule set:
+
+- the ORC warning owner `.a-box.a-alert.a-alert-warning` already carries Amazon-authored warning geometry (2 px top/right/bottom, 12 px left, 8 px radius). v7.483 had additionally painted an inset orange strip on its inner `.a-alert-container`. v7.488 removes all AmazonDark border-color/box-shadow ownership from this warning family and changes only its floor to OLED, so Amazon keeps both the original orange and the original geometry;
+- the Your Returns history termination/header copy lives outside the item-card-only text scope, so its inherited `rgb(15,17,17)` survived on OLED. v7.488 extends white neutral-copy ownership across the exact `.returns-history-section` family while excluding authored links/prices/status colors;
+- recommendation CTA buttons are now recolored in place to OLED with gray authored-width borders and white text. No width, height, radius, padding, or other geometry is changed.
+
+The existing return-history/recommendation image taming, blue link/review colors, orange rating stars, prices, and other semantic colors remain preserved.
+
+## Inherited v7.487 work
 
 ## Book `See more` transition
 

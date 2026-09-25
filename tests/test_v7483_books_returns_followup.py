@@ -29,14 +29,16 @@ for token in (
 ):
     assert token in JNEW, token
 
-# Returns follow-up: printable text whitelist, warning orange restoration, and broader card copy whitening.
+# Returns follow-up: printable text whitelist and broader card copy whitening remain;
+# v7.488 deliberately stops redrawing the warning border so Amazon's authored orange
+# geometry/color survives unchanged.
 for token in (
     '.a-size-base,.a-size-medium,.a-size-small,.a-color-base,.a-color-secondary,.a-color-tertiary,ul.a-unordered-list,ul.a-unordered-list li,ul.a-unordered-list li>span,span,div,p,strong,b,em,td,th,li',
-    'border-color:#e47911!important',
-    'box-shadow:inset 4px 0 0 #e47911!important',
     '.active-return-card,.see-all-active-returns-card,.item-return-history-card,.recommendation-horizontal-section',
 ):
     assert token in JRET, token
+assert 'border-color:#e47911!important' not in JRET
+assert 'box-shadow:inset 4px 0 0 #e47911!important' not in JRET
 
 
 # Customer service hybrid hub follow-up: exact hybrid-hub owner, gray cards/controls, white neutral copy, white search icon.
@@ -51,4 +53,4 @@ for bad in ('MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addE
     assert bad not in JNEW, bad
     assert bad not in JRET, bad
 
-print('PASS: v7.484 fixes PUTB book fades/text, PDP related-book dark copy, and returns text/orange warning follow-up')
+print('PASS: legacy v7.483 book/Returns follow-up retained; current build preserves Amazon-authored ORC warning geometry')
