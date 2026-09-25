@@ -1,22 +1,19 @@
-# AmazonDark v7.486 — PUTB book overlay fade removal
+# AmazonDark v7.487 — Book transition + v6.0.185 Sign Out visual port
 
-Direct parent: **v7.485~ci-validator-identity-repair**.
+Direct parent: **v7.486~book-overlay-fade-removal**.
 
-v7.486 keeps the v7.485 CI/validator repair and all v7.483/v7.484 UI work, and corrects the remaining white fade in the two immersive PDP book menus.
+## Book `See more` transition
 
-## Probe-backed root cause
+The v7.486 TRANSITION capture records both reported stages. The same full-content `UIView` owned directly by `AMIWebViewController` is opaque white at 430×829 first while nested below `_UIParallaxDimmingView`, then remains opaque white after it is reparented under `UIViewControllerWrapperView`. About 16 ms later the existing generic darkening finally turns that exact view black. v7.487 claims that exact bright, near-full-content AMI root from its normal UIView lifecycle/background setter so it is OLED from first paint. The authored parallax motion/opacity animation is not replaced.
 
-The supplied v7.485 VIEWPORT r1 capture identifies the visible fade as the `::after` pseudo-element of the exact immersive carousel card:
+## Sign Out confirmation
 
-- owner: `li.a-carousel-card.davinci-triad-background-color.putb-card`
-- parent carousel: `#putb_immersive_view_carousel.image-block-putb-grey-overlay-enabled`
-- pseudo: `::after`
-- computed pseudo background: gradient
-- computed pseudo size: `360 × 48` px
-- WebKit compositing layer: positioned `<pseudo>` at the lower edge of the card
+The donor is the exact `AmazonDark-v6.0.185-probe-source.zip` source (`src/Tweak.xm` SHA-256 `836b250b7965ab429b5f38a6f88199ec81e242683a1bb9d9e51ce4343551c0af`). v7.487 ports only its bounded Sign Out confirmation visual owner, not the old v6 runtime architecture:
 
-The earlier v7.480 Book details and What's it about VIEWPORT r1/r2 captures show the same owner and the same 48 px pseudo overlay (362 × 48 px in those captures). The previous v7.483-v7.485 rule targeted an AUI divider fade instead, so it could not remove this overlay.
+- exact runtime class `AWButton`;
+- exact sibling titles `Sign Out` and `Cancel`;
+- same compact parent must contain a UILabel beginning `You are signed in as `;
+- Sign Out keeps Amazon's stock image geometry/cap insets and is recolored to donor dark yellow `#D4A017`;
+- Cancel keeps stock image geometry/cap insets, recolored to `#666666`, with white title ink.
 
-v7.486 removes only that exact `image-block-putb-grey-overlay-enabled` PUTB card `::after` pseudo. The card itself, gray border, text treatment, image taming, and authored blue pagination selection remain intact.
-
-No MutationObserver, polling, requestAnimationFrame loop, scroll listener, or recurring production hierarchy scan was added.
+No MutationObserver, timer, RAF loop, web scroll listener, polling loop, or recurring hierarchy scan is added.

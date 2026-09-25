@@ -1,4 +1,4 @@
-/* AmazonDark v7.484 */
+/* AmazonDark v7.487 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.486-book-overlay-fade-removal"
+#define AD_VERSION "v7.487-book-transition-signout-v6185"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -3864,6 +3864,8 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     } @catch(...) {}
 }
 
+#include "ADBookTransitionSignOut7487.inc"
+
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
@@ -3890,6 +3892,9 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
         ADSetViewBackground7226(self,ADOLED(),YES); return;
     }
     if(ADCheckoutTransitionTanPlane7375(self,self.backgroundColor)){
+        ADSetViewBackground7226(self,ADOLED(),YES); return;
+    }
+    if(ADBookAMIWebRoot7487(self,self.backgroundColor)){
         ADSetViewBackground7226(self,ADOLED(),YES); return;
     }
     if(ADCheckoutAMIWebRoot7396(self,self.backgroundColor)){
@@ -3958,6 +3963,11 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
         return;
     }
     if(ADCheckoutTransitionTanPlane7375(self,color)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        return;
+    }
+    if(ADBookAMIWebRoot7487(self,color)){
         UIColor *black=ADOLED();
         %orig(black);
         return;
@@ -9818,6 +9828,14 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 %end
 
 %hook UIButton
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled&&self.window)ADPaintSignOutDialogButton7487(self);
+}
+- (void)layoutSubviews {
+    %orig;
+    if(gP.enabled&&self.window)ADPaintSignOutDialogButton7487(self);
+}
 - (void)setTitleColor:(UIColor *)color forState:(UIControlState)state {
     if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
         %orig(color,state);
