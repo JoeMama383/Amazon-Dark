@@ -1,11 +1,10 @@
-# AmazonDark v7.493 — exact-sync CI repair + Orders end-text follow-up
+# AmazonDark v7.494 — exact Your Orders owner correction
 
-- Direct parent: **v7.492~ci-handoff-repair**.
-- Fixes the push workflow so superseded tracked tests from v7.490/v7.491/v7.492 cannot survive an overlay copy into GitHub.
-- `scripts/validate.sh` now rejects those known superseded handoff tests before CI can run contradictory assertions.
-- The FULL probe identifies the dark `You've reached the end of Your Orders` owner exactly as `#your-orders-mobile-content-container__end-of-items-divider > .a-size-small.a-color-base`; v7.493 paints that neutral message white.
-- Keeps the v7.491 Your Orders follow-up: full blue Prime/reminder tile taming, removed tile border work, OLED thick divider, normalized search-bar seam, and gray/white quantity bubble.
-- Keeps the v7.490 `#a-white` Book transition-canvas OLED repaint unchanged.
+- Direct parent: **v7.493~orders-endtext-ci-repair**.
+- The v7.493 FULL r2 probe proves the remaining thick white strip is the 5 px bottom border of `.yo-mobile-atf`; v7.494 paints that exact border OLED black without changing its geometry.
+- The same probe proves `form.search-bar.js-search-bar` itself still owns a 5 px gray bottom border; v7.494 collapses that exact border to 1 px while retaining the existing input/filter split treatment.
+- The quantity bubble is exactly `span.product-image__qty`; v7.494 directly applies dark-gray fill, gray border, and white count text to that owner.
+- Retains the verified end-of-orders white text, Prime/information tile work, and Book transition canvas correction.
 
 # AmazonDark v7.489 — Active Returns header + expanded Book transition probe
 
