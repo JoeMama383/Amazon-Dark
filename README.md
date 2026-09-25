@@ -1,22 +1,32 @@
-# AmazonDark v7.488 — Returns geometry/header/CTA correction
+# AmazonDark v7.489 — Active Returns header + expanded Book transition probe
 
-Direct parent: **v7.487~book-transition-signout-v6185**.
+Direct parent: **v7.488~returns-geometry-header-cta**.
 
-## Probe-backed Returns correction
+## Active Returns header
 
-The v7.486 FULL captures supplied for the two Returns surfaces show two separate issues in the prior rule set:
+The v7.486 FULL Returns capture shows the exact section owner is `.active-returns-section.instrumentation`. Its carousel/card copy is already themed, but the section itself still inherits Amazon's neutral `rgb(15,17,17)`. The visible `Active Returns` label is therefore black on the OLED floor even though the neighboring Returns headings are white.
 
-- the ORC warning owner `.a-box.a-alert.a-alert-warning` already carries Amazon-authored warning geometry (2 px top/right/bottom, 12 px left, 8 px radius). v7.483 had additionally painted an inset orange strip on its inner `.a-alert-container`. v7.488 removes all AmazonDark border-color/box-shadow ownership from this warning family and changes only its floor to OLED, so Amazon keeps both the original orange and the original geometry;
-- the Your Returns history termination/header copy lives outside the item-card-only text scope, so its inherited `rgb(15,17,17)` survived on OLED. v7.488 extends white neutral-copy ownership across the exact `.returns-history-section` family while excluding authored links/prices/status colors;
-- recommendation CTA buttons are now recolored in place to OLED with gray authored-width borders and white text. No width, height, radius, padding, or other geometry is changed.
+v7.489 adds white neutral-copy ownership across that exact Active Returns section while continuing to exclude anchors, links, prices, success/error/state colors and other authored semantic colors. No geometry, spacing, card border, image, carousel, or link-color rule changes.
 
-The existing return-history/recommendation image taming, blue link/review colors, orange rating stars, prices, and other semantic colors remain preserved.
+## Expanded Book `See more` transition probe
+
+The prior transition capture proved the same 430×829 AMI root is the white painter in both the dimmed presentation stage and the full-white dismissal stage, but it did **not** prove when the responder/controller relationship becomes available. The v7.487 production predicate depended on that relationship, which is why identifying the painter did not guarantee first-frame interception.
+
+v7.489 expands TRANSITION diagnostics without changing the Book transition's production paint. While transition mode is explicitly armed, it now records:
+
+- `UIViewController setView:` before/after for exact `AMIWebViewController`, marking the candidate root before attachment;
+- `viewDidLoad`, `viewWillAppear`, `viewDidAppear`, `viewWillDisappear`, `viewDidDisappear`, and `viewDidLayoutSubviews` phases for that exact controller;
+- the marked root's incoming `setBackgroundColor:` writes, including the requested color and its current `nextResponder`, superview, window, model/presentation background and animation state;
+- the marked root's `didMoveToWindow` before/after state;
+- transition-coordinator duration/progress plus presenting/parent/presented controller classes.
+
+These records are probe-only. They do not recolor, resize, hide, reparent, retime, or otherwise mutate the transition. The goal is to identify the earliest deterministic hook that exists **before** the first white frame, then replace the failed v7.487 timing assumption with evidence.
 
 ## Inherited v7.487 work
 
 ## Book `See more` transition
 
-The v7.486 TRANSITION capture records both reported stages. The same full-content `UIView` owned directly by `AMIWebViewController` is opaque white at 430×829 first while nested below `_UIParallaxDimmingView`, then remains opaque white after it is reparented under `UIViewControllerWrapperView`. About 16 ms later the existing generic darkening finally turns that exact view black. v7.487 claims that exact bright, near-full-content AMI root from its normal UIView lifecycle/background setter so it is OLED from first paint. The authored parallax motion/opacity animation is not replaced.
+The v7.486 TRANSITION capture records both reported stages. The same full-content `UIView` owned directly by `AMIWebViewController` is opaque white at 430×829 first while nested below `_UIParallaxDimmingView`, then remains opaque white after it is reparented under `UIViewControllerWrapperView`. About 16 ms later the existing generic darkening finally turns that exact view black. v7.487 attempted to claim that root from normal UIView lifecycle/background setters, but the device result proved that the responder-based predicate becomes usable too late. v7.489 therefore leaves that production attempt unchanged while collecting the missing attachment-order evidence needed for the next correction.
 
 ## Sign Out confirmation
 

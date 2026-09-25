@@ -1,4 +1,4 @@
-/* AmazonDark v7.488 */
+/* AmazonDark v7.489 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.488-returns-geometry-header-cta"
+#define AD_VERSION "v7.489-active-returns-ami-lifecycle-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -3866,9 +3866,12 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
 
 #include "ADBookTransitionSignOut7487.inc"
 
+
 %hook UIView
 - (void)didMoveToWindow {
+    ADSkelBookAMIViewEvent7489(self,@"move.pre",nil,nil);
     %orig;
+    ADSkelBookAMIViewEvent7489(self,@"move.post",nil,nil);
     // v7.347 probe-only late-load witness. If the exact AWLoadingIndicatorBarView Logos
     // hook was unavailable when %init ran, this inherited UIView hook can still prove the
     // class mounted. No production paint or state change occurs here.
@@ -3927,6 +3930,7 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     }
 }
 - (void)setBackgroundColor:(UIColor *)color {
+    ADSkelBookAMIViewEvent7489(self,@"bg.in",color,nil);
     if(ADInternalPaintWrite7226()){
         %orig(color);
         return;
@@ -10790,6 +10794,16 @@ static UIViewController *ADActiveCheckoutModal7380(UIViewController *presenter){
 // Status-bar ownership from the v5.446/v6.0.5 lineage. This generic lifecycle hook
 // does NOT paint controller views; it only installs a cached per-class light-content claim.
 %hook UIViewController
+- (void)setView:(UIView *)view {
+    ADSkelBookAMIControllerEvent7489(self,@"setView.pre",view);
+    %orig(view);
+    ADSkelBookAMIControllerEvent7489(self,@"setView.post",view);
+}
+- (void)viewDidLoad {
+    ADSkelBookAMIControllerEvent7489(self,@"didLoad.pre",self.viewIfLoaded);
+    %orig;
+    ADSkelBookAMIControllerEvent7489(self,@"didLoad.post",self.viewIfLoaded);
+}
 - (void)presentViewController:(UIViewController *)viewControllerToPresent animated:(BOOL)animated completion:(void (^)(void))completion {
     BOOL checkout=gP.enabled&&ADCheckoutModalController7375(viewControllerToPresent);
     if(checkout){
@@ -10809,7 +10823,9 @@ static UIViewController *ADActiveCheckoutModal7380(UIViewController *presenter){
     %orig(viewControllerToPresent,animated,completion);
 }
 - (void)viewWillAppear:(BOOL)animated {
+    ADSkelBookAMIControllerEvent7489(self,@"willAppear.pre",self.viewIfLoaded);
     %orig;
+    ADSkelBookAMIControllerEvent7489(self,@"willAppear.post",self.viewIfLoaded);
     if(gP.enabled){
         ADClaimStatusController713(self);
         if(ADPrimaryAmazonController713(self) && self.isViewLoaded){
@@ -10818,10 +10834,26 @@ static UIViewController *ADActiveCheckoutModal7380(UIViewController *presenter){
     }
 }
 - (void)viewDidAppear:(BOOL)animated {
+    ADSkelBookAMIControllerEvent7489(self,@"didAppear.pre",self.viewIfLoaded);
     %orig;
+    ADSkelBookAMIControllerEvent7489(self,@"didAppear.post",self.viewIfLoaded);
     if(gP.enabled){
         ADClaimStatusController713(self);
     }
+}
+- (void)viewWillDisappear:(BOOL)animated {
+    ADSkelBookAMIControllerEvent7489(self,@"willDisappear.pre",self.viewIfLoaded);
+    %orig;
+    ADSkelBookAMIControllerEvent7489(self,@"willDisappear.post",self.viewIfLoaded);
+}
+- (void)viewDidDisappear:(BOOL)animated {
+    ADSkelBookAMIControllerEvent7489(self,@"didDisappear.pre",self.viewIfLoaded);
+    %orig;
+    ADSkelBookAMIControllerEvent7489(self,@"didDisappear.post",self.viewIfLoaded);
+}
+- (void)viewDidLayoutSubviews {
+    %orig;
+    ADSkelBookAMIControllerEvent7489(self,@"layout.post",self.viewIfLoaded);
 }
 %end
 

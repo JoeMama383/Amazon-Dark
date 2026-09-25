@@ -151,6 +151,92 @@ static NSArray *ADSkelAnimations7339(CALayer *layer){
     } @catch(...) {}
     return out;
 }
+
+// v7.489 transition expansion: capture the exact AMIWebViewController/root lifecycle
+// ordering needed to explain the Book Details See more presentation/dismissal flashes.
+// Probe-only: no color, alpha, geometry, timing, hierarchy, or transition state is written.
+static const void *kADSkelBookAMIRoot7489=&kADSkelBookAMIRoot7489;
+static BOOL ADSkelBookAMIController7489(UIViewController *vc){
+    if(!ADSkelTransition7339||!ADSkelActive7339()||!vc)return NO;
+    @try { return [NSStringFromClass(vc.class) isEqualToString:@"AMIWebViewController"]; }
+    @catch(...) { return NO; }
+}
+static BOOL ADSkelBookAMIView7489(UIView *v){
+    if(!ADSkelTransition7339||!ADSkelActive7339()||!v)return NO;
+    @try {
+        if([objc_getAssociatedObject(v,kADSkelBookAMIRoot7489) boolValue])return YES;
+        UIResponder *r=v.nextResponder;
+        if(r&&[r isKindOfClass:UIViewController.class]&&[NSStringFromClass(r.class) isEqualToString:@"AMIWebViewController"]){
+            objc_setAssociatedObject(v,kADSkelBookAMIRoot7489,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return YES;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static void ADSkelBookAMIMark7489(UIView *v){
+    if(!ADSkelTransition7339||!ADSkelActive7339()||!v)return;
+    @try { objc_setAssociatedObject(v,kADSkelBookAMIRoot7489,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } @catch(...) {}
+}
+static void ADSkelBookAMIViewEvent7489(UIView *v,NSString *phase,UIColor *incoming,id target){
+    if(!ADSkelBookAMIView7489(v))return;
+    @try {
+        CALayer *pr=v.layer.presentationLayer;
+        UIResponder *nr=v.nextResponder;
+        NSMutableDictionary *r=[ADSkelEvent7339(@"BOOK_AMI_VIEW") mutableCopy];
+        r[@"phase"]=phase?:@"";
+        r[@"view"]=[NSString stringWithFormat:@"%p",v];
+        r[@"class"]=NSStringFromClass(v.class)?:@"";
+        r[@"frame"]=ADSkelRect7339(v.frame);r[@"bounds"]=ADSkelRect7339(v.bounds);
+        r[@"background"]=ADSkelColor7339(v.backgroundColor.CGColor);
+        r[@"layerBG"]=ADSkelColor7339(v.layer.backgroundColor);
+        r[@"presentationBG"]=ADSkelColor7339(pr.backgroundColor);
+        r[@"alpha"]=@(v.alpha);r[@"layerOpacity"]=@(v.layer.opacity);
+        r[@"presentationOpacity"]=pr?(id)@(pr.opacity):[NSNull null];
+        r[@"window"]=@(v.window!=nil);
+        r[@"windowClass"]=v.window?(NSStringFromClass(v.window.class)?:@""):@"";
+        r[@"superClass"]=v.superview?(NSStringFromClass(v.superview.class)?:@""):@"";
+        r[@"nextResponderClass"]=nr?(NSStringFromClass(nr.class)?:@""):@"";
+        r[@"incomingColor"]=incoming?ADSkelColor7339(incoming.CGColor):(id)[NSNull null];
+        r[@"targetClass"]=target?(NSStringFromClass([target class])?:@""):@"";
+        r[@"animations"]=ADSkelAnimations7339(v.layer);
+        ADSkelWrite7339(r);
+    } @catch(...) {}
+}
+static void ADSkelBookAMIControllerEvent7489(UIViewController *vc,NSString *phase,UIView *candidate){
+    if(!ADSkelBookAMIController7489(vc))return;
+    @try {
+        if(candidate)ADSkelBookAMIMark7489(candidate);
+        UIView *v=candidate?:vc.viewIfLoaded;
+        NSMutableDictionary *r=[ADSkelEvent7339(@"BOOK_AMI_CONTROLLER") mutableCopy];
+        r[@"phase"]=phase?:@"";
+        r[@"controller"]=[NSString stringWithFormat:@"%p",vc];
+        r[@"class"]=NSStringFromClass(vc.class)?:@"";
+        r[@"viewLoaded"]=@(vc.isViewLoaded);
+        r[@"view"]=v?[NSString stringWithFormat:@"%p",v]:@"";
+        r[@"viewClass"]=v?(NSStringFromClass(v.class)?:@""):@"";
+        if(v){
+            CALayer *pr=v.layer.presentationLayer;
+            UIResponder *nr=v.nextResponder;
+            r[@"frame"]=ADSkelRect7339(v.frame);r[@"bounds"]=ADSkelRect7339(v.bounds);
+            r[@"background"]=ADSkelColor7339(v.backgroundColor.CGColor);
+            r[@"layerBG"]=ADSkelColor7339(v.layer.backgroundColor);
+            r[@"presentationBG"]=ADSkelColor7339(pr.backgroundColor);
+            r[@"window"]=@(v.window!=nil);
+            r[@"superClass"]=v.superview?(NSStringFromClass(v.superview.class)?:@""):@"";
+            r[@"nextResponderClass"]=nr?(NSStringFromClass(nr.class)?:@""):@"";
+            r[@"alpha"]=@(v.alpha);r[@"layerOpacity"]=@(v.layer.opacity);
+            r[@"presentationOpacity"]=pr?(id)@(pr.opacity):[NSNull null];
+            r[@"animations"]=ADSkelAnimations7339(v.layer);
+        }
+        r[@"parentController"]=vc.parentViewController?(NSStringFromClass(vc.parentViewController.class)?:@""):@"";
+        r[@"presentingController"]=vc.presentingViewController?(NSStringFromClass(vc.presentingViewController.class)?:@""):@"";
+        r[@"presentedController"]=vc.presentedViewController?(NSStringFromClass(vc.presentedViewController.class)?:@""):@"";
+        id<UIViewControllerTransitionCoordinator> c=vc.transitionCoordinator;
+        if(c)r[@"coordinator"]=@{@"animated":@(c.isAnimated),@"duration":ADSkelNumber7339(c.transitionDuration),@"percent":ADSkelNumber7339(c.percentComplete)};
+        ADSkelWrite7339(r);
+    } @catch(...) {}
+}
+
 static void ADSkelSplash7339(UIViewController *vc,NSString *phase){
     if(!ADSkelLaunchDetail7339()||!ADSkelActive7339()||!vc.isViewLoaded)return;
     @try {
@@ -294,8 +380,8 @@ static void ADSkelInstall7339(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(!docs.length)return;
-        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.488-probe.arm"];
-        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.488-probe-status.json"];
+        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.489-probe.arm"];
+        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.489-probe-status.json"];
         NSError *error=nil;
         NSString *arm=[NSString stringWithContentsOfFile:ADSkelArmPath7339 encoding:NSUTF8StringEncoding error:&error];
         if(!arm){
@@ -315,7 +401,7 @@ static void ADSkelInstall7339(void){
         ADSkelTransition7339=[label isEqualToString:@"transition"];
         ADSkelUntil7339=MIN(expiry,now+(ADSkelLaunchOnly7339?20:(ADSkelTransition7339?120:120)));
         ADSkelSession7339=[NSString stringWithFormat:@"%.0f-%d-%@",now*1000,getpid(),label];
-        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.488-skeleton-%@.jsonl",ADSkelSession7339]];
+        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.489-skeleton-%@.jsonl",ADSkelSession7339]];
         int fd=open(ADSkelPath7339.fileSystemRepresentation,O_WRONLY|O_CREAT|O_EXCL,0600);
         if(fd<0){ADSkelStatus7339(@"capture-create-failed",errno);ADSkelUntil7339=0;return;}
         close(fd);ADSkelStatus7339(@"capture-started",0);
