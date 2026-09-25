@@ -7,9 +7,9 @@ JRET=''.join(json.loads(line) for line in (R/'src/ADReturnsTheme7480.js.inc').re
 C=(R/'layout/DEBIAN/control').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
-assert 'Version: 7.484~ci-build-repair-ui-followup' in C
-assert '#define AD_VERSION "v7.484-ci-build-repair-ui-followup"' in T
-for h in ('## FULL — v7.484','## VIEWPORT — v7.484','## TRANSITION — v7.484'):
+assert 'Version: 7.485~ci-validator-identity-repair' in C
+assert '#define AD_VERSION "v7.485-ci-validator-identity-repair"' in T
+for h in ('## FULL — v7.485','## VIEWPORT — v7.485','## TRANSITION — v7.485'):
     assert h in CMD, h
 assert ' status' not in CMD.lower()
 

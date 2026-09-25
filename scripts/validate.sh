@@ -65,7 +65,7 @@ for p in root.glob('test_*.py'):
     # Historical fixture versions (for example an old v7.415 receipt or v7.444
     # capture) are intentionally left alone.
     package_ids=re.findall(r'(7\.\d+)~([A-Za-z0-9._-]+)', s)
-    tag_ids=re.findall(r'#define AD_VERSION \"v(7\.\d+)-([^\"]+)\"', s)
+    tag_ids=re.findall(r'#define AD_VERSION \\?"v(7\.\d+)-([^"\\]+)\\?"', s)
     zip_ids=re.findall(r'AmazonDark-v(7\.\d+)-([A-Za-z0-9._-]+)-source\.zip', s)
     candidates={v for v,_ in package_ids+tag_ids+zip_ids if int(v.split('.')[1])>=460}
     candidates.update(v for v in re.findall(r'AD_PROBE_NAME=AmazonDark-v(7\.\d+)', s) if int(v.split('.')[1])>=460)
