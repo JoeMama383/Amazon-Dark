@@ -1,4 +1,0 @@
-PASS: shipped include compiles in c99; emitted JS bytes equal inherited v7.346 payload
-PASS: shipped include compiles in gnu++98; emitted JS bytes equal inherited v7.346 payload
-PASS: C++98 negative control rejects the failed v7.339 raw-string wrapper
-PASS: native capture uses app Documents; v7.408 helper identity agrees

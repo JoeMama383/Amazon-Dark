@@ -31,6 +31,13 @@ require_literal src/ADUIProbeViewportSample7449.js.inc "version:'$cur_version'"
 require_literal src/ADPDPMainStream7451.js.inc "version:'$cur_version'"
 require_literal src/AmazonDarkSB.xm "AmazonDark-v$cur_version-launch-sb-probe.txt"
 
+# Superseded handoff tests must not survive an overlay copy from an older build.
+# They encode mutually exclusive assertions for the same evolving Your Orders owner
+# and can fail CI even when the clean source archive itself passes.
+for stale in tests/test_v7490_your_orders_theme.py tests/test_v7491_your_orders_followup.py tests/test_v7492_ci_handoff_repair.py; do
+  [ ! -e "$stale" ] || { echo "validate: stale superseded regression present: $stale" >&2; exit 1; }
+done
+
 auto_cleanup=''
 py_count=0
 if command -v python3 >/dev/null 2>&1; then

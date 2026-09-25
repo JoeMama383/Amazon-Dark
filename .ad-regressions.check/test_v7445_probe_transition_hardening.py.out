@@ -1,1 +1,0 @@
-PASS: v7.454 freezes armed VIEWPORT at background, uses TAR for all probe exports, preserves bounded FULL, and retains the scale-normalized transition fix

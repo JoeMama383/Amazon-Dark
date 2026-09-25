@@ -1,1 +1,0 @@
-PASS: v7.370 re-installs isolated checkout scripts after Amazon clears them, fixes probe-proven text/color misses, and hardens the exact native checkout header

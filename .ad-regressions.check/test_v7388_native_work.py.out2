@@ -1,2 +1,0 @@
-PASS: production preference planner handles no-op, independent toggles, disable/re-enable and clamped strengths
-PASS: native scope/palette goldens, Search hydration/re-entry guard, checkout current-state checks and exception cleanup

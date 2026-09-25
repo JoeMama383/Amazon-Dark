@@ -1,1 +1,0 @@
-PASS: v7.470 handoff stays below the 856000-byte gate and regenerates all probes

@@ -1,14 +1,11 @@
-# AmazonDark v7.492 — Your Orders follow-up + retained Book transition fix
+# AmazonDark v7.493 — exact-sync CI repair + Orders end-text follow-up
 
-- Direct parent: **v7.491~orders-followup**.
-- Keeps the v7.490 `#a-white` transition-canvas OLED repaint for the Book `See more` flow.
-- On **Your Orders**, the two blue Prime/reminder information tiles are now fully tamed, not just their small image wells.
-- The extra border treatment on those blue tiles is removed.
-- The thick reminder-tile divider line is forced OLED black.
-- The search-bar center seam is collapsed so the Filter separator matches the surrounding 1 px stroke width.
-- The multi-item order-count bubble on purchase-history thumbnails is re-themed to gray fill + gray border + white number.
-
-- The new v7.489 transition capture identifies the actual visible white canvas as `DIV#a-white`; v7.492 retains that exact temporary canvas OLED at document start without changing geometry, opacity, animation, or timing.
+- Direct parent: **v7.492~ci-handoff-repair**.
+- Fixes the push workflow so superseded tracked tests from v7.490/v7.491/v7.492 cannot survive an overlay copy into GitHub.
+- `scripts/validate.sh` now rejects those known superseded handoff tests before CI can run contradictory assertions.
+- The FULL probe identifies the dark `You've reached the end of Your Orders` owner exactly as `#your-orders-mobile-content-container__end-of-items-divider > .a-size-small.a-color-base`; v7.493 paints that neutral message white.
+- Keeps the v7.491 Your Orders follow-up: full blue Prime/reminder tile taming, removed tile border work, OLED thick divider, normalized search-bar seam, and gray/white quantity bubble.
+- Keeps the v7.490 `#a-white` Book transition-canvas OLED repaint unchanged.
 
 # AmazonDark v7.489 — Active Returns header + expanded Book transition probe
 
