@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.508-orders-prime-bgimage-filter-floor-fix"
+#define AD_VERSION "v7.509-orders-prime-art-geometry-restore"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
