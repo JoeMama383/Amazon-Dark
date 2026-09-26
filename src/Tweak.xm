@@ -1,4 +1,4 @@
-/* AmazonDark v7.501 */
+/* AmazonDark v7.502 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.501-orders-prime-filter-ad-followup"
+#define AD_VERSION "v7.502-ci-stale-handoff-repair"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2290,12 +2290,6 @@ static NSString *ADPDPCompletionTWBJS7405(void){
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7405-pdp-twb');if(!s){s=d.createElement('style');s.id='ad7405-pdp-twb';(d.head||d.documentElement||d).appendChild(s);}var child=window.top!==window,ref=String(d.referrer||'');var embedded=child&&/(\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/)/i.test(ref);s.textContent=(embedded?`html body video,html body .vjs-poster,html body [data-testid=product-image] img,html body img[data-testid=product-image],html body img.product-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;}`:'')+`#dp #aplusBrandStory_feature_div img,#dp [class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display__] img.p13n-product-image,#dp :is([class*=_c3Atb_image-display-small_],[class*=_c3Atb_image-display-full_],[class*=_rufus-comparison-card_style_cardImage__]) img,#dp #horizontalMediaCarousel :is(img.a-amazon-image,img.video-slate-img),#dp #aplus_feature_div .aplus-v2 img,#dp #sponsoredProducts_feature_div img,#dp #ape_detail_mobile-app-detail-ilm_mshop_placement [data-csa-c-painter=sb-collections-ilm-mobile] img[class*=_c2ItY_asinImage_],#dp #product-image-gallery img,#dp img[class*=_dnNlL_vseThumbnailPreviewImg_],#dp img[class*=_Y3Itb_media-thumbnail-image_],#dp img[class*=_Y3Itd_notable-quote-thumbnail-image_],#dp img[id^=inline-twister-image-],#dp img[class*=_c2Itb_image_],#dp [class*=_rufus-comparison-card_style_pillImageWrapper__] img,#dp video.pjs-tech,#dp img.vftp-hoc-thumbnail,#dp #value-pick-image,#dp #sp_phoneapp_detail_image_container img,#dp #thumbnail-product-image-container img,#dp video[class*=_multi-brand-video-mobile_style_video__],#dp img[class*=_multi-brand-video-mobile_style_image__],#dp .vse-video-thumbnail-wrapper[class*=_dnNlL_vseVideoImageWrapper_]::before,#attach-accessory-card-deck img.attach-accessory-image,#attach-accessory-card-deck .attach-primary-atc-confirm-box img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#dp#dp #aplusBrandStory_feature_div .container-with-background-image.hero-portrait-image{background-color:rgb(%.0f,%.0f,%.0f)!important;background-blend-mode:multiply!important;filter:none!important;-webkit-filter:none!important;}`;}catch(_){}})();",factor,factor,factor,factor,factor*255.0,factor*255.0,factor*255.0];
 }
 
-// v7.432: PDP APE/SafeFrame child documents can be nested behind an intermediate
-// ad frame, so document.referrer is not a reliable /dp/ route signal. Install one
-// inert-by-default stylesheet in every child frame and activate it only when the
-// hydrated document proves it is an Amazon ad renderer. This reaches both the
-// mobile hero quick-promo video/product footer and mobile-app-detail ILM creative
-// without a MutationObserver, timer, RAF loop, or parent-frame DOM access.
 static NSString *ADPDPSafeFrameJS7432(void){
     CGFloat factor=1.0;
     if(gP.whiteTame){
@@ -2492,7 +2486,9 @@ static NSString *ADPDPProbeBackedFixesJS7458(void){
 }
 
 static NSString *ADPDPAdImageBackgroundJS7501(void){
-    return @"(function(){try{var d=document,s=d.getElementById('ad7501-pdp-ad-image-bg');if(!s){s=d.createElement('style');s.id='ad7501-pdp-ad-image-bg';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#dp#dp :is(#sponsoredProducts_feature_div,#mobile-dp-ilm_feature_div_0,#universal-hero-quick-promo_feature_div,#mobile-ads-bottom-app-dramabot_feature_div,#ape_detail_mobile-app-detail-ilm_mshop_placement,#ape_detail_btf_mshop_placement,#ape_detail_btf2_mshop_placement) :is([class*=_p13n-mobile-sims-fbt_fbt-mobile_image-background_],[class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display_],[class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-background_],[class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display_],[class*=_c2ItY_asinImageWrapper_],[class*=_c2ItY_imageWrapper_],[class*=_c2ItY_imageContainer_],[class*=_c2ItY_asinImageContainer_],[class*=_cardImageContainer_],[class*=imageWrapper],[class*=imageContainer],[data-testid*=product-image],[data-testid*=product-picture],.a-dynamic-image-container){background:#000!important;background-color:#000!important;border-color:#494d4d!important;outline:0!important;box-shadow:none!important;}#dp#dp :is(#sponsoredProducts_feature_div,#mobile-dp-ilm_feature_div_0,#universal-hero-quick-promo_feature_div,#mobile-ads-bottom-app-dramabot_feature_div,#ape_detail_mobile-app-detail-ilm_mshop_placement,#ape_detail_btf_mshop_placement,#ape_detail_btf2_mshop_placement) :is([class*=_p13n-mobile-sims-fbt_fbt-mobile_image-background_],[class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display_],[class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-background_],[class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display_],[class*=_c2ItY_asinImageWrapper_],[class*=_c2ItY_imageWrapper_],[class*=_c2ItY_imageContainer_],[class*=_c2ItY_asinImageContainer_],[class*=_cardImageContainer_],[class*=imageWrapper],[class*=imageContainer],[data-testid*=product-image],[data-testid*=product-picture],.a-dynamic-image-container)::before,#dp#dp :is(#sponsoredProducts_feature_div,#mobile-dp-ilm_feature_div_0,#universal-hero-quick-promo_feature_div,#mobile-ads-bottom-app-dramabot_feature_div,#ape_detail_mobile-app-detail-ilm_mshop_placement,#ape_detail_btf_mshop_placement,#ape_detail_btf2_mshop_placement) :is([class*=_p13n-mobile-sims-fbt_fbt-mobile_image-background_],[class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display_],[class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-background_],[class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display_],[class*=_c2ItY_asinImageWrapper_],[class*=_c2ItY_imageWrapper_],[class*=_c2ItY_imageContainer_],[class*=_c2ItY_asinImageContainer_],[class*=_cardImageContainer_],[class*=imageWrapper],[class*=imageContainer],[data-testid*=product-image],[data-testid*=product-picture],.a-dynamic-image-container)::after{background:#000!important;background-color:#000!important;border:0!important;outline:0!important;box-shadow:none!important;}`;}catch(_){}})();";
+    return [NSString stringWithUTF8String:
+#include "ADPDPAdImageBackground7501.js.inc"
+    ];
 }
 
 
