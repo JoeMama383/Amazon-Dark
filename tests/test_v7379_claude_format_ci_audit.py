@@ -38,7 +38,7 @@ assert args == ['factor','factor','factor','factor','factor','shade','shade','sh
 for token in ['#search .sbv-video-overlay','._c2Itd_videoOverlay_1H_Jm','FEATURED_ASINS_VIDEO_LIST']:
     assert token in twb,token
 
-assert 'actions/setup-python@v5' in W
+assert 'actions/setup-python@v7' in W
 assert 'AD_STRICT_VALIDATE=1 sh scripts/validate.sh' in W
 assert 'bash scripts/lint-logos.sh' in V
 assert 'for f in tests/test_*.py' in V

@@ -62,7 +62,7 @@ for bad in ['MutationObserver','setInterval','setTimeout','requestAnimationFrame
     assert bad not in hyd,bad
 
 # Phone push stays dependency-free; CI is strict and explicitly provisions Python.
-assert 'actions/setup-python@v5' in W
+assert 'actions/setup-python@v7' in W
 assert 'AD_STRICT_VALIDATE=1 sh scripts/validate.sh' in W
 assert 'sh scripts/validate.sh' in CMD
 assert 'AmazonDark-v7.460-home-hero-pill-owner-fix-source.zip' in CMD

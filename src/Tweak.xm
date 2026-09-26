@@ -1,4 +1,4 @@
-/* AmazonDark v7.499 */
+/* AmazonDark v7.500 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.499-orders-prime-media-divider"
+#define AD_VERSION "v7.500-orders-prime-media-divider-ci-repair"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
