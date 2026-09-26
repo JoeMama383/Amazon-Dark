@@ -1,4 +1,4 @@
-/* AmazonDark v7.510 */
+/* AmazonDark v7.511 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.510-orders-webkit-oled-keyboard"
+#define AD_VERSION "v7.511-orders-webkit-traits-oled-keyboard"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2729,16 +2729,24 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 
 static void ADPrepareSearchKeyboard7120(UIView *v);
 
-%hook WKContentView
-// WebKit HTML inputs must advertise the same dark input trait as native fields.
-- (UIKeyboardAppearance)keyboardAppearance {
-    if(gP.enabled)return UIKeyboardAppearanceDark;
-    return %orig;
+// v7.511: WebKit does not source the software-keyboard skin from WKContentView's
+// own keyboardAppearance selector.  It hands UIKit a cached UITextInputTraits
+// object.  Force that exact traits object dark before the remote keyboard service
+// chooses its keycap artwork; keep the existing OLED keyboard floor owners below.
+static id ADDarkWebInputTraits7511(id traits){
+    if(!gP.enabled||!traits)return traits;
+    @try {
+        SEL setAppearance=@selector(setKeyboardAppearance:);
+        if([traits respondsToSelector:setAppearance])
+            ((void(*)(id,SEL,NSInteger))objc_msgSend)(traits,setAppearance,(NSInteger)UIKeyboardAppearanceDark);
+    } @catch(...) {}
+    return traits;
 }
+
+%hook WKContentView
+- (id)textInputTraits { return ADDarkWebInputTraits7511(%orig); }
+- (id)textInputTraitsForWebView { return ADDarkWebInputTraits7511(%orig); }
 - (BOOL)becomeFirstResponder {
-    // v7.394 FULL r1 (17:38): HTML help search focuses through WKContentView rather
-    // than UITextField/UITextView. Request the same dark keyboard trait used everywhere
-    // else before UIKit asks the remote keyboard service to materialize its key skins.
     if(gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
     BOOL became=%orig;
     if(became&&gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
