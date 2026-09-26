@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.507-probe-identity-sync-repair"
+#define AD_VERSION "v7.508-orders-prime-bgimage-filter-floor-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
