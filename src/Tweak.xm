@@ -1,4 +1,4 @@
-/* AmazonDark v7.505 */
+/* AmazonDark v7.510 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.509-orders-prime-art-geometry-restore"
+#define AD_VERSION "v7.510-orders-webkit-oled-keyboard"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2730,6 +2730,11 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 static void ADPrepareSearchKeyboard7120(UIView *v);
 
 %hook WKContentView
+// WebKit HTML inputs must advertise the same dark input trait as native fields.
+- (UIKeyboardAppearance)keyboardAppearance {
+    if(gP.enabled)return UIKeyboardAppearanceDark;
+    return %orig;
+}
 - (BOOL)becomeFirstResponder {
     // v7.394 FULL r1 (17:38): HTML help search focuses through WKContentView rather
     // than UITextField/UITextView. Request the same dark keyboard trait used everywhere
@@ -5084,12 +5089,7 @@ static void ADTintSearchDeliveryGlyph7139(UIImageView *iv){
     } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
-// v7.243: make the already-proven v7.126 OLED keyboard contract universal inside
-// Amazon instead of trying to recognize individual input surfaces.  AmazonDark.plist
-// already filters these hooks to com.amazon.Amazon, so every native text responder in
-// this process can safely request UIKeyboardAppearanceDark.  This is cheaper and more
-// robust than maintaining Search/Person/Cart ancestry predicates, and it exactly ports
-// the working Search-panel behavior to React Native fields such as Person > Search orders.
+// Native responders request the shared dark-keyboard trait.
 static void ADPrepareSearchKeyboard7120(UIView *v){
     if(!gP.enabled||!v)return;
     @try {
@@ -5098,12 +5098,7 @@ static void ADPrepareSearchKeyboard7120(UIView *v){
     } @catch(...) {}
 }
 
-// v7.126 — port the stable OledKeyboard ownership model instead of tinting the
-// full UITextEffectsWindow/UIInputSet compositor.  The donor tweak has been
-// tested by its author through iOS 17.4.1.  We independently mirror the small
-// set of UIKit owners it uses: the keyboard floor, prediction panel, notched
-// dock, emoji/autofill input surfaces, and keyboard visual-effect backing.
-// AmazonDark's bundle filter already confines these hooks to com.amazon.Amazon.
+// OledKeyboard-derived floor/dock ownership remains process-local.
 static void ADSetKeyboardFloor7126(UIView *view){
     if(!gP.enabled||!view)return;
     @try {
