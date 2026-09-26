@@ -3,12 +3,12 @@
 # v7.505 export is current-session-only and plain TAR; historical captures are never bundled.
 # FULL, VIEWPORT, and TRANSITION deliberately share the same archive format.
 set -eu
-AD_PROBE_VERSION=7.505
+AD_PROBE_VERSION=7.506
 AD_PROBE_CUR=${AD_PROBE_VERSION#7.}
 AD_PROBE_ROOT=${AD_PROBE_ROOT:-/var/mobile}
 AD_PROBE_CONTAINERS=${AD_PROBE_CONTAINERS:-$AD_PROBE_ROOT/Containers/Data/Application}
 AD_PROBE_DOCS=${AD_PROBE_DOCS:-/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents}
-AD_PROBE_NAME=AmazonDark-v7.505
+AD_PROBE_NAME=AmazonDark-v7.506
 AD_PROBE_TARGETS=$(mktemp)
 AD_PROBE_LAUNCH_ARM="$AD_PROBE_ROOT/AmazonDark-launch-probe.arm"
 trap 'rm -f "$AD_PROBE_TARGETS"' EXIT HUP INT TERM

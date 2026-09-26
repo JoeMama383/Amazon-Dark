@@ -5,7 +5,7 @@
 # The app captures the last foreground scene at WillResignActive; export runs afterward.
 # FULL, VIEWPORT, and TRANSITION all export one current capture as plain .tar.
 set -eu
-VER=7.505
+VER=7.506
 CUR=${VER#7.}
 NAME=AmazonDark-v$VER
 ROOT=${AD_UI_ROOT:-/var/mobile}
