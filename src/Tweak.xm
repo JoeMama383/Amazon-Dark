@@ -1,4 +1,4 @@
-/* AmazonDark v7.502 */
+/* AmazonDark v7.503 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.502-ci-stale-handoff-repair"
+#define AD_VERSION "v7.503-ci-core-hash-repair"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2472,10 +2472,11 @@ static NSString *ADReturnsThemeJS7480(void){
     ];
 }
 
+static NSString *ADPDPAdImageBackgroundJS7501(void);
 static NSString *ADNewMenusJS7482(void){
-    return [NSString stringWithUTF8String:
+    return [[NSString stringWithUTF8String:
 #include "ADNewMenus7482.js.inc"
-    ];
+    ] stringByAppendingString:ADPDPAdImageBackgroundJS7501()];
 }
 
 static long gADCoreWebJSStrength7271=-1;
@@ -2496,10 +2497,10 @@ static NSString *ADCoreWebJS7271(void){
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
     if(gADCoreWebJSCached7271&&gADCoreWebJSStrength7271==strength)return gADCoreWebJSCached7271;
     gADCoreWebJSStrength7271=strength;
-    gADCoreWebJSCached7271=[[[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
+    gADCoreWebJSCached7271=[[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
         ADStandalonePaintJS7104(),ADFloorJS(),ADHomeAdShellFloorJS7381(),ADProductShareThemeJS7403(),
         ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403(),ADProductScrollPolishJS7404(),
-        ADProductScrollVideoBorderJS7405(),ADPDPGridCarouselFix7454(),ADPDPCompletionJS7405(),ADPDPSafeFrameJS7432(),ADPDPCompletionTWBJS7405(),ADPDPUICompletionJS7439(),ADPDPMainResidualJS7440(),ADPDPProbeBackedFixesJS7458(),ADFrameOwnerTriggerJS7440(),ADAddressManagementJS7412()] stringByAppendingString:ADPDPAdImageBackgroundJS7501()] stringByAppendingString:ADNewMenusJS7482()];
+        ADProductScrollVideoBorderJS7405(),ADPDPGridCarouselFix7454(),ADPDPCompletionJS7405(),ADPDPSafeFrameJS7432(),ADPDPCompletionTWBJS7405(),ADPDPUICompletionJS7439(),ADPDPMainResidualJS7440(),ADPDPProbeBackedFixesJS7458(),ADFrameOwnerTriggerJS7440(),ADAddressManagementJS7412()] stringByAppendingString:ADNewMenusJS7482()];
     return gADCoreWebJSCached7271;
 }
 
