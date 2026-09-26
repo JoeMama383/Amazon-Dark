@@ -1,4 +1,4 @@
-/* AmazonDark v7.504 */
+/* AmazonDark v7.505 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.504-v7500-ui-followup"
+#define AD_VERSION "v7.505-prime-card-visible-tame"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
