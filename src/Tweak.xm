@@ -1,4 +1,4 @@
-/* AmazonDark v7.511 */
+/* AmazonDark v7.512 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.511-orders-webkit-traits-oled-keyboard"
+#define AD_VERSION "v7.512-orders-webkit-traits-build-repair"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2729,11 +2729,11 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 
 static void ADPrepareSearchKeyboard7120(UIView *v);
 
-// v7.511: WebKit does not source the software-keyboard skin from WKContentView's
+// v7.512: WebKit does not source the software-keyboard skin from WKContentView's
 // own keyboardAppearance selector.  It hands UIKit a cached UITextInputTraits
 // object.  Force that exact traits object dark before the remote keyboard service
 // chooses its keycap artwork; keep the existing OLED keyboard floor owners below.
-static id ADDarkWebInputTraits7511(id traits){
+static id ADDarkWebInputTraits7512(id traits){
     if(!gP.enabled||!traits)return traits;
     @try {
         SEL setAppearance=@selector(setKeyboardAppearance:);
@@ -2744,8 +2744,14 @@ static id ADDarkWebInputTraits7511(id traits){
 }
 
 %hook WKContentView
-- (id)textInputTraits { return ADDarkWebInputTraits7511(%orig); }
-- (id)textInputTraitsForWebView { return ADDarkWebInputTraits7511(%orig); }
+- (id)textInputTraits {
+    id traits=%orig;
+    return ADDarkWebInputTraits7512(traits);
+}
+- (id)textInputTraitsForWebView {
+    id traits=%orig;
+    return ADDarkWebInputTraits7512(traits);
+}
 - (BOOL)becomeFirstResponder {
     if(gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
     BOOL became=%orig;
