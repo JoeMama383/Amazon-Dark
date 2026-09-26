@@ -1,11 +1,11 @@
 #!/bin/sh
-# AmazonDark v7.503 universal UI probe helper.
+# AmazonDark v7.504 universal UI probe helper.
 # FULL: screenshot-triggered while Amazon stays foregrounded.
 # VIEWPORT: arm once, show the target in Amazon, then background Amazon once.
 # The app captures the last foreground scene at WillResignActive; export runs afterward.
 # FULL, VIEWPORT, and TRANSITION all export one current capture as plain .tar.
 set -eu
-VER=7.503
+VER=7.504
 CUR=${VER#7.}
 NAME=AmazonDark-v$VER
 ROOT=${AD_UI_ROOT:-/var/mobile}

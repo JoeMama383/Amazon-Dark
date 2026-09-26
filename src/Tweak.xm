@@ -1,4 +1,4 @@
-/* AmazonDark v7.503 */
+/* AmazonDark v7.504 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.503-ci-core-hash-repair"
+#define AD_VERSION "v7.504-v7500-ui-followup"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2290,6 +2290,12 @@ static NSString *ADPDPCompletionTWBJS7405(void){
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7405-pdp-twb');if(!s){s=d.createElement('style');s.id='ad7405-pdp-twb';(d.head||d.documentElement||d).appendChild(s);}var child=window.top!==window,ref=String(d.referrer||'');var embedded=child&&/(\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/)/i.test(ref);s.textContent=(embedded?`html body video,html body .vjs-poster,html body [data-testid=product-image] img,html body img[data-testid=product-image],html body img.product-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;}`:'')+`#dp #aplusBrandStory_feature_div img,#dp [class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display__] img.p13n-product-image,#dp :is([class*=_c3Atb_image-display-small_],[class*=_c3Atb_image-display-full_],[class*=_rufus-comparison-card_style_cardImage__]) img,#dp #horizontalMediaCarousel :is(img.a-amazon-image,img.video-slate-img),#dp #aplus_feature_div .aplus-v2 img,#dp #sponsoredProducts_feature_div img,#dp #ape_detail_mobile-app-detail-ilm_mshop_placement [data-csa-c-painter=sb-collections-ilm-mobile] img[class*=_c2ItY_asinImage_],#dp #product-image-gallery img,#dp img[class*=_dnNlL_vseThumbnailPreviewImg_],#dp img[class*=_Y3Itb_media-thumbnail-image_],#dp img[class*=_Y3Itd_notable-quote-thumbnail-image_],#dp img[id^=inline-twister-image-],#dp img[class*=_c2Itb_image_],#dp [class*=_rufus-comparison-card_style_pillImageWrapper__] img,#dp video.pjs-tech,#dp img.vftp-hoc-thumbnail,#dp #value-pick-image,#dp #sp_phoneapp_detail_image_container img,#dp #thumbnail-product-image-container img,#dp video[class*=_multi-brand-video-mobile_style_video__],#dp img[class*=_multi-brand-video-mobile_style_image__],#dp .vse-video-thumbnail-wrapper[class*=_dnNlL_vseVideoImageWrapper_]::before,#attach-accessory-card-deck img.attach-accessory-image,#attach-accessory-card-deck .attach-primary-atc-confirm-box img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#dp#dp #aplusBrandStory_feature_div .container-with-background-image.hero-portrait-image{background-color:rgb(%.0f,%.0f,%.0f)!important;background-blend-mode:multiply!important;filter:none!important;-webkit-filter:none!important;}`;}catch(_){}})();",factor,factor,factor,factor,factor*255.0,factor*255.0,factor*255.0];
 }
 
+// v7.432: PDP APE/SafeFrame child documents can be nested behind an intermediate
+// ad frame, so document.referrer is not a reliable /dp/ route signal. Install one
+// inert-by-default stylesheet in every child frame and activate it only when the
+// hydrated document proves it is an Amazon ad renderer. This reaches both the
+// mobile hero quick-promo video/product footer and mobile-app-detail ILM creative
+// without a MutationObserver, timer, RAF loop, or parent-frame DOM access.
 static NSString *ADPDPSafeFrameJS7432(void){
     CGFloat factor=1.0;
     if(gP.whiteTame){
@@ -2472,11 +2478,10 @@ static NSString *ADReturnsThemeJS7480(void){
     ];
 }
 
-static NSString *ADPDPAdImageBackgroundJS7501(void);
 static NSString *ADNewMenusJS7482(void){
-    return [[NSString stringWithUTF8String:
+    return [NSString stringWithUTF8String:
 #include "ADNewMenus7482.js.inc"
-    ] stringByAppendingString:ADPDPAdImageBackgroundJS7501()];
+    ];
 }
 
 static long gADCoreWebJSStrength7271=-1;
@@ -2485,13 +2490,6 @@ static NSString *ADPDPProbeBackedFixesJS7458(void){
     CGFloat f=1.0;if(gP.whiteTame){CGFloat t=((CGFloat)MAX(0,MIN(100,gP.whiteTameStrength)))/100.0;f=1.0-(0.10+(0.48*t));}
     return [[NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav .mshop-subnav-bar{box-shadow:0 1px 0 #494d4d!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#dp #relatedProductZone4_feature_div .a-carousel-container,#dp #heimdallShoppingCxFeedback_feature_div fieldset{background:#000!important}#dp #cm_cr_top_reviews_to_arp_button>.a-box-inner{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #va-related-videos-widget_feature_div [class*=_dnNlL_vseUploadButton_] i.a-icon-supplemental{filter:brightness(0) invert(1)!important}#dp #product-details-card_primary-view .putb-read-more-primary-view::before,#dp [id^=putb-read-more-primary-view-][id$=-product-details-card_primary-view]::before{content:none!important;display:none!important;background:none!important;box-shadow:none!important}#dp #product-details-card_primary-view .putb-main-text :is(.a-size-small,.a-text-bold){color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #description-summary-card_primary-view .putb-main-text,#dp #description-summary-card_primary-view .putb-main-text>span{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #inline-twister-scroller .a-button-selected .swatch-title-text-container{background:#303335!important;color:#fff!important;-webkit-text-fill-color:#fff!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]),[class*=_billboard-card_regularStyle_gwm-BillboardCard] img{filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');s.textContent+=`[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_]{background:#000!important;border-color:#747a7c!important;color:#fff!important;box-shadow:none!important}[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_] [class*=_pillText_],[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{color:#fff!important;-webkit-text-fill-color:#fff!important}[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{background:#000!important;box-shadow:inset 0 0 0 64px #000!important}[class*=_billboard-card_regularStyle_gwm-BillboardCard--cropped__]{background:#000!important;box-shadow:none!important}#btfSubNavTopTab .top-tab-content,#btfSubNavTopTab .top-tab-content>div{display:contents!important;font:inherit!important}#btfSubNavTopTab .a-icon-section-collapse{display:none!important}#btfSubNavTopTab .a-size-mini{font:inherit!important}`;}catch(_){}})();",gP.whiteTame,f] stringByAppendingString:ADReturnsThemeJS7480()];
 }
-
-static NSString *ADPDPAdImageBackgroundJS7501(void){
-    return [NSString stringWithUTF8String:
-#include "ADPDPAdImageBackground7501.js.inc"
-    ];
-}
-
 
 static NSString *ADCoreWebJS7271(void){
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
