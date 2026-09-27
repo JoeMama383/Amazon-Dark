@@ -1,4 +1,4 @@
-/* AmazonDark v7.512 */
+/* AmazonDark v7.514 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.512-orders-webkit-traits-build-repair"
+#define AD_VERSION "v7.514-person-returns-rehydrate-scan"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -5148,11 +5148,12 @@ static void ADSetKeyboardFloor7126(UIView *view){
 - (void)layoutSubviews {
     %orig;
     ADSetKeyboardFloor7126((UIView *)self);
+    ADAlignKeyboardMic7513((UIKeyboardDockView *)self);
 }
 %end
 
-// v7.129: all v7.127/v7.128 microphone/dock-item geometry ownership is removed.
-// The keyboard below is intentionally the v7.126 OledKeyboard-derived port only.
+// v7.513: probe-backed optical alignment for the shared keyboard dictation glyph.
+#include "ADKeyboardDockGeometry7513.inc"
 
 %hook UIInputView
 - (void)layoutSubviews {
@@ -6404,10 +6405,6 @@ static void ADPersonReassertBorder7206(UIView *v,BOOL wasBright){
         }
     } @catch(...) {}
 }
-// v7.227: a border-only React shell owns only its outline.  Several Person
-// media sections place this empty shell above separately-rendered image/text siblings;
-// filling the shell OLED black covers otherwise healthy content.  Keep the parent's
-// OLED floor visible through it instead of creating another paint layer.
 static BOOL ADPersonBorderOnlyShell7227(UIView *v){
     if(!v||!v.window||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTView"))return NO;
     @try {
@@ -6478,9 +6475,6 @@ static void ADPersonOwnBuyAgainItem7218(UIView *v){
         ol.zPosition=9998.0; ol.hidden=v.hidden||v.alpha<0.01;
     } @catch(...) {}
 }
-// v7.232: the full Person probe shows that most RCTView instances are transparent
-// layout wrappers.  Keep exact semantic and renderer owners eligible, but let inert
-// wrappers leave before the ancestry/card classifiers and border writers run.
 static BOOL ADPersonNeedsVisualOwnership7232(UIView *v){
     if(!v)return NO;
     @try {
@@ -6505,6 +6499,8 @@ static BOOL ADPersonNeedsVisualOwnership7232(UIView *v){
     } @catch(...) {}
     return NO;
 }
+#include "ADPersonReturns7514.inc"
+
 static void ADPersonOwnView7206(UIView *v){
     if(!gP.enabled||!v||!v.window||!(ADInPersonTab7206(v)||ADPersonBuyAgain7208(v)))return;
     @try {
@@ -6541,6 +6537,8 @@ static void ADPersonOwnView7206(UIView *v){
             ADPersonSuppressBuyAgainOuterBorder7238(v);
             return;
         }
+        BOOL returnsCard=ADPersonReturnsCard7514(v);
+        if(returnsCard||objc_getAssociatedObject(v,kADPersonReturnsOutline7514)){ ADPersonOwnReturnsCard7514(v); if(returnsCard)return; }
         if(!ADPersonNeedsVisualOwnership7232(v))return;
         BOOL reviewPlate=ADPersonReviewBorderPlate7231(v);
         if(reviewPlate||objc_getAssociatedObject(v,kADPersonReviewOutline7231)){
@@ -6778,6 +6776,10 @@ static void ADPersonObserveSectionAnchor7212(UIView *v){
         NSString *aid=v.accessibilityIdentifier;
         if(aid.length&&([aid isEqualToString:@"wl_titlettl"]||[aid caseInsensitiveCompare:@"wl_titlettl"]==NSOrderedSame))
             ADPersonMarkSection7212(v,kADPersonListSection7212,145.0,235.0);
+        if(aid.length&&[aid caseInsensitiveCompare:@"yr-titlettl"]==NSOrderedSame){
+            UIView *root=ADPersonCompactSectionRoot7212(v,95.0,260.0);
+            if(root){ objc_setAssociatedObject(root,kADPersonReturnsSection7514,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC); ADPersonPrimeReturns7514(root); }
+        }
     } @catch(...) {}
 }
 // v7.235: Lists & Registries reports an authored 8pt radius but its final
@@ -7111,7 +7113,7 @@ static BOOL ADPersonFinalTextOwner7239(UIView *v){
         int kind=ADPersonSectionKind7218(v);
         if(kind==1||kind==3)return YES;
         if(ADPersonOrderCardHeaderText7265(v)||ADPersonKeepShoppingText7237(v)||ADPersonTopRowText7239(v)||
-           ADPersonInterestTitle7240(v)||ADPersonOfflineFallbackButtonText7299(v))return YES;
+           ADPersonInterestTitle7240(v)||ADPersonOfflineFallbackButtonText7299(v)||ADPersonReturnsUnder7514(v))return YES;
         // v7.236 first-paint repair: the v7.235 probe captured dark primary text
         // surviving in Buy Again and under the Subscribe & Save delivery wrapper.
         // Reuse the existing font-aware storage recolor at final draw: bold/primary
