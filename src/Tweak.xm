@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.515-keyboard-mic-build-order-repair"
+#define AD_VERSION "v7.516-person-returns-single-border-probe-repair"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
