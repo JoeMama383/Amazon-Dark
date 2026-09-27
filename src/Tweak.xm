@@ -1,4 +1,4 @@
-/* AmazonDark v7.514 */
+/* AmazonDark v7.515 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.514-person-returns-rehydrate-scan"
+#define AD_VERSION "v7.515-keyboard-mic-build-order-repair"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -5144,6 +5144,9 @@ static void ADSetKeyboardFloor7126(UIView *view){
 }
 %end
 
+// v7.513: probe-backed optical alignment for the shared keyboard dictation glyph.
+#include "ADKeyboardDockGeometry7513.inc"
+
 %hook UIKeyboardDockView
 - (void)layoutSubviews {
     %orig;
@@ -5151,9 +5154,6 @@ static void ADSetKeyboardFloor7126(UIView *view){
     ADAlignKeyboardMic7513((UIKeyboardDockView *)self);
 }
 %end
-
-// v7.513: probe-backed optical alignment for the shared keyboard dictation glyph.
-#include "ADKeyboardDockGeometry7513.inc"
 
 %hook UIInputView
 - (void)layoutSubviews {
