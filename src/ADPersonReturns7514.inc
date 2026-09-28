@@ -1,10 +1,11 @@
-// v7.516: Person > Your Returns rehydrates through one React Native border renderer.
-// The v7.514 CAShapeLayer inset outline fixed a clipped edge but stacked on top of
-// Amazon/RCT borders, producing the visible double contours.  Keep the exact
-// yr-titlettl-scoped family and bounded text rehydration, but own only the normal
-// RCT rounded border; CALayer stays borderless.
+// v7.517: Person > Your Returns rehydration keeps exactly one React Native border.
+// v7.514/v7.516 treated every card-sized RCTView below yr-titlettl as a physical
+// card. React nests multiple near-card-sized wrappers there, so each wrapper was
+// given its own RCT border and the result was the visible concentric outlines.
+// Keep the bounded section/text rehydration, but only the OUTERMOST matching RCTView
+// owns the rounded gray stroke. Any nested candidate is explicitly borderless.
 static const void *kADPersonReturnsSection7514=&kADPersonReturnsSection7514;
-static const void *kADPersonReturnsOutline7514=&kADPersonReturnsOutline7514; // stale-layer cleanup key
+static const void *kADPersonReturnsOutline7514=&kADPersonReturnsOutline7514; // stale v7.514 shape cleanup key
 static BOOL ADPersonReturnsUnder7514(UIView *v){
     if(!v)return NO;
     @try { for(UIView *n=v;n;n=n.superview){ if(objc_getAssociatedObject(n,kADPersonReturnsSection7514))return YES; if([n.accessibilityIdentifier isEqualToString:@"me"])break; } } @catch(...) {}
@@ -14,16 +15,37 @@ static BOOL ADPersonReturnsCard7514(UIView *v){
     if(!v||!v.window||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTView")||!ADPersonReturnsUnder7514(v))return NO;
     @try { CGFloat w=v.bounds.size.width,h=v.bounds.size.height; return w>=250.0&&w<=335.0&&h>=52.0&&h<=105.0; } @catch(...) { return NO; }
 }
+static BOOL ADPersonReturnsHasCardAncestor7517(UIView *v){
+    if(!v)return NO;
+    @try {
+        for(UIView *n=v.superview;n&&n!=v.window;n=n.superview){
+            if(ADPersonReturnsCard7514(n))return YES;
+            if(objc_getAssociatedObject(n,kADPersonReturnsSection7514))break;
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPersonReturnsOuterCard7517(UIView *v){
+    return ADPersonReturnsCard7514(v)&&!ADPersonReturnsHasCardAncestor7517(v);
+}
 static void ADPersonOwnReturnsCard7514(UIView *v){
     if(!v)return;
     @try {
+        // Always retire the obsolete v7.514 shape if a live upgraded process still has it.
         CAShapeLayer *old=objc_getAssociatedObject(v,kADPersonReturnsOutline7514);
         if(old){ [old removeFromSuperlayer]; objc_setAssociatedObject(v,kADPersonReturnsOutline7514,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
         if(!(gP.enabled&&ADPersonReturnsCard7514(v)))return;
         ADSetViewBackground7226(v,ADOLED(),YES);
+        v.layer.borderWidth=0.0;
+        v.layer.borderColor=ADBorderGray706().CGColor;
+        if(!ADPersonReturnsOuterCard7517(v)){
+            // Nested React wrappers are content, never a second physical card frame.
+            ADPersonSetRCTBorder7208(v,0.0);
+            return;
+        }
         CGFloat authored=MAX(v.layer.cornerRadius,ADPersonRCTBorderRadius7212(v));
         CGFloat radius=ADPersonDesiredRadius7212(v,authored);
-        v.layer.borderWidth=0.0; v.layer.borderColor=ADBorderGray706().CGColor;
         ADPersonSetRCTRadius7212(v,radius);
         ADPersonSetRCTBorder7208(v,1.0);
     } @catch(...) {}
