@@ -1,3 +1,7 @@
+# AmazonDark v7.518 — Person probe routing and Returns contours
+
+See REVIEW-v7.518.md for findings, evidence limits and validation; COMMANDS.md for copy/push and separate probe commands.
+
 # AmazonDark v7.494 — exact Your Orders owner correction
 
 - Direct parent: **v7.493~orders-endtext-ci-repair**.

@@ -1,4 +1,4 @@
-// v7.517: Person > Your Returns rehydration keeps exactly one React Native border.
+// v7.518: one foreground contour per physical Returns card.
 // v7.514/v7.516 treated every card-sized RCTView below yr-titlettl as a physical
 // card. React nests multiple near-card-sized wrappers there, so each wrapper was
 // given its own RCT border and the result was the visible concentric outlines.
@@ -29,25 +29,31 @@ static BOOL ADPersonReturnsHasCardAncestor7517(UIView *v){
 static BOOL ADPersonReturnsOuterCard7517(UIView *v){
     return ADPersonReturnsCard7514(v)&&!ADPersonReturnsHasCardAncestor7517(v);
 }
+// One contour above content, never one contour for every nested wrapper.
 static void ADPersonOwnReturnsCard7514(UIView *v){
     if(!v)return;
     @try {
-        // Always retire the obsolete v7.514 shape if a live upgraded process still has it.
-        CAShapeLayer *old=objc_getAssociatedObject(v,kADPersonReturnsOutline7514);
-        if(old){ [old removeFromSuperlayer]; objc_setAssociatedObject(v,kADPersonReturnsOutline7514,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-        if(!(gP.enabled&&ADPersonReturnsCard7514(v)))return;
+        CAShapeLayer *ol=objc_getAssociatedObject(v,kADPersonReturnsOutline7514);
+        BOOL card=gP.enabled&&ADPersonReturnsCard7514(v);
+        BOOL outer=card&&ADPersonReturnsOuterCard7517(v);
+        if(!outer&&ol){[ol removeFromSuperlayer];objc_setAssociatedObject(v,kADPersonReturnsOutline7514,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);ol=nil;}
+        if(!card)return;
         ADSetViewBackground7226(v,ADOLED(),YES);
+        // RCT draws its border into layer contents, underneath child backgrounds.
+        // Clearing every nested RCT border avoids the previous double outlines.
         v.layer.borderWidth=0.0;
-        v.layer.borderColor=ADBorderGray706().CGColor;
-        if(!ADPersonReturnsOuterCard7517(v)){
-            // Nested React wrappers are content, never a second physical card frame.
-            ADPersonSetRCTBorder7208(v,0.0);
-            return;
+        ADPersonSetRCTBorder7208(v,0.0);
+        if(!outer)return;
+        if(!ol){
+            ol=[CAShapeLayer layer];ol.name=@"AmazonDarkPersonReturnsOutline7518";
+            ol.fillColor=[UIColor clearColor].CGColor;
+            ol.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"path":[NSNull null],@"strokeColor":[NSNull null],@"zPosition":[NSNull null]};
+            objc_setAssociatedObject(v,kADPersonReturnsOutline7514,ol,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        CGFloat authored=MAX(v.layer.cornerRadius,ADPersonRCTBorderRadius7212(v));
-        CGFloat radius=ADPersonDesiredRadius7212(v,authored);
-        ADPersonSetRCTRadius7212(v,radius);
-        ADPersonSetRCTBorder7208(v,1.0);
+        if(ol.superlayer!=v.layer)[v.layer addSublayer:ol];
+        CGFloat radius=ADPersonDesiredRadius7212(v,MAX(v.layer.cornerRadius,ADPersonRCTBorderRadius7212(v)));
+        ol.frame=v.bounds;ol.path=[UIBezierPath bezierPathWithRoundedRect:CGRectInset(v.bounds,0.5,0.5) cornerRadius:MAX(0.0,radius-0.5)].CGPath;
+        ol.strokeColor=ADBorderGray706().CGColor;ol.lineWidth=1.0;ol.zPosition=FLT_MAX;ol.hidden=NO;
     } @catch(...) {}
 }
 static void ADPersonPrimeReturns7514(UIView *root){
