@@ -1,6 +1,6 @@
 {
-  "version": "7.524~returns-thumbnail-render-geometry-revert",
-  "baseline": "v7.523",
-  "focus": "Keep the Returns left thumbnail lane rendered/tamed while preserving the v7.523 left-corner border fix and reverting the text recenter whenever the real thumbnail slot is present.",
-  "device_validation": "v7.523 FULL r1 proves the left lane contains a real 48x52 thumbnail raster inside the reserved Returns thumbnail slot. v7.524 device confirmation pending."
+  "version": "7.525~returns-thumbnail-handoff-regression-repair",
+  "direct_parent": "7.524~returns-thumbnail-render-geometry-revert",
+  "scope": "Preserve the v7.524 Returns thumbnail/geometry implementation and restore the historically proven AmazonDark push/probe handoff contract.",
+  "device_validation": "v7.523 FULL r1 proves the real Returns thumbnail lane. v7.525 contains no new visual-owner change beyond v7.524; device confirmation remains required for the thumbnail render state."
 }

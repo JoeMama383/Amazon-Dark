@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.524-returns-thumbnail-render-geometry-revert"
+#define AD_VERSION "v7.525-returns-thumbnail-handoff-regression-repair"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
