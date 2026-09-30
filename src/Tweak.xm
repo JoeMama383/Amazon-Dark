@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.522-returns-label-centering"
+#define AD_VERSION "v7.523-returns-left-corner-rehydration"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -6536,6 +6536,10 @@ static void ADPersonOwnView7206(UIView *v){
             ADPersonSuppressBuyAgainOuterBorder7238(v);
             return;
         }
+        if(ADPersonReturnsLeftCornerOccluder7523(v)){
+            ADPersonOwnReturnsLeftCornerOccluder7523(v);
+            return;
+        }
         BOOL returnsCard=ADPersonReturnsCard7514(v);
         if(returnsCard||objc_getAssociatedObject(v,kADPersonReturnsOutline7514)){ ADPersonOwnReturnsCard7514(v); if(returnsCard)return; }
         if(!ADPersonNeedsVisualOwnership7232(v))return;
@@ -9098,7 +9102,7 @@ static void ADOwnReactView7226(UIView *v){
     int surface=(gP.enabled&&v.window)?ADReactSurface7226(v):ADReactSurfaceNone7226;
     BOOL reviewPlate=surface==ADReactSurfacePerson7226&&ADPersonReviewBorderPlate7231(v);
     BOOL interestPlate=surface==ADReactSurfacePerson7226&&ADPersonInterestBorderPlate7235(v);
-    BOOL buyOccluder=surface==ADReactSurfacePerson7226&&(ADPersonBuyAgainOccluder7235(v)||ADPersonReturnsOccluder7521(v));
+    BOOL buyOccluder=surface==ADReactSurfacePerson7226&&(ADPersonBuyAgainOccluder7235(v)||ADPersonReturnsOccluder7521(v)||ADPersonReturnsLeftCornerOccluder7523(v));
     BOOL subscribeOccluder=surface==ADReactSurfacePerson7226&&ADPersonSubscribeOccluder7237(v);
     if(interestPlate||buyOccluder||subscribeOccluder){
         UIColor *clear=[UIColor clearColor];

@@ -1,4 +1,4 @@
-// v7.522: preserve Amazon's authored Returns-card geometry.
+// v7.523: preserve Amazon's authored Returns-card geometry and keep the left curved edge unobscured after remounts.
 //
 // v7.514/v7.516 forced React border widths on every near-card-sized nested RCTView;
 // v7.518 then zeroed those widths and replaced them with a CAShapeLayer contour. Both
@@ -27,6 +27,38 @@ static BOOL ADPersonReturnsOccluder7521(UIView *v){
     CGRect f=v.frame;CGSize b=p.bounds.size;
     return f.origin.x>=0&&f.origin.y>=0&&f.origin.x<=2&&f.origin.y<=2&&
         fabs(CGRectGetMaxX(f)-b.width)<=2&&fabs(CGRectGetMaxY(f)-b.height)<=2;
+}
+// v7.522 r2 proves a second occluder survives after submenu -> back rehydration:
+// an opaque 60x67.3 paint-only child fills the reserved thumbnail column at card
+// local (1,1). It sits above the parent's radius-12 border raster and covers only
+// the top-left/bottom-left arcs, which is why the straight left edge survives and
+// pressing the card can temporarily restore the corners. Match that exact nested
+// plane, not the thumbnail/image wrapper itself, and clear only its fill.
+static BOOL ADPersonReturnsLeftOccluderGeometry7523(CGRect f,CGSize b){
+    return f.origin.x>=0&&f.origin.x<=2.5&&f.origin.y>=0&&f.origin.y<=2.5&&
+        f.size.width>=48.0&&f.size.width<=72.0&&f.size.height>=52.0&&
+        fabs(CGRectGetMaxY(f)-b.height)<=2.5;
+}
+static BOOL ADPersonReturnsLeftCornerOccluder7523(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView")||!ADInPersonTab7206(v)||v.subviews.count)return NO;
+    @try {
+        UIView *host=v.superview;if(!host)return NO;
+        CGRect hf=v.frame;CGSize hb=host.bounds.size;
+        if(hf.origin.x<-0.5||hf.origin.y<-0.5||fabs(CGRectGetMaxX(hf)-hb.width)>1.5||fabs(CGRectGetMaxY(hf)-hb.height)>1.5)return NO;
+        UIView *card=nil;
+        for(UIView *n=host;n;n=n.superview){
+            if(ADPersonReturnsIdentity7521(n)){card=n;break;}
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+        }
+        if(!card||![card.accessibilityIdentifier hasPrefix:@"yr_item_"])return NO;
+        CGRect f=[v convertRect:v.bounds toView:card];
+        return ADPersonReturnsLeftOccluderGeometry7523(f,card.bounds.size);
+    } @catch(...) { return NO; }
+}
+static void ADPersonOwnReturnsLeftCornerOccluder7523(UIView *v){
+    if(!(gP.enabled&&ADPersonReturnsLeftCornerOccluder7523(v)))return;
+    ADSetViewBackground7226(v,[UIColor clearColor],YES);
+    [v setNeedsDisplay];[v.layer setNeedsDisplay];
 }
 static BOOL ADPersonReturnsUnder7514(UIView *v){
     if(!v)return NO;
@@ -69,7 +101,10 @@ static void ADPersonPrimeReturns7514(UIView *root){
         NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:root]; int seen=0;
         while(q.count&&seen++<64){
             UIView *v=q.lastObject;[q removeLastObject];
-            if(ADClassNameIs7183(v,"RCTView"))ADPersonOwnReturnsCard7514(v);
+            if(ADClassNameIs7183(v,"RCTView")){
+                ADPersonOwnReturnsLeftCornerOccluder7523(v);
+                ADPersonOwnReturnsCard7514(v);
+            }
             const char *cn=object_getClassName(v);
             if([v isKindOfClass:[UILabel class]]||(cn&&(strstr(cn,"Text")||strstr(cn,"Paragraph")))){ ADPersonOwnText7206(v); [v setNeedsDisplay]; [v.layer setNeedsDisplay]; }
             for(UIView *c in v.subviews)if(c.window==root.window)[q addObject:c];

@@ -1,7 +1,7 @@
 {
-  "version": "7.522~returns-label-centering",
-  "direct_parent": "7.521~returns-corners-probe-efficiency",
-  "parent_commit": "19f38b70",
-  "scope": "Center Returns label glyphs within existing card; retain corner recovery and probe behavior",
-  "device_validation": "7.521 r1 captures the 60pt reserved thumbnail column and completed seven-step Person sweep. 7.522 device confirmation pending."
+  "version": "7.523~returns-left-corner-rehydration",
+  "direct_parent": "7.522~returns-label-centering",
+  "parent_commit": "device-installed-v7.522",
+  "scope": "Clear exact 60pt left paint plane that occludes Returns rounded corners after rehydration; preserve v7.522 label centering and authored card geometry",
+  "device_validation": "v7.522 r2 proves the exact left paint-plane occluder and a complete seven-step Person FULL sweep. v7.523 device confirmation pending."
 }
