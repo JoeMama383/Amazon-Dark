@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.529-interests-header-product-text-fix"
+#define AD_VERSION "v7.530-interests-plus-heart-modal-keyboard-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2751,6 +2751,14 @@ static id ADDarkWebInputTraits7512(id traits){
 - (id)textInputTraitsForWebView {
     id traits=%orig;
     return ADDarkWebInputTraits7512(traits);
+}
+- (id)_textInputTraits {
+    id traits=%orig;
+    return ADDarkWebInputTraits7512(traits);
+}
+- (UIKeyboardAppearance)keyboardAppearance {
+    if(gP.enabled) return UIKeyboardAppearanceDark;
+    return %orig;
 }
 - (BOOL)becomeFirstResponder {
     if(gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);

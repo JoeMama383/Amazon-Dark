@@ -4,8 +4,8 @@ C=(R/'layout/DEBIAN/control').read_text()
 T=(R/'src/Tweak.xm').read_text()
 CSS=(R/'src/ADNewMenus7482.js.inc').read_text()
 CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.529~interests-header-product-text-fix' in C
-assert '#define AD_VERSION "v7.529-interests-header-product-text-fix"' in T
+assert 'Version: 7.528~interests-plus-white-fix' in C
+assert '#define AD_VERSION "v7.528-interests-plus-white-fix"' in T
 for token in ('_bW9ia_plus-carousel-element_1z8GB','_bW9ia_plus-container_1QjeQ','_bW9ia_plus-thumbnail-link_2gUEq','#create-prompt-link'):
     assert token in CSS, token
 assert '#create-prompt-link::before' in CSS and '#create-prompt-link::after' in CSS
@@ -15,4 +15,4 @@ for good in ('ui-probe.sh export full','ui-probe.sh arm','ui-probe.sh export vie
     assert good in CMD, good
 for bad in ('git init','rm -rf .git','git push -uf','ui-probe.sh full','viewport-arm','viewport-export'):
     assert bad not in CMD, bad
-print('PASS: v7.529 preserves v7.528 and explicitly whitens the probe-confirmed Interests plus glyph while preserving its gray ring and frozen handoff contract')
+print('PASS: v7.528 explicitly whitens the probe-confirmed Interests plus glyph while preserving its gray ring and frozen handoff contract')

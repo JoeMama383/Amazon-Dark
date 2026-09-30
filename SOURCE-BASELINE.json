@@ -1,6 +1,6 @@
 {
-  "version": "7.529~interests-header-product-text-fix",
+  "version": "7.529~interests-header-text-followup",
   "baseline": "v7.528",
-  "focus": "Finish the probe-backed Interests header and product grid: OLED prompt box, gray-ring/white three-dots control, white plus raster, white neutral product titles/metadata/prices, preserving selected blue and other dynamic colors.",
-  "evidence": "Compared AmazonDark-v7.526-ui-full-probe-20260930-080434-582-r1 with AmazonDark-v7.528-ui-full-probe-20260930-084415-876-r1."
+  "evidence": ["v7.526 FULL r1", "v7.528 FULL r1"],
+  "focus": "OLED prompt box; gray-ring white-dot overflow control; explicit white plus bars; white product titles and normal price text; preserve authored dynamic colors."
 }
