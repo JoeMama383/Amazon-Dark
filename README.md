@@ -1,7 +1,7 @@
-## v7.532 — Interests historical regression restore
+## v7.533 — WebKit theme parse regression repair
 
-Direct parent: v7.531.
+Direct parent: v7.532.
 
-v7.532 fixes the CI failure caused by v7.531 omitting `tests/test_v7529_interests_header_product_text_fix.py` from the clean source archive and dropping the exact v7.529 contextual-menu/product-text selectors that an existing repository correctly retained. The v7.530 visual follow-up remains intact.
+v7.530 introduced a malformed JavaScript escape in `ADNewMenus7482.js.inc` while drawing the Interests contextual-menu ellipsis. The reconstructed payload contained `content:'\22EE'` inside a JavaScript template literal; Node/WebKit reject that escape at parse time. Because `ADNewMenusJS7482()` is appended to the main WebKit theme script, this prevented the complete user script from parsing and caused otherwise unrelated web surfaces to fall back to stock/light rendering.
 
-The established existing-clone push workflow and separate FULL / VIEWPORT / TRANSITION command contract are unchanged.
+v7.533 replaces the malformed escape with a literal vertical-ellipsis glyph and retains the intended v7.529/v7.530 Interests fixes: OLED prompt/menu surfaces, white plus, white filled heart, white rating text, OLED Update your Interest sheet, white header/X, and dark keyboard traits. It also adds an executable-payload parse regression.

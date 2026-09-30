@@ -7,7 +7,7 @@ for token in (
  '._bW9ia_prompt-box_3ENUV{background:#000!important;background-color:#000!important;',
  '._bW9ia_prompt-box_3ENUV>:last-child:not(:first-child){',
  'border:2px solid #747a7c!important;border-radius:999px!important',
- "content:'\\\\22EE'!important",
+ "content:'⋮'!important",
  '._bW9ia_plus-container_1QjeQ::before','._bW9ia_plus-container_1QjeQ::after',
  'width:30px!important;height:3px!important','background:#fff!important;background-color:#fff!important',
  '.s-title-instructions-style :is(a,span,div,h2,h3){color:#fff!important;',
@@ -17,4 +17,4 @@ for good in ('ui-probe.sh export full','ui-probe.sh arm','ui-probe.sh export vie
  assert good in CMD, good
 for bad in ('git init','rm -rf .git','git push -uf','ui-probe.sh full','viewport-arm','viewport-export'):
  assert bad not in CMD, bad
-print('PASS: v7.529 fixes the probe-backed Interests prompt/overflow/plus/title/price residuals and preserves the frozen handoff contract')
+print('PASS: current build preserves the v7.529 Interests prompt/overflow/plus/title/price visual contract with a JS-safe ellipsis and frozen handoff contract')

@@ -1,6 +1,7 @@
 {
-  "version": "7.532~interests-historical-regression-restore",
-  "baseline": "v7.531",
-  "focus": "Restore the omitted v7.529 Interests source regression and exact contextual-menu/plus/product-text/price ownership contract while retaining the v7.530 visual fixes.",
-  "device_validation": "v7.530 visual changes retained; v7.532 is a source-regression restoration and CI repair."
+  "version": "7.533~web-theme-parse-regression-repair",
+  "direct_parent": "7.532~interests-historical-regression-restore",
+  "visual_baseline": "v7.529 Interests main menu remained WebKit-themed before the malformed v7.530 ADNewMenus payload",
+  "root_cause": "Malformed CSS escape content:\\22EE reconstructed as invalid JavaScript escape inside the ADNewMenus template literal, causing the concatenated WebKit user script to fail parsing.",
+  "scope": "Repair runtime parsing only while preserving the requested Interests plus/heart/rating/modal/keyboard fixes and all prior AmazonDark theming owners."
 }
