@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.521-returns-corners-probe-efficiency"
+#define AD_VERSION "v7.522-returns-label-centering"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -6505,6 +6505,7 @@ static void ADPersonOwnView7206(UIView *v){
     if(!gP.enabled||!v||!v.window||!(ADInPersonTab7206(v)||ADPersonBuyAgain7208(v)))return;
     @try {
         ADPersonObserveSectionAnchor7212(v);
+        ADPersonCenterReturnsText7522(v);
         BOOL orderSearchOuter=ADPersonOrderSearchOuter7242(v);
         BOOL orderSearchInner=ADPersonOrderSearchInner7242(v);
         if(orderSearchOuter||orderSearchInner||objc_getAssociatedObject(v,kADPersonOrderSearchOutline7242)){
@@ -6701,6 +6702,7 @@ static void ADPersonOwnText7206(UIView *v){
             if(l.attributedText.length){ NSAttributedString *r=ADPersonLightString7206(l.attributedText); if(r)l.attributedText=r; }
             return;
         }
+        ADPersonCenterReturnsText7522(v);
         NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts){ if(header)ADPersonHeaderStorage7221(ts); else ADPersonLightStorage7206(ts); }
         if(header){
             SEL setColor=NSSelectorFromString(@"setTextColor:");
@@ -9475,12 +9477,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 %end
 
 %hook RCTTextView
-// v7.415: current Amazon React Native can finalize text through the legacy
-// three-argument RCTTextView commit API.  v7.414 intercepted only setTextStorage:,
-// which left a race where the final stock black/gray attributed storage could win
-// after our location ownership.  Own the same storage before React commits it and
-// re-read/repaint the installed storage immediately afterward.  This is event-driven
-// and runs only when React itself commits text; there is no timer or recurring scan.
+// Own both React text commit APIs.
 - (void)setTextStorage:(NSTextStorage *)textStorage contentFrame:(CGRect)contentFrame descendantViews:(NSArray *)descendantViews {
     UIView *v=(UIView *)self;
     BOOL reviewMenu=gP.enabled&&ADReviewMenuRoot7430(v);
@@ -9492,6 +9489,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     BOOL location=gP.enabled&&ADInLocationCanonical7416(v);
     if(location&&textStorage.length)ADLocationSheetLightStorage7196(v,textStorage);
     %orig(textStorage,contentFrame,descendantViews);
+    ADPersonCenterReturnsText7522(v);
     if(reviewMenu)ADMenuLightStorage7255(ADPersonTextStorage7206(v));
     if(alexaResults)ADAlexaResultsOwnText7427(v);
     if(actionBar)ADMenuLightStorage7255(ADPersonTextStorage7206(v));
@@ -9500,6 +9498,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 - (void)setTextStorage:(NSTextStorage *)textStorage {
     if(ADThemeReactTextStorage7271((UIView *)self,textStorage,YES)){
         %orig;
+        ADPersonCenterReturnsText7522((UIView *)self);
         return;
     }
     if(gP.enabled && textStorage.length){

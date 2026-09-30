@@ -1,7 +1,7 @@
 {
-  "version": "7.521~returns-corners-probe-efficiency",
-  "direct_parent": "7.520~full-probe-route-contract-menu-deepscan",
-  "parent_commit": "fd2be84b",
-  "scope": "Probe-proven Returns content-plane corner occlusion; identity-based hydration; cooperative capture scheduling only",
-  "device_validation": "v7.520 r5 confirms seven-step Person traversal to bottom and restoration. v7.521 patch not device tested."
+  "version": "7.522~returns-label-centering",
+  "direct_parent": "7.521~returns-corners-probe-efficiency",
+  "parent_commit": "19f38b70",
+  "scope": "Center Returns label glyphs within existing card; retain corner recovery and probe behavior",
+  "device_validation": "7.521 r1 captures the 60pt reserved thumbnail column and completed seven-step Person sweep. 7.522 device confirmation pending."
 }

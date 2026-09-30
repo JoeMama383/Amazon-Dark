@@ -1,4 +1,4 @@
-// v7.521: preserve Amazon's authored Returns-card geometry.
+// v7.522: preserve Amazon's authored Returns-card geometry.
 //
 // v7.514/v7.516 forced React border widths on every near-card-sized nested RCTView;
 // v7.518 then zeroed those widths and replaced them with a CAShapeLayer contour. Both
@@ -74,5 +74,33 @@ static void ADPersonPrimeReturns7514(UIView *root){
             if([v isKindOfClass:[UILabel class]]||(cn&&(strstr(cn,"Text")||strstr(cn,"Paragraph")))){ ADPersonOwnText7206(v); [v setNeedsDisplay]; [v.layer setNeedsDisplay]; }
             for(UIView *c in v.subviews)if(c.window==root.window)[q addObject:c];
         }
+    } @catch(...) {}
+}
+
+static NSTextStorage *ADPersonTextStorage7206(UIView *v);
+// r1: the 292pt card reserves 60pt for an obscured thumbnail. Center the
+// existing text wrapper using its rendered glyph bounds, not that empty column.
+static void ADPersonCenterReturnsText7522(UIView *v){
+    if(!gP.enabled||!v.window||!ADInPersonTab7206(v))return;
+    @try {
+        UIView *wrap=v;
+        if([v.accessibilityIdentifier isEqualToString:@"ImageWithTextViewTextComponent"])wrap=v.superview;
+        if(![wrap.accessibilityIdentifier isEqualToString:@"ImageWithTextViewParentComponent"])return;
+        UIView *card=wrap.superview.superview.superview;
+        if(!ADPersonReturnsIdentity7521(card)||![card.accessibilityIdentifier hasPrefix:@"yr_item_"])return;
+        UIView *text=wrap.subviews.firstObject;
+        if(![text.accessibilityIdentifier isEqualToString:@"ImageWithTextViewTextComponent"])return;
+        NSTextStorage *ts=ADPersonTextStorage7206(text);
+        NSLayoutManager *lm=ts.layoutManagers.firstObject;
+        NSTextContainer *tc=lm.textContainers.firstObject;
+        if(!ts.length||!tc)return;
+        [lm ensureLayoutForTextContainer:tc];
+        CGRect ink=[lm usedRectForTextContainer:tc];
+        if(ink.size.width<=0||ink.size.width>card.bounds.size.width-8)return;
+        CGRect shown=[text convertRect:ink toView:card];
+        CGPoint wanted=[card convertPoint:CGPointMake(CGRectGetMidX(card.bounds),CGRectGetMidY(shown)) toView:wrap.superview];
+        CGPoint actual=[card convertPoint:CGPointMake(CGRectGetMidX(shown),CGRectGetMidY(shown)) toView:wrap.superview];
+        CGFloat dx=wanted.x-actual.x;
+        if(fabs(dx)>0.1){CGPoint c=wrap.center;c.x+=dx;wrap.center=c;}
     } @catch(...) {}
 }
