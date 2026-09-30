@@ -1,6 +1,6 @@
 {
-  "version": "7.531~interests-regression-handoff-repair",
-  "baseline": "v7.530",
-  "focus": "Preserve the v7.530 Interests UI fixes while synchronizing the full source handoff and regression contract.",
-  "device_validation": "v7.530 visual changes retained; v7.531 exists to repair the failed CI/source handoff regression."
+  "version": "7.532~interests-historical-regression-restore",
+  "baseline": "v7.531",
+  "focus": "Restore the omitted v7.529 Interests source regression and exact contextual-menu/plus/product-text/price ownership contract while retaining the v7.530 visual fixes.",
+  "device_validation": "v7.530 visual changes retained; v7.532 is a source-regression restoration and CI repair."
 }

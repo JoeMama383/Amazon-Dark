@@ -1,5 +1,7 @@
-## v7.531 — Interests regression handoff repair
+## v7.532 — Interests historical regression restore
 
-This build preserves the v7.530 Interests fixes (white plus, white saved heart, white rating number, OLED Update your Interest sheet, white header/X, and WebKit dark-keyboard traits) while repairing the source handoff contract that caused CI to reject v7.530.
+Direct parent: v7.531.
 
-The package identity, probe identities, source ZIP identity, COMMANDS.md, and existing-clone push workflow are synchronized at v7.531.
+v7.532 fixes the CI failure caused by v7.531 omitting `tests/test_v7529_interests_header_product_text_fix.py` from the clean source archive and dropping the exact v7.529 contextual-menu/product-text selectors that an existing repository correctly retained. The v7.530 visual follow-up remains intact.
+
+The established existing-clone push workflow and separate FULL / VIEWPORT / TRANSITION command contract are unchanged.
