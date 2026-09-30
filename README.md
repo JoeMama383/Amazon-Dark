@@ -1,7 +1,5 @@
-## v7.526 — Returns thumbnail + handoff regression repair
+## v7.528 — Interests plus glyph white fix
 
-Direct parent: **v7.524~returns-thumbnail-render-geometry-revert**.
+Built directly on the v7.527 Interests/product-grid OLED work. The v7.526 FULL probe identifies the plus control as `li._bW9ia_plus-carousel-element_1z8GB` containing `._bW9ia_plus-container_1QjeQ._bW9ia_plus-thumbnail-link_2gUEq` and the actual glyph owner `#create-prompt-link`.
 
-The v7.524 visual implementation is preserved: the real Returns thumbnail lane remains rendered/tamed, the white shell is cleared through rehydration, the v7.523 left-corner border fix remains intact, and the v7.522 text recenter is suppressed whenever the real thumbnail lane is present.
-
-v7.526 fixes the handoff regression introduced in v7.524 only. `COMMANDS.md` is restored to the proven existing-clone workflow and the established FULL / VIEWPORT / TRANSITION command contract: `export full`, separate VIEWPORT `arm` and `export viewport`, and TRANSITION `arm transition` / `export`. No `git init`, no `.git` deletion, no remote recreation, and no force push.
+v7.528 explicitly paints that plus glyph white while preserving the requested OLED button floor and gray circular ring. The rest of the v7.527 Interests/product-grid theming is unchanged. The existing-clone push workflow and separate FULL / VIEWPORT / TRANSITION command contract are unchanged.

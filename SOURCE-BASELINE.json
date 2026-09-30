@@ -1,6 +1,6 @@
 {
-  "version": "7.526~returns-thumbnail-taming-fix",
-  "baseline": "v7.525",
-  "focus": "Keep the Returns thumbnail present and bordered correctly while allowing the exact Returns thumbnail media leaf to bypass the generic native 52pt block so normal TWB taming applies.",
-  "device_validation": "Pending device confirmation: Your Returns thumbnail should stay rendered and now accept normal image taming."
+  "version": "7.528~interests-plus-white-fix",
+  "baseline": "v7.527",
+  "focus": "Explicitly paint the probe-confirmed Interests plus glyph white while preserving its gray ring and OLED floor; retain all v7.527 Interests/product-grid theming.",
+  "device_validation": "Pending device confirmation: plus symbol should render white, gray circular ring preserved."
 }
