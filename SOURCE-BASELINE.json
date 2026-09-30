@@ -1,6 +1,6 @@
 {
-  "version": "7.529~interests-header-text-followup",
-  "baseline": "v7.528",
-  "evidence": ["v7.526 FULL r1", "v7.528 FULL r1"],
-  "focus": "OLED prompt box; gray-ring white-dot overflow control; explicit white plus bars; white product titles and normal price text; preserve authored dynamic colors."
+  "version": "7.531~interests-regression-handoff-repair",
+  "baseline": "v7.530",
+  "focus": "Preserve the v7.530 Interests UI fixes while synchronizing the full source handoff and regression contract.",
+  "device_validation": "v7.530 visual changes retained; v7.531 exists to repair the failed CI/source handoff regression."
 }

@@ -1,5 +1,5 @@
-## v7.529 — Interests header/text follow-up
+## v7.531 — Interests regression handoff repair
 
-Built from the v7.528 source and the v7.526 + v7.528 FULL probes. This release finishes the probe-confirmed Interests residuals: OLED prompt box, gray-ring/white-dot overflow control, explicit white plus bars inside the existing gray ring, and white product-title / normal-price families while preserving dynamic deal/rating/accent colors.
+This build preserves the v7.530 Interests fixes (white plus, white saved heart, white rating number, OLED Update your Interest sheet, white header/X, and WebKit dark-keyboard traits) while repairing the source handoff contract that caused CI to reject v7.530.
 
-The existing-clone push workflow and separate FULL / VIEWPORT / TRANSITION commands are unchanged.
+The package identity, probe identities, source ZIP identity, COMMANDS.md, and existing-clone push workflow are synchronized at v7.531.
