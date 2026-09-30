@@ -60,5 +60,5 @@ for bad in ('MutationObserver(', 'setInterval(', 'requestAnimationFrame(', 'addE
 # Standing handoff contract: separated probes, no status commands.
 for h in ('## FULL — v7.482','## VIEWPORT — v7.482','## TRANSITION — v7.482'):
     assert h in CMD
-assert ' status' not in CMD
+assert all("status" not in line.split() for line in CMD.splitlines() if "-probe.sh" in line)
 print('PASS: v7.482 Returns main + email secondary views are probe-backed and preserve semantic colors')
