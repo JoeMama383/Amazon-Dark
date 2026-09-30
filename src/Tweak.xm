@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.520-full-probe-route-contract-menu-deepscan"
+#define AD_VERSION "v7.521-returns-corners-probe-efficiency"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -6511,9 +6511,7 @@ static void ADPersonOwnView7206(UIView *v){
             ADPersonOwnOrderSearch7242(v);
             if(orderSearchOuter||orderSearchInner)return;
         }
-        // Final exact first-paint owners run before the
-        // generic visual-ownership early return. Their bad stock state can begin
-        // transparent/unbordered and only become bright later in the same mount.
+        // Exact first-paint owners precede the generic visual-ownership guard.
         BOOL interestPlate=ADPersonInterestBorderPlate7235(v);
         if(interestPlate||objc_getAssociatedObject(v,kADPersonInterestOutline7235)){
             ADPersonOwnInterestBorderPlate7235(v);
@@ -9098,7 +9096,7 @@ static void ADOwnReactView7226(UIView *v){
     int surface=(gP.enabled&&v.window)?ADReactSurface7226(v):ADReactSurfaceNone7226;
     BOOL reviewPlate=surface==ADReactSurfacePerson7226&&ADPersonReviewBorderPlate7231(v);
     BOOL interestPlate=surface==ADReactSurfacePerson7226&&ADPersonInterestBorderPlate7235(v);
-    BOOL buyOccluder=surface==ADReactSurfacePerson7226&&ADPersonBuyAgainOccluder7235(v);
+    BOOL buyOccluder=surface==ADReactSurfacePerson7226&&(ADPersonBuyAgainOccluder7235(v)||ADPersonReturnsOccluder7521(v));
     BOOL subscribeOccluder=surface==ADReactSurfacePerson7226&&ADPersonSubscribeOccluder7237(v);
     if(interestPlate||buyOccluder||subscribeOccluder){
         UIColor *clear=[UIColor clearColor];

@@ -1,4 +1,4 @@
-// v7.520: preserve Amazon's authored Returns-card geometry.
+// v7.521: preserve Amazon's authored Returns-card geometry.
 //
 // v7.514/v7.516 forced React border widths on every near-card-sized nested RCTView;
 // v7.518 then zeroed those widths and replaced them with a CAShapeLayer contour. Both
@@ -9,9 +9,28 @@
 // by Person; there is no observer, timer, recurring traversal, or production scroll work.
 static const void *kADPersonReturnsSection7514=&kADPersonReturnsSection7514;
 static const void *kADPersonReturnsOutline7514=&kADPersonReturnsOutline7514; // v7.518 overlay cleanup key
+// Exact identities survive section replacement and offline/refresh mount order.
+static BOOL ADPersonReturnsIdentity7521(UIView *v){
+    NSString *aid=v.accessibilityIdentifier;
+    if([aid isEqualToString:@"yr_view_all_returns_card"])return YES;
+    if(![aid hasPrefix:@"yr_item_"]||aid.length<=8)return NO;
+    for(NSUInteger i=8;i<aid.length;i++){unichar c=[aid characterAtIndex:i];if(c<'0'||c>'9')return NO;}
+    return YES;
+}
+// The r5 capture shows a square 290x67.3 child inside the 292x69.3,
+// radius-12 yr_item_0. Its opaque floor covers the parent's curved border.
+// Clear only this inset content plane; the authored card supplies the OLED floor.
+static BOOL ADPersonReturnsOccluder7521(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView")||!ADInPersonTab7206(v))return NO;
+    UIView *p=v.superview;
+    if(!p||!ADPersonReturnsIdentity7521(p)||![p.accessibilityIdentifier hasPrefix:@"yr_item_"])return NO;
+    CGRect f=v.frame;CGSize b=p.bounds.size;
+    return f.origin.x>=0&&f.origin.y>=0&&f.origin.x<=2&&f.origin.y<=2&&
+        fabs(CGRectGetMaxX(f)-b.width)<=2&&fabs(CGRectGetMaxY(f)-b.height)<=2;
+}
 static BOOL ADPersonReturnsUnder7514(UIView *v){
     if(!v)return NO;
-    @try { for(UIView *n=v;n;n=n.superview){ if(objc_getAssociatedObject(n,kADPersonReturnsSection7514))return YES; if([n.accessibilityIdentifier isEqualToString:@"me"])break; } } @catch(...) {}
+    @try { for(UIView *n=v;n;n=n.superview){ if(ADPersonReturnsIdentity7521(n)||objc_getAssociatedObject(n,kADPersonReturnsSection7514))return YES; if([n.accessibilityIdentifier isEqualToString:@"me"])break; } } @catch(...) {}
     return NO;
 }
 static BOOL ADPersonReturnsCard7514(UIView *v){
@@ -40,7 +59,7 @@ static void ADPersonOwnReturnsCard7514(UIView *v){
         CAShapeLayer *legacy=objc_getAssociatedObject(v,kADPersonReturnsOutline7514);
         if(legacy){[legacy removeFromSuperlayer];objc_setAssociatedObject(v,kADPersonReturnsOutline7514,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
         if(!(gP.enabled&&ADPersonReturnsCard7514(v)))return;
-        ADSetViewBackground7226(v,ADOLED(),YES);
+        ADSetViewBackground7226(v,ADPersonReturnsOccluder7521(v)?[UIColor clearColor]:ADOLED(),YES);
         ADPersonReturnsBorderColors7519(v);
     } @catch(...) {}
 }

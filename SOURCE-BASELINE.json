@@ -1,7 +1,7 @@
 {
-  "version": "7.520~full-probe-route-contract-menu-deepscan",
-  "direct_parent": "7.519~person-deepscan-stock-returns-border",
-  "parent_commit": "device/library v7.519 handoff",
-  "scope": "Restore legacy FULL route-policy contract; add exact Hamburger RCTScrollView#scrolled-hamburger -> RCTCustomScrollView deep scan; retain Person deep scan and authored Returns border geometry",
-  "device_validation": "Pending current v7.520 Person + Hamburger FULL evidence and VIEWPORT evidence"
+  "version": "7.521~returns-corners-probe-efficiency",
+  "direct_parent": "7.520~full-probe-route-contract-menu-deepscan",
+  "parent_commit": "fd2be84b",
+  "scope": "Probe-proven Returns content-plane corner occlusion; identity-based hydration; cooperative capture scheduling only",
+  "device_validation": "v7.520 r5 confirms seven-step Person traversal to bottom and restoration. v7.521 patch not device tested."
 }
