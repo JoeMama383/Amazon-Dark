@@ -1,3 +1,7 @@
+# v7.535 — Interests modal OLED paint
+
+Removes the captured modal fade/glows, keeps one authored blue input border, makes Update OLED with its existing border painted gray, and declares dark input color scheme. Stock layout and probe traversal remain unchanged. See REVIEW-v7.535.md and COMMANDS.md.
+
 ## v7.534 — WebKit theme parse regression repair
 
 Direct parent: v7.532.

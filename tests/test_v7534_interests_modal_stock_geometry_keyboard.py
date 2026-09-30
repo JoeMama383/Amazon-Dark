@@ -3,7 +3,7 @@ R=Path(__file__).resolve().parents[1]
 CSS=(R/'src/ADNewMenus7482.js.inc').read_text(); T=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
 assert 'Version: 7.534~interests-modal-stock-geometry-keyboard-fix' in C
 assert '/* v7.534 modal: paint only; preserve Amazon-authored geometry and controls. */' in CSS
-modal=CSS[CSS.index('/* v7.534 modal:'):CSS.index('"`;\\n"',CSS.index('/* v7.534 modal:'))]
+modal=CSS[CSS.index('/* v7.534 modal:'):CSS.index('/* Interests modal captured paint:')]
 for bad in ('_bW9ia_close-icon_2PTPP','_bW9ia_clear-btn_jWGqR','border:1px','border-radius','width:','height:','position:','margin:','padding:','outline-color','box-shadow'):
     assert bad not in modal,bad
 assert ':is(.a-sheet-web,.a-sheet-content-container){background:#000!important;background-color:#000!important;}' in modal

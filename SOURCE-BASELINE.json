@@ -1,7 +1,6 @@
 {
-  "version": "7.533~web-theme-parse-regression-repair",
-  "direct_parent": "7.532~interests-historical-regression-restore",
-  "visual_baseline": "v7.529 Interests main menu remained WebKit-themed before the malformed v7.530 ADNewMenus payload",
-  "root_cause": "Malformed CSS escape content:\\22EE reconstructed as invalid JavaScript escape inside the ADNewMenus template literal, causing the concatenated WebKit user script to fail parsing.",
-  "scope": "Repair runtime parsing only while preserving the requested Interests plus/heart/rating/modal/keyboard fixes and all prior AmazonDark theming owners."
+  "version": "7.535~interests-modal-oled-paint",
+  "direct_parent": "7.534~interests-modal-stock-geometry-keyboard-fix",
+  "base_commit": "597e6efb",
+  "scope": "Probe-backed Interests modal pseudo fade, decorative glows, Update fill/border, duplicate focus outline and dark input color scheme. Native keyboard hooks and probes preserved."
 }

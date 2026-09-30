@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.534-interests-modal-stock-geometry-keyboard-fix"
+#define AD_VERSION "v7.535-interests-modal-oled-paint"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
