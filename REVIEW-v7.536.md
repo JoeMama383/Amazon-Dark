@@ -1,0 +1,5 @@
+# v7.536 review
+
+The v7.535 transition probe does not expose the remote keyboard process's individual keycap colors, but it does capture the relevant host-side transition. At the initial keyboard presentation and again near the end/recreation, `UIInputSetHostView` and `_UIRemoteKeyboardPlaceholderView` remain `[0,0,0,1]`, with `AmazonDarkOLEDBacking7130` also black. Therefore the observed later white-key state is not a floor regression; the remote keyboard is selecting a light keycap skin while the Amazon-side host remains OLED.
+
+v7.535 only forced `keyboardAppearance` when WebKit handed us its cached text-input-traits object. A later WebKit write to that same object's `setKeyboardAppearance:` could undo the value after the initial correct presentation. v7.536 installs a one-time implementation guard on the exact concrete traits class obtained from `WKContentView`; any later appearance write on that class is forwarded to the original setter with `UIKeyboardAppearanceDark`. This is event-driven and exact-owner: no timers, observers, keyboard hierarchy scans, or modal geometry changes.

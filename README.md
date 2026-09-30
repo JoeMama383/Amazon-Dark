@@ -1,11 +1,3 @@
-# v7.535 — Interests modal OLED paint
+# v7.536 — Interests keyboard trait rewrite guard
 
-Removes the captured modal fade/glows, keeps one authored blue input border, makes Update OLED with its existing border painted gray, and declares dark input color scheme. Stock layout and probe traversal remain unchanged. See REVIEW-v7.535.md and COMMANDS.md.
-
-## v7.534 — WebKit theme parse regression repair
-
-Direct parent: v7.532.
-
-v7.530 introduced a malformed JavaScript escape in `ADNewMenus7482.js.inc` while drawing the Interests contextual-menu ellipsis. The reconstructed payload contained `content:'\22EE'` inside a JavaScript template literal; Node/WebKit reject that escape at parse time. Because `ADNewMenusJS7482()` is appended to the main WebKit theme script, this prevented the complete user script from parsing and caused otherwise unrelated web surfaces to fall back to stock/light rendering.
-
-v7.534 replaces the malformed escape with a literal vertical-ellipsis glyph and retains the intended v7.529/v7.530 Interests fixes: OLED prompt/menu surfaces, white plus, white filled heart, white rating text, OLED Update your Interest sheet, white header/X, and dark keyboard traits. It also adds an executable-payload parse regression.
+Direct parent: v7.535. The supplied transition capture shows the Amazon-side keyboard host and remote placeholder remain OLED black through the later keyboard recreation, so the remaining failure is remote keycap appearance rather than keyboard-floor paint. v7.536 keeps all v7.535 modal paint/geometry unchanged and guards the exact concrete WebKit text-input-traits class discovered from `WKContentView`, clamping later `setKeyboardAppearance:` rewrites to dark. No polling, recurring traversal, or geometry changes.

@@ -1,6 +1,6 @@
 {
-  "version": "7.535~interests-modal-oled-paint",
-  "direct_parent": "7.534~interests-modal-stock-geometry-keyboard-fix",
-  "base_commit": "597e6efb",
-  "scope": "Probe-backed Interests modal pseudo fade, decorative glows, Update fill/border, duplicate focus outline and dark input color scheme. Native keyboard hooks and probes preserved."
+  "version": "7.536~interests-keyboard-trait-rewrite-guard",
+  "baseline": "v7.535",
+  "focus": "Keep the v7.535 Interests modal paint unchanged while preventing WebKit from rewriting its cached input-traits keyboard appearance back to light after first presentation.",
+  "evidence": ["AmazonDark-v7.535-transition-probe-20260930-124635-43094.tar"]
 }

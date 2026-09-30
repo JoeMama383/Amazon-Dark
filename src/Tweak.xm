@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.535-interests-modal-oled-paint"
+#define AD_VERSION "v7.536-interests-keyboard-trait-rewrite-guard"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2729,14 +2729,24 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 
 static void ADPrepareSearchKeyboard7120(UIView *v);
 
-// WebKit cached input traits must be dark before remote keycap selection.
+static char kADWebTraitsAppearance7536;
+static void ADWebTraitsSetAppearance7536(id o,SEL s,NSInteger a){
+    NSValue *v=(NSValue *)objc_getAssociatedObject((id)object_getClass(o),&kADWebTraitsAppearance7536);
+    IMP p=v?(IMP)[v pointerValue]:NULL;
+    if(p)((void(*)(id,SEL,NSInteger))p)(o,s,(NSInteger)UIKeyboardAppearanceDark);
+}
+static void ADGuardWebTraitsAppearance7536(id o){
+    if(!gP.enabled||!o)return;
+    @try {
+        Class c=object_getClass(o); SEL s=@selector(setKeyboardAppearance:); Method m=c?class_getInstanceMethod(c,s):NULL; if(!m)return;
+        IMP p=class_getMethodImplementation(c,s); if(p==(IMP)ADWebTraitsSetAppearance7536)return;
+        objc_setAssociatedObject((id)c,&kADWebTraitsAppearance7536,[NSValue valueWithPointer:p],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        class_replaceMethod(c,s,(IMP)ADWebTraitsSetAppearance7536,method_getTypeEncoding(m));
+    } @catch(...) {}
+}
 static id ADDarkWebInputTraits7512(id traits){
     if(!gP.enabled||!traits)return traits;
-    @try {
-        SEL setAppearance=@selector(setKeyboardAppearance:);
-        if([traits respondsToSelector:setAppearance])
-            ((void(*)(id,SEL,NSInteger))objc_msgSend)(traits,setAppearance,(NSInteger)UIKeyboardAppearanceDark);
-    } @catch(...) {}
+    @try { ADGuardWebTraitsAppearance7536(traits); SEL s=@selector(setKeyboardAppearance:); if([traits respondsToSelector:s])((void(*)(id,SEL,NSInteger))objc_msgSend)(traits,s,(NSInteger)UIKeyboardAppearanceDark); } @catch(...) {}
     return traits;
 }
 
@@ -5108,7 +5118,6 @@ static void ADTintSearchDeliveryGlyph7139(UIImageView *iv){
     } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
-// Native responders request the shared dark-keyboard trait.
 static void ADPrepareSearchKeyboard7120(UIView *v){
     if(!gP.enabled||!v)return;
     @try {
@@ -5118,13 +5127,9 @@ static void ADPrepareSearchKeyboard7120(UIView *v){
     } @catch(...) {}
 }
 
-// OledKeyboard-derived floor/dock ownership remains process-local.
 static void ADSetKeyboardFloor7126(UIView *view){
     if(!gP.enabled||!view)return;
     @try {
-        // Keep the actual keyboard hierarchy in dark appearance even though Amazon's
-        // application trait is light.  This complements keyboardAppearance=Dark on
-        // the responder and makes the existing v7.126 floor/dock owner universal.
         if(@available(iOS 13.0,*))view.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;
         ADSetViewBackground7226(view,ADOLED(),YES);
     } @catch(...) {}
@@ -5150,7 +5155,6 @@ static void ADSetKeyboardFloor7126(UIView *view){
 }
 %end
 
-// v7.513: probe-backed optical alignment for the shared keyboard dictation glyph.
 #include "ADKeyboardDockGeometry7513.inc"
 
 %hook UIKeyboardDockView
@@ -9764,9 +9768,6 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 }
 %end
 
-// v7.401 r5: the visible card/input field plate is owned by RCTSinglelineTextInputView
-// inside the exact payment sheet wrappers. Keep the field interior on the standard control fill
-// even when React rewrites its background after the wrapper has been themed.
 %hook RCTSinglelineTextInputView
 - (void)didMoveToWindow {
     %orig;
@@ -9803,8 +9804,6 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 }
 %end
 
-// v7.243: React Native may override UITextField lifecycle methods on RCTUITextField.
-// Own that exact class too so the universal OLED request cannot be bypassed by RN.
 %hook RCTUITextField
 - (BOOL)becomeFirstResponder {
     ADPrepareSearchKeyboard7120((UIView *)self);
