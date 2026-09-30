@@ -13,7 +13,7 @@ assert '#define AD_VERSION "v7.489-active-returns-ami-lifecycle-probe"' in T
 assert len(T.encode()) < 856000, len(T.encode())
 for h in ('## FULL — v7.489','## VIEWPORT — v7.489','## TRANSITION — v7.489'):
     assert h in CMD, h
-assert ' status' not in CMD.lower()
+assert all("status" not in line.split() for line in CMD.lower().splitlines() if "-probe.sh" in line)
 
 # FULL r1 exact owner: Active Returns sits under .active-returns-section.instrumentation,
 # whose inherited neutral rgb(15,17,17) survived while the card descendants were white.

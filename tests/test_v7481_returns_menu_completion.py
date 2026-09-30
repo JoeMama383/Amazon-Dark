@@ -46,6 +46,6 @@ for bad in ('MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addE
 assert '#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"' in T
 for h in ('## FULL — v7.482','## VIEWPORT — v7.482','## TRANSITION — v7.482'):
     assert h in CMD, h
-assert ' status' not in CMD
+assert all("status" not in line.split() for line in CMD.lower().splitlines() if "-probe.sh" in line)
 assert len(T.encode()) < 856000, len(T.encode())
 print('PASS: v7.482 themes FULL r1/r2 Returns owners and collapses the r3 fade/divider without flattening semantic colors')

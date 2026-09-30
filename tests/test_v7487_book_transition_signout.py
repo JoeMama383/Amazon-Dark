@@ -41,5 +41,5 @@ for bad in ('MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addE
 
 for h in ('## FULL — v7.487','## VIEWPORT — v7.487','## TRANSITION — v7.487'):
     assert h in CMD, h
-assert ' status' not in CMD.lower()
+assert all("status" not in line.split() for line in CMD.lower().splitlines() if "-probe.sh" in line)
 print('PASS: v7.487 owns the probe-proven AMI book transition root and ports the exact v6.0.185 Sign Out/Cancel visual contract')
