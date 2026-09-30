@@ -1,7 +1,6 @@
 {
-  "version": "7.523~returns-left-corner-rehydration",
-  "direct_parent": "7.522~returns-label-centering",
-  "parent_commit": "device-installed-v7.522",
-  "scope": "Clear exact 60pt left paint plane that occludes Returns rounded corners after rehydration; preserve v7.522 label centering and authored card geometry",
-  "device_validation": "v7.522 r2 proves the exact left paint-plane occluder and a complete seven-step Person FULL sweep. v7.523 device confirmation pending."
+  "version": "7.524~returns-thumbnail-render-geometry-revert",
+  "baseline": "v7.523",
+  "focus": "Keep the Returns left thumbnail lane rendered/tamed while preserving the v7.523 left-corner border fix and reverting the text recenter whenever the real thumbnail slot is present.",
+  "device_validation": "v7.523 FULL r1 proves the left lane contains a real 48x52 thumbnail raster inside the reserved Returns thumbnail slot. v7.524 device confirmation pending."
 }

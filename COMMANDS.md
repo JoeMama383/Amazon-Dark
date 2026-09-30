@@ -1,56 +1,43 @@
-# AmazonDark v7.523 commands
+# AmazonDark v7.524 commands
 
-## Push
+Save `AmazonDark-v7.524-returns-thumbnail-render-geometry-revert-source.zip` on the phone first.
 
-Save `AmazonDark-v7.523-returns-left-corner-rehydration-source.zip` on the phone first. This command finds the downloaded archive; phone validation permits missing Python, while GitHub CI remains strict.
-
+## Push source to GitHub
 ```sh
-cd /var/mobile/Amazon-Dark-phone &&
-ZIP=$(find /var/mobile -type f -name 'AmazonDark-v7.523-returns-left-corner-rehydration-source*.zip' 2>/dev/null | head -n 1) &&
-[ -n "$ZIP" ] &&
-STAGE=$(mktemp -d /var/mobile/ad7523.XXXXXX) &&
-unzip -q "$ZIP" -d "$STAGE" &&
-grep -qx 'Version: 7.523~returns-left-corner-rehydration' "$STAGE/layout/DEBIAN/control" &&
-cp -a "$STAGE/." . &&
-chmod 755 layout/DEBIAN/postinst &&
-AD_STRICT_VALIDATE=0 sh scripts/validate.sh &&
-git add -A &&
-git commit -m "v7.523: keep Returns left corners through rehydration" &&
-git push origin main
+ZIP=$(find /var/mobile -type f -name 'AmazonDark-v7.524-returns-thumbnail-render-geometry-revert-source*.zip' 2>/dev/null | head -n 1) && \
+STAGE=$(mktemp -d) && unzip -q "$ZIP" -d "$STAGE" && cd "$STAGE" && \
+grep -qx 'Version: 7.524~returns-thumbnail-render-geometry-revert' layout/DEBIAN/control && \
+rm -rf .git && git init && git remote add origin git@github.com:JoeMama383/Amazon-Dark.git && \
+git checkout -b main && git add . && git commit -m "v7.524: keep Returns thumbnail lane rendered and preserve authored geometry" && \
+git branch -M main && git push -uf origin main
 ```
 
-## FULL — v7.523
-
-Take one screenshot on the target Amazon screen. Keep Amazon open until the walk finishes, then switch to NewTerm and export:
-
+## Validate locally
 ```sh
-sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export full
+sh scripts/validate.sh
 ```
 
-## VIEWPORT — v7.523 ARM
-
+## FULL — v7.524
 ```sh
-sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh arm
+sh scripts/ui-probe.sh full
 ```
 
-After arming, open Amazon at the target scene, then switch back to NewTerm.
-
-## VIEWPORT — v7.523 EXPORT
-
+## VIEWPORT — v7.524 ARM
 ```sh
-sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export viewport
+sh scripts/ui-probe.sh viewport-arm
 ```
 
-## TRANSITION — v7.523 ARM
-
+## VIEWPORT — v7.524 EXPORT
 ```sh
-sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh arm transition
+sh scripts/ui-probe.sh viewport-export
 ```
 
-After arming, reproduce the transition in Amazon, then return to NewTerm.
-
-## TRANSITION — v7.523 EXPORT
-
+## TRANSITION — v7.524 ARM
 ```sh
-sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh export
+sh scripts/skeleton-probe.sh arm
+```
+
+## TRANSITION — v7.524 EXPORT
+```sh
+sh scripts/skeleton-probe.sh export
 ```

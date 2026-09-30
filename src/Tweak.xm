@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.523-returns-left-corner-rehydration"
+#define AD_VERSION "v7.524-returns-thumbnail-render-geometry-revert"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -6540,6 +6540,10 @@ static void ADPersonOwnView7206(UIView *v){
             ADPersonOwnReturnsLeftCornerOccluder7523(v);
             return;
         }
+        if(ADPersonReturnsThumbnailShell7524(v)){
+            ADPersonOwnReturnsThumbnailShell7524(v);
+            return;
+        }
         BOOL returnsCard=ADPersonReturnsCard7514(v);
         if(returnsCard||objc_getAssociatedObject(v,kADPersonReturnsOutline7514)){ ADPersonOwnReturnsCard7514(v); if(returnsCard)return; }
         if(!ADPersonNeedsVisualOwnership7232(v))return;
@@ -7045,10 +7049,7 @@ static BOOL ADPersonTopRowText7239(UIView *v){
     } @catch(...) { return NO; }
 }
 
-// v7.250: the v7.238 Person probe identifies each top oval as an exact RCTView
-// (bac_yo / bac_ya / bac_wl / bac_aiwl) with one direct 15pt RCTTextView child.
-// That text is intentionally forced to the normal light foreground instead of the
-// generic 15pt Person-secondary gray. Border/floor ownership remains untouched.
+// v7.250: exact top-menu pill text owner.
 static BOOL ADPersonTopMenuPillText7250(UIView *v){
     if(!v||!ADClassNameIs7183(v,"RCTTextView"))return NO;
     @try {
@@ -7061,10 +7062,7 @@ static void ADPersonTopMenuPillWhiteStorage7250(NSTextStorage *ts){
     @try { [ts addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,ts.length)]; } @catch(...) {}
 }
 
-// v7.265: Your Orders refresh/retry remounts the probe-proven card header as
-// RCTTextView#ImageWithTextViewTextComponent under yo_btn/YoAsinCarouselItem*.
-// Assignment-time Person recoloring can occur before the leaf has final Person ancestry,
-// so reassert this exact card-header lane at draw time. No generic Person text scan.
+// v7.265: exact Your Orders card-header text leaf.
 static BOOL ADPersonOrderCardHeaderText7265(UIView *v){
     if(!v||!v.window||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTTextView"))return NO;
     @try {
@@ -9103,8 +9101,9 @@ static void ADOwnReactView7226(UIView *v){
     BOOL reviewPlate=surface==ADReactSurfacePerson7226&&ADPersonReviewBorderPlate7231(v);
     BOOL interestPlate=surface==ADReactSurfacePerson7226&&ADPersonInterestBorderPlate7235(v);
     BOOL buyOccluder=surface==ADReactSurfacePerson7226&&(ADPersonBuyAgainOccluder7235(v)||ADPersonReturnsOccluder7521(v)||ADPersonReturnsLeftCornerOccluder7523(v));
+    BOOL returnsThumbShell=surface==ADReactSurfacePerson7226&&ADPersonReturnsThumbnailShell7524(v);
     BOOL subscribeOccluder=surface==ADReactSurfacePerson7226&&ADPersonSubscribeOccluder7237(v);
-    if(interestPlate||buyOccluder||subscribeOccluder){
+    if(interestPlate||buyOccluder||returnsThumbShell||subscribeOccluder){
         UIColor *clear=[UIColor clearColor];
         gADPaintWriteDepth7226++;
         @try {
@@ -9113,6 +9112,7 @@ static void ADOwnReactView7226(UIView *v){
         }
         @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
         if(interestPlate)ADPersonOwnInterestBorderPlate7235(v);
+        else if(returnsThumbShell)ADPersonOwnReturnsThumbnailShell7524(v);
         return;
     }
     if(reviewPlate){
@@ -11663,9 +11663,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 }
 %end
 
-// v7.235: React's actual Person raster leaf remains RCTUIImageViewAnimated.
-// Extend v7.234's cached final-paint owner only to the additional probe-proven
-// Subscribe/Previously-Watched rasters and the Highlights blue-circle arrow.
+// v7.235: exact Person final-raster owner cache.
 static const void *kADPersonFinalRasterKind7235=&kADPersonFinalRasterKind7235;
 static int ADPersonFinalRasterKind7235(UIImageView *iv,BOOL discover){
     if(!iv||!gP.enabled||!iv.window||!ADInPersonTab7206((UIView *)iv))return 0;
@@ -11684,6 +11682,7 @@ static int ADPersonFinalRasterKind7235(UIImageView *iv,BOOL discover){
         else if(ADPersonNotificationBadge7237(iv))kind=8;
         else if(ADPersonCountryFlag7237(iv))kind=9;
         else if(ADPersonOfflineErrorRaster7299(iv))kind=10;
+        else if(ADPersonReturnsThumbnailLeaf7524(iv))kind=11;
         if(kind>0)objc_setAssociatedObject(iv,kADPersonFinalRasterKind7235,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         else objc_setAssociatedObject(iv,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         return kind;

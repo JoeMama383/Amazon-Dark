@@ -1,4 +1,4 @@
-// v7.523: preserve Amazon's authored Returns-card geometry and keep the left curved edge unobscured after remounts.
+// v7.524: preserve Amazon's authored Returns-card geometry, keep the left curved edge unobscured after remounts, and keep the Returns thumbnail lane rendered/tamed without recentering the text.
 //
 // v7.514/v7.516 forced React border widths on every near-card-sized nested RCTView;
 // v7.518 then zeroed those widths and replaced them with a CAShapeLayer contour. Both
@@ -60,6 +60,70 @@ static void ADPersonOwnReturnsLeftCornerOccluder7523(UIView *v){
     ADSetViewBackground7226(v,[UIColor clearColor],YES);
     [v setNeedsDisplay];[v.layer setNeedsDisplay];
 }
+// The current FULL r1 proves the left lane is real content, not dead padding: the
+// card contains a 48x52 RCTUIImageViewAnimated thumbnail inside a 60x67 reserved
+// slot. Keep that lane dark/transparent while the raster loads and treat the raster
+// itself as authored product media. Because the lane is real, do not recenter the
+// text wrapper across the full 292pt card width.
+static BOOL ADPersonReturnsThumbnailShellGeometry7524(CGRect f,CGSize b){
+    return f.origin.x>=0&&f.origin.x<=16.0&&f.origin.y>=0&&f.origin.y<=12.5&&
+        f.size.width>=40.0&&f.size.width<=72.0&&f.size.height>=48.0&&f.size.height<=68.5&&
+        CGRectGetMaxX(f)<=84.0&&CGRectGetMaxY(f)<=b.height+2.5;
+}
+static UIView *ADPersonReturnsCard7524(UIView *v){
+    if(!v)return nil;
+    @try {
+        for(UIView *n=v;n;n=n.superview){
+            if(ADPersonReturnsIdentity7521(n)&&[n.accessibilityIdentifier hasPrefix:@"yr_item_"])return n;
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADPersonReturnsThumbnailShell7524(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView")||!ADInPersonTab7206(v))return NO;
+    @try {
+        UIView *card=ADPersonReturnsCard7524(v);
+        if(!card)return NO;
+        CGRect f=[v convertRect:v.bounds toView:card];
+        return ADPersonReturnsThumbnailShellGeometry7524(f,card.bounds.size);
+    } @catch(...) { return NO; }
+}
+static void ADPersonOwnReturnsThumbnailShell7524(UIView *v){
+    if(!(gP.enabled&&ADPersonReturnsThumbnailShell7524(v)))return;
+    ADSetViewBackground7226(v,[UIColor clearColor],YES);
+    v.layer.backgroundColor=[UIColor clearColor].CGColor;
+    [v setNeedsDisplay];[v.layer setNeedsDisplay];
+}
+static BOOL ADPersonReturnsThumbnailLeaf7524(UIImageView *iv){
+    if(!iv||!iv.window||!iv.image||!ADClassNameIs7183(iv,"RCTUIImageViewAnimated")||!ADInPersonTab7206((UIView *)iv))return NO;
+    @try {
+        UIView *card=ADPersonReturnsCard7524(iv);
+        if(!card)return NO;
+        CGRect f=[iv convertRect:iv.bounds toView:card];
+        return f.origin.x>=4.0&&f.origin.x<=18.0&&f.origin.y>=4.0&&f.origin.y<=16.0&&
+            f.size.width>=40.0&&f.size.width<=56.0&&f.size.height>=44.0&&f.size.height<=60.0&&
+            CGRectGetMaxX(f)<=80.0&&CGRectGetMaxY(f)<=card.bounds.size.height;
+    } @catch(...) { return NO; }
+}
+static BOOL ADPersonReturnsCardHasThumbnail7524(UIView *card){
+    if(!card)return NO;
+    @try {
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:card.subviews];
+        NSUInteger index=0; int seen=0;
+        while(index<q.count&&seen++<24){
+            UIView *x=q[index++];
+            if([x isKindOfClass:[UIImageView class]]&&ADPersonReturnsThumbnailLeaf7524((UIImageView *)x))return YES;
+            if(ADClassNameIs7183(x,"RCTView")){
+                CGRect f=[x convertRect:x.bounds toView:card];
+                if(ADPersonReturnsThumbnailShellGeometry7524(f,card.bounds.size))return YES;
+            }
+            if(seen<12)for(UIView *c in x.subviews)if(q.count<24)[q addObject:c];
+        }
+    } @catch(...) {}
+    return NO;
+}
+
 static BOOL ADPersonReturnsUnder7514(UIView *v){
     if(!v)return NO;
     @try { for(UIView *n=v;n;n=n.superview){ if(ADPersonReturnsIdentity7521(n)||objc_getAssociatedObject(n,kADPersonReturnsSection7514))return YES; if([n.accessibilityIdentifier isEqualToString:@"me"])break; } } @catch(...) {}
@@ -103,6 +167,7 @@ static void ADPersonPrimeReturns7514(UIView *root){
             UIView *v=q.lastObject;[q removeLastObject];
             if(ADClassNameIs7183(v,"RCTView")){
                 ADPersonOwnReturnsLeftCornerOccluder7523(v);
+                ADPersonOwnReturnsThumbnailShell7524(v);
                 ADPersonOwnReturnsCard7514(v);
             }
             const char *cn=object_getClassName(v);
@@ -123,6 +188,7 @@ static void ADPersonCenterReturnsText7522(UIView *v){
         if(![wrap.accessibilityIdentifier isEqualToString:@"ImageWithTextViewParentComponent"])return;
         UIView *card=wrap.superview.superview.superview;
         if(!ADPersonReturnsIdentity7521(card)||![card.accessibilityIdentifier hasPrefix:@"yr_item_"])return;
+        if(ADPersonReturnsCardHasThumbnail7524(card))return;
         UIView *text=wrap.subviews.firstObject;
         if(![text.accessibilityIdentifier isEqualToString:@"ImageWithTextViewTextComponent"])return;
         NSTextStorage *ts=ADPersonTextStorage7206(text);

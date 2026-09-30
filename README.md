@@ -1,13 +1,7 @@
-## v7.523 — Returns left-corner rehydration
+## v7.524 — Returns thumbnail render + geometry revert
 
-The v7.522 r2 capture identifies the remaining left-corner failure precisely: `yr_item_0` still owns Amazon's authored 292×69.3, radius-12, 1-point border, but a separate opaque 60×67.3 paint-only child fills the reserved thumbnail column at card-local approximately (1,1). That child sits above the parent border raster and covers only the top-left and bottom-left arcs after submenu/back rehydration. v7.523 clears only that exact nested paint plane during mount, layout, section priming, and React background rewrites. It does not change card width, height, radius, edge widths, carousel spacing, or the v7.522 label-centering correction.
+The latest FULL r1 confirms the white square is not supposed to be a dead placeholder. The left lane in `yr_item_0` is a real Returns thumbnail slot: the probe shows a 48×52 `RCTUIImageViewAnimated` thumbnail inside the reserved 60×67 lane. So this build does three things only: it keeps the left-corner border fix from v7.523, clears any exact left thumbnail-shell background planes back to transparent/black so a white box cannot survive rehydration, and classifies the Returns thumbnail raster as authored product media so it stays rendered and receives the normal tame path.
 
-The FULL/VIEWPORT/TRANSITION probe machinery is unchanged apart from the v7.523 identity bump. See `REVIEW-v7.523.md` and `COMMANDS.md`.
+Because that left lane is real content, the v7.522 text recenter is now suppressed whenever the thumbnail slot is present, so Amazon's original text geometry is preserved.
 
-## v7.522 — Returns label centering
-
-Centers the existing Returns text wrapper from rendered glyph bounds within its authored card. Reapplies after React layout and text commits. Keeps card geometry and existing probes.
-
-## v7.521 — Returns corners and probe scheduling
-
-The v7.520 r5 Person capture completed seven scroll checkpoints, reached the bottom, and restored offset zero. v7.521 cleared the near-full square inset content plane that was covering the card's authored rounded border, while retaining Amazon's original geometry.
+The FULL / VIEWPORT / TRANSITION probe workflows are unchanged except for the v7.524 identity bump.
