@@ -1,25 +1,25 @@
-# AmazonDark v7.525 commands
+# AmazonDark v7.526 commands
 
 ## Push
 
-Save `AmazonDark-v7.525-returns-thumbnail-handoff-regression-repair-source.zip` on the phone first. This command finds the downloaded archive; phone validation permits missing Python, while GitHub CI remains strict.
+Save `AmazonDark-v7.526-returns-thumbnail-taming-fix-source.zip` on the phone first. This command finds the downloaded archive; phone validation permits missing Python, while GitHub CI remains strict.
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone &&
-ZIP=$(find /var/mobile -type f -name 'AmazonDark-v7.525-returns-thumbnail-handoff-regression-repair-source*.zip' 2>/dev/null | head -n 1) &&
+ZIP=$(find /var/mobile -type f -name 'AmazonDark-v7.526-returns-thumbnail-taming-fix-source*.zip' 2>/dev/null | head -n 1) &&
 [ -n "$ZIP" ] &&
-STAGE=$(mktemp -d /var/mobile/ad7525.XXXXXX) &&
+STAGE=$(mktemp -d /var/mobile/ad7526.XXXXXX) &&
 unzip -q "$ZIP" -d "$STAGE" &&
-grep -qx 'Version: 7.525~returns-thumbnail-handoff-regression-repair' "$STAGE/layout/DEBIAN/control" &&
+grep -qx 'Version: 7.526~returns-thumbnail-taming-fix' "$STAGE/layout/DEBIAN/control" &&
 cp -a "$STAGE/." . &&
 chmod 755 layout/DEBIAN/postinst &&
 AD_STRICT_VALIDATE=0 sh scripts/validate.sh &&
 git add -A &&
-git commit -m "v7.525: restore AmazonDark handoff contract" &&
+git commit -m "v7.526: let Returns thumbnail accept taming" &&
 git push origin main
 ```
 
-## FULL — v7.525
+## FULL — v7.526
 
 Take one screenshot on the target Amazon screen. Keep Amazon open until the walk finishes, then switch to NewTerm and export:
 
@@ -27,7 +27,7 @@ Take one screenshot on the target Amazon screen. Keep Amazon open until the walk
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export full
 ```
 
-## VIEWPORT — v7.525 ARM
+## VIEWPORT — v7.526 ARM
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh arm
@@ -35,13 +35,13 @@ sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh arm
 
 After arming, open Amazon at the target scene, then switch back to NewTerm.
 
-## VIEWPORT — v7.525 EXPORT
+## VIEWPORT — v7.526 EXPORT
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export viewport
 ```
 
-## TRANSITION — v7.525 ARM
+## TRANSITION — v7.526 ARM
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh arm transition
@@ -49,7 +49,7 @@ sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh arm transition
 
 After arming, reproduce the transition in Amazon, then return to NewTerm.
 
-## TRANSITION — v7.525 EXPORT
+## TRANSITION — v7.526 EXPORT
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh export

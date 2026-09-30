@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.525-returns-thumbnail-handoff-regression-repair"
+#define AD_VERSION "v7.526-returns-thumbnail-taming-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -11227,7 +11227,7 @@ static BOOL ADNativeMediaBlockedCached7146(UIImageView *iv){
     BOOL personForced=person&&(ADPersonExplicitProductMedia7206(iv)||ADPersonForcedMedia7212(iv)||
                                ADPersonForcedMedia7218(iv)||ADPersonReviewCompactImage7229(iv)||
                                ADPersonCustomerServiceLeadingImage7229(iv)||ADPersonSubscribeImage7235(iv)||
-                               ADPersonPreviouslyWatchedImage7235(iv));
+                               ADPersonPreviouslyWatchedImage7235(iv)||ADPersonReturnsThumbnailLeaf7524(iv));
     if((w<52||h<52)&&!personForced)return YES; // exact Person section media may be smaller than the generic native threshold.
     @try {
         if(personControl){

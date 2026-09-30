@@ -1,0 +1,67 @@
+{
+  "source": "AmazonDark-v7.409 transition bundle 20260911-193344",
+  "microphone_mount_sequence": [
+    {
+      "tick": 1670,
+      "id": "allowTitle"
+    },
+    {
+      "tick": 1671,
+      "id": "title"
+    },
+    {
+      "tick": 1672,
+      "id": "actionButton"
+    }
+  ],
+  "location_transition": {
+    "outer_shell": {
+      "width": 430.0,
+      "first_height": 10.7,
+      "final_height": 375.7,
+      "first_bg": "white",
+      "settled_bg": "black",
+      "clips": true
+    },
+    "inset_scroller": {
+      "x": 18.0,
+      "width": 394.0,
+      "height": 375.7,
+      "bg": "black"
+    },
+    "top_rail": {
+      "width": 430.0,
+      "height": 18.0,
+      "first_bg": "white",
+      "settled_bg": "black"
+    }
+  },
+  "camera_mount_sequence": [
+    {
+      "tick": 193,
+      "id": "sheet-view",
+      "epoch": 1789164836791.8901
+    },
+    {
+      "tick": 195,
+      "id": "inflight-prompt-title",
+      "epoch": 1789164836809.345
+    },
+    {
+      "tick": 196,
+      "id": "inflight-prompt-description",
+      "epoch": 1789164836825.856
+    },
+    {
+      "tick": 206,
+      "id": "inflight-prompt-dismiss-button",
+      "epoch": 1789164836943.449
+    },
+    {
+      "tick": 206,
+      "id": "inflight-prompt-allow-button",
+      "epoch": 1789164836943.449
+    }
+  ],
+  "camera_source": "AmazonDark-v7.406-skeleton-1789164833529-15879-transition.jsonl from supplied 20260911-184303 bundle"
+}

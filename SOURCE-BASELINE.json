@@ -1,6 +1,6 @@
 {
-  "version": "7.525~returns-thumbnail-handoff-regression-repair",
-  "direct_parent": "7.524~returns-thumbnail-render-geometry-revert",
-  "scope": "Preserve the v7.524 Returns thumbnail/geometry implementation and restore the historically proven AmazonDark push/probe handoff contract.",
-  "device_validation": "v7.523 FULL r1 proves the real Returns thumbnail lane. v7.525 contains no new visual-owner change beyond v7.524; device confirmation remains required for the thumbnail render state."
+  "version": "7.526~returns-thumbnail-taming-fix",
+  "baseline": "v7.525",
+  "focus": "Keep the Returns thumbnail present and bordered correctly while allowing the exact Returns thumbnail media leaf to bypass the generic native 52pt block so normal TWB taming applies.",
+  "device_validation": "Pending device confirmation: Your Returns thumbnail should stay rendered and now accept normal image taming."
 }
