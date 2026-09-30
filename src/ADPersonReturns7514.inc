@@ -1,4 +1,4 @@
-// v7.519: preserve Amazon's authored Returns-card geometry.
+// v7.520: preserve Amazon's authored Returns-card geometry.
 //
 // v7.514/v7.516 forced React border widths on every near-card-sized nested RCTView;
 // v7.518 then zeroed those widths and replaced them with a CAShapeLayer contour. Both

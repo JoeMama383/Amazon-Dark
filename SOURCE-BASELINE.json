@@ -1,7 +1,7 @@
 {
-  "version": "7.519~person-deepscan-stock-returns-border",
-  "direct_parent": "7.518~person-probe-foreground-repair",
-  "parent_commit": "device/library v7.518 handoff",
-  "scope": "Restore exact Person FULL deep-scan transport, restore pre-v7.518 VIEWPORT boundary semantics, preserve authored Returns border geometry and reassert border paint only",
-  "device_validation": "Pending current v7.519 Person FULL + VIEWPORT evidence"
+  "version": "7.520~full-probe-route-contract-menu-deepscan",
+  "direct_parent": "7.519~person-deepscan-stock-returns-border",
+  "parent_commit": "device/library v7.519 handoff",
+  "scope": "Restore legacy FULL route-policy contract; add exact Hamburger RCTScrollView#scrolled-hamburger -> RCTCustomScrollView deep scan; retain Person deep scan and authored Returns border geometry",
+  "device_validation": "Pending current v7.520 Person + Hamburger FULL evidence and VIEWPORT evidence"
 }

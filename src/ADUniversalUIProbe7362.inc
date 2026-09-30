@@ -1,4 +1,4 @@
-// v7.519 FULL verifies PDP screenshot-share unlock, then runs the automatic DOM walker.
+// v7.520 FULL verifies PDP screenshot-share unlock, then runs the automatic DOM walker.
 // Non-PDP traversal and VIEWPORT retain their previous paths.
 // VIEWPORT coverage remains inherited.
 // Exactly two UI forensics categories remain:
@@ -215,13 +215,13 @@ static NSString *ADUIProbePath7362(BOOL viewportOnly,NSUInteger run){
         static NSDateFormatter *f=nil;static dispatch_once_t once;dispatch_once(&once,^{f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";});
         NSString *stamp=nil;@synchronized(f){f.timeZone=[NSTimeZone localTimeZone];stamp=[f stringFromDate:[NSDate date]];}
         NSString *stem=viewportOnly?@"ui-viewport-probe":@"ui-full-probe";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.519-%@-%@-r%lu.txt",stem,stamp?:@"unknown",(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.520-%@-%@-r%lu.txt",stem,stamp?:@"unknown",(unsigned long)run];
         return [ADUIDocuments7362() stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.519-ui-probe.txt"]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.520-ui-probe.txt"]; }
 }
 
 static NSString *ADUIStatePath7445(BOOL viewportOnly){
-    NSString *name=viewportOnly?@"AmazonDark-v7.519-ui-viewport.state":@"AmazonDark-v7.519-ui-full.state";
+    NSString *name=viewportOnly?@"AmazonDark-v7.520-ui-viewport.state":@"AmazonDark-v7.520-ui-full.state";
     return [ADUIDocuments7362() stringByAppendingPathComponent:name];
 }
 static void ADUIWriteState7445(BOOL viewportOnly,NSString *state,NSString *path){
@@ -617,14 +617,14 @@ static void ADUIScrollCommand7446(WKWebView *wv,NSString *command,void (^done)(N
     });
 }
 
-// v7.519 automatic FULL: streaming inventory is retained after the guarded walk.
+// v7.520 automatic FULL: streaming inventory is retained after the guarded walk.
 // Per-step evidence uses bounded
 // hit-test sampling instead of restarting a whole-document TreeWalker on every offset.
 static void ADUIScanWebViewFull7364(WKWebView *wv,NSUInteger index,NSString *path,unsigned long long cap,void (^done)(void)){
     if(!wv){if(done)done();return;}
     __block BOOL finishing=NO;__block NSString *kind=@"root";__block NSUInteger ownerStep=0,totalSteps=0,bottomStable=0,stalled=0,lastOwnerIndex=NSNotFound;__block NSInteger lastNodeCount=-1;__block CGFloat lastMax=-1,targetY=0;
     __block void (^next)(NSDictionary *)=nil;__block void (^finish)(NSString *)=nil;__block void (^startRoot)(BOOL)=nil;__block void (^startOwners)(void)=nil;__block void (^afterOwners)(void)=nil;
-    ADUIAppend7362(path,@"WEB_DOCUMENT_SWEEP v7.519 root-first lazy-load drive; final complete DOM inventory; nested-owner sweep; unseen-node catch-up; scrollLock=none\n",cap);
+    ADUIAppend7362(path,@"WEB_DOCUMENT_SWEEP v7.520 root-first lazy-load drive; final complete DOM inventory; nested-owner sweep; unseen-node catch-up; scrollLock=none\n",cap);
     void (^resetOwnerState)(void)=^{ownerStep=0;bottomStable=0;stalled=0;lastOwnerIndex=NSNotFound;lastNodeCount=-1;lastMax=-1;targetY=0;};
     void (^restoreAndFinish)(NSString *)=^(NSString *reason){
         ADUIScrollCommand7446(wv,@"'restore'",^(NSDictionary *restored){
@@ -700,7 +700,7 @@ static void ADUIScanWebViewFull7364(WKWebView *wv,NSUInteger index,NSString *pat
     startRoot(NO);
 }
 
-// v7.519: PDP detection selects the product-safe manual/read-only FULL path.
+// v7.520: PDP detection selects the product-safe manual/read-only FULL path.
 // Non-PDP Web documents continue to use the isolated guarded automatic walk.
 static BOOL ADUIURLIsPDP7451(WKWebView *wv){
     if(!wv)return NO;@try{NSString *p=wv.URL.path?:@"";return [p isEqualToString:@"/dp"]||[p hasPrefix:@"/dp/"]||[p isEqualToString:@"/gp/product"]||[p hasPrefix:@"/gp/product/"]||[p isEqualToString:@"/gp/aw/d"]||[p hasPrefix:@"/gp/aw/d/"];}@catch(...){return NO;}
@@ -797,7 +797,7 @@ static void ADUIProcessNativeCandidates7364(NSArray *candidates,NSUInteger index
     if(index>=candidates.count){if(done)done();return;}ADUIScanNativeCandidate7364(candidates[index],index,path,cap,^{ADUIProcessNativeCandidates7364(candidates,index+1,path,cap,done);});
 }
 
-// v7.519: restore the historically proven Person FULL transport instead of
+// v7.520: restore the historically proven Person FULL transport instead of
 // asking generic scroll scoring to infer the React Native owner. Amazon's Person
 // wrapper is RCTScrollView accessibilityIdentifier="me"; the actual mover is its
 // UIScrollView/RCTCustomScrollView descendant. This path is finite, trigger-only,
@@ -843,7 +843,7 @@ static void ADUIScanPersonFull7519(NSString *path,unsigned long long cap,void (^
     UIEdgeInsets initialInset=root.adjustedContentInset;
     CGFloat minY=-initialInset.top,viewport=MAX(1.0,root.bounds.size.height),stride=MAX(320.0,MIN(600.0,viewport*0.58));
     __block NSUInteger step=0,stalls=0;__block CGFloat targetY=minY,lastTarget=-CGFLOAT_MAX;__block BOOL finishing=NO;__block void (^next)(void)=nil;__block void (^finish)(NSString *)=nil;
-    ADUIAppend7362(path,[NSString stringWithFormat:@"\n===== PERSON DEDICATED FULL SWEEP v7.519 =====\nPERSON_FULL_ROUTE wrapper=%p wrapperCls=%@ scroll=%p scrollCls=%@ aid=\"%@\" originalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40 hydrationMs=340 geometry=authored-readonly\n",wrap,NSStringFromClass(wrap.class)?:@"?",root,NSStringFromClass(root.class)?:@"?",ADUISafe7362(wrap.accessibilityIdentifier),original.x,original.y,root.contentSize.width,root.contentSize.height,viewport,stride],cap);
+    ADUIAppend7362(path,[NSString stringWithFormat:@"\n===== PERSON DEDICATED FULL SWEEP v7.520 =====\nPERSON_FULL_ROUTE wrapper=%p wrapperCls=%@ scroll=%p scrollCls=%@ aid=\"%@\" originalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40 hydrationMs=340 geometry=authored-readonly\n",wrap,NSStringFromClass(wrap.class)?:@"?",root,NSStringFromClass(root.class)?:@"?",ADUISafe7362(wrap.accessibilityIdentifier),original.x,original.y,root.contentSize.width,root.contentSize.height,viewport,stride],cap);
     finish=^(NSString *reason){
         if(finishing)return;finishing=YES;
         @try {[root setContentOffset:original animated:NO];[root layoutIfNeeded];}@catch(...){}
@@ -877,6 +877,21 @@ static void ADUIScanPersonFull7519(NSString *path,unsigned long long cap,void (^
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.05*NSEC_PER_SEC)),dispatch_get_main_queue(),next);
 }
 
+
+// v7.520 exact Hamburger FULL owner: RCTScrollView#scrolled-hamburger -> RCTCustomScrollView.
+static UIView *ADUIMenuWrapper7520(void){
+ @try{for(UIWindow *w in UIApplication.sharedApplication.windows){if(!w||w.hidden||w.alpha<.01)continue;NSMutableArray<UIView*>*q=[NSMutableArray arrayWithObject:w];NSUInteger i=0,n=0;while(i<q.count&&n++<4200){UIView*v=q[i++];NSString*cn=NSStringFromClass(v.class)?:@"",*aid=v.accessibilityIdentifier?:@"";if([cn isEqualToString:@"RCTScrollView"]&&[aid isEqualToString:@"scrolled-hamburger"]&&v.window&&ADUIViewActuallyVisible7362(v))return v;if(q.count<4000)for(UIView*c in v.subviews)if(c)[q addObject:c];}}}@catch(...){}return nil;
+}
+static UIScrollView *ADUIMenuScroll7520(UIView **out){
+ UIView*w=ADUIMenuWrapper7520();if(out)*out=w;if(!w)return nil;@try{NSMutableArray<UIView*>*q=[NSMutableArray arrayWithArray:w.subviews];NSUInteger i=0,n=0;UIScrollView*f=[w isKindOfClass:UIScrollView.class]?(UIScrollView*)w:nil;CGFloat span=f?MAX(0.,f.contentSize.height-f.bounds.size.height):-1.;while(i<q.count&&n++<220){UIView*v=q[i++];if([v isKindOfClass:UIScrollView.class]){UIScrollView*sv=(UIScrollView*)v;NSString*cn=NSStringFromClass(v.class)?:@"";if([cn isEqualToString:@"RCTCustomScrollView"]||[cn rangeOfString:@"RCTCustomScroll" options:NSCaseInsensitiveSearch].location!=NSNotFound)return sv;CGFloat x=MAX(0.,sv.contentSize.height-sv.bounds.size.height);if(!f||x>span){f=sv;span=x;}}if(q.count<210)for(UIView*c in v.subviews)if(c)[q addObject:c];}return f;}@catch(...){}return nil;
+}
+static void ADUIScanMenuFull7520(NSString *path,unsigned long long cap,void (^done)(void)){
+ UIView*w=nil;UIScrollView*r=ADUIMenuScroll7520(&w);if(!r||!w){ADUIAppend7362(path,@"MENU_FULL_ROUTE unavailable exact-wrapper-or-scroll-missing\n",cap);if(done)done();return;}CGPoint orig=r.contentOffset;BOOL en=r.scrollEnabled;CGFloat min=-r.adjustedContentInset.top,vp=MAX(1.,r.bounds.size.height),stride=MAX(220.,MIN(560.,vp*.58));__block NSUInteger step=0,stalls=0;__block CGFloat target=min,last=-CGFLOAT_MAX;__block BOOL finishing=NO;__block void(^next)(void)=nil;__block void(^finish)(NSString*)=nil;
+ ADUIAppend7362(path,[NSString stringWithFormat:@"\n===== MENU DEDICATED FULL SWEEP v7.520 =====\nMENU_FULL_ROUTE wrapper=%p scroll=%p scrollCls=%@ aid=\"%@\" originalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=50 hydrationMs=300 scrollEnabled=%d\n",w,r,NSStringFromClass(r.class)?:@"?",ADUISafe7362(w.accessibilityIdentifier),orig.x,orig.y,r.contentSize.width,r.contentSize.height,vp,stride,en?1:0],cap);
+ finish=^(NSString*why){if(finishing)return;finishing=YES;@try{[r setContentOffset:orig animated:NO];[r layoutIfNeeded];}@catch(...){}ADUIAppend7362(path,[NSString stringWithFormat:@"MENU_FULL_SCAN_END reason=%@ steps=%lu restoredOffset=(%.1f,%.1f) finalContent=(%.1fx%.1f) scrollEnabledPreserved=%d/%d\n",why?:@"done",(unsigned long)step,r.contentOffset.x,r.contentOffset.y,r.contentSize.width,r.contentSize.height,en?1:0,r.scrollEnabled?1:0],cap);next=nil;if(done)done();};
+ next=^{if(finishing)return;if(ADUIExpired7446()){gADUIProbePartial7446=YES;finish(@"deadline");return;}if(UIApplication.sharedApplication.applicationState!=UIApplicationStateActive||!r.window||!w.window){gADUIProbePartial7446=YES;finish(@"menu-left-foreground");return;}if(step>=50){gADUIProbePartial7446=YES;finish(@"step-cap");return;}UIEdgeInsets in=r.adjustedContentInset;CGFloat lo=-in.top,hi=MAX(lo,r.contentSize.height-r.bounds.size.height+in.bottom);target=MIN(MAX(lo,target),hi);if(step&&fabs(target-last)<.5&&fabs(target-hi)<.5){finish(@"bottom");return;}@try{[r setContentOffset:CGPointMake(orig.x,target) animated:NO];[r layoutIfNeeded];}@catch(...){}NSUInteger st=step++;CGFloat wanted=target;last=target;dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(.30*NSEC_PER_SEC)),dispatch_get_main_queue(),^{if(finishing)return;CGFloat actual=r.contentOffset.y;ADUIAppend7362(path,[NSString stringWithFormat:@"MENU_FULL_MOVE step=%lu target=%.1f actual=%.1f content=(%.1fx%.1f)\n",(unsigned long)st,wanted,actual,r.contentSize.width,r.contentSize.height],cap);if(fabs(actual-wanted)>4.)stalls++;else stalls=0;if(stalls>=3){gADUIProbePartial7446=YES;finish(@"offset-not-accepted");return;}NSString*phase=[NSString stringWithFormat:@"menu-step-%lu-target-%.0f-actual-%.0f",(unsigned long)st,wanted,actual];ADUINativeSnapshotAsync7449(w,NO,6200,4600,phase,path,cap,nil,^{UIEdgeInsets ni=r.adjustedContentInset;CGFloat nlo=-ni.top,nhi=MAX(nlo,r.contentSize.height-r.bounds.size.height+ni.bottom),settled=r.contentOffset.y;if(fabs(settled-nhi)<1.||fabs(wanted-nhi)<.5){finish(@"bottom");return;}target=MIN(nhi,MAX(nlo,wanted+stride));dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(.05*NSEC_PER_SEC)),dispatch_get_main_queue(),next);});});};dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(.04*NSEC_PER_SEC)),dispatch_get_main_queue(),next);
+}
+
 static void ADUIFinishCapture7364(BOOL viewportOnly,NSArray *webs,NSString *path,unsigned long long cap){
     void (^flush)(void)=^{
         ADUIAppend7362(path,@"\nCROSS_FRAME_FLUSH_WAIT policy=viewport-200ms/full-900ms reason=allow final child/SafeFrame message chunks to complete\n",cap);
@@ -908,7 +923,7 @@ static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){
     gADUIFailedWebs7446=[NSHashTable weakObjectsHashTable];
     NSUInteger run=viewportOnly?++gADUIViewportRun7362:++gADUIFullRun7362;unsigned long long cap=viewportOnly?kADUIViewportCap7362:kADUIFullCap7362;NSString *path=ADUIProbePath7362(viewportOnly,run);NSMutableArray *webs=viewportOnly?[ADUIWebViews7362() mutableCopy]:[NSMutableArray array];if(!webs)webs=[NSMutableArray array];
     ADUIWriteState7445(viewportOnly,@"started",path);gADUIProbeActivePath7433=path;gADUIProbeActiveCap7433=cap;gADUIProbeActiveNonce7433=[NSString stringWithFormat:@"%lld-%d-%lu",(long long)(NSDate.date.timeIntervalSince1970*1000.0),getpid(),(unsigned long)run];if(gADUniversalUIBridge7433)[gADUniversalUIBridge7433.pending removeAllObjects];
-    NSString *header=[NSString stringWithFormat:@"AMAZONDARK v7.519 UNIVERSAL %@ UI FORENSICS PROBE\nversion=%s\ncategory=%@\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\ncontract=screenshot captures FULL SWEEP; scripts/ui-probe.sh arm is consumed at the next WillResignActive boundary to freeze VIEWPORT before background export\nbackground_boundary=%d\nroute_policy=Person FULL uses exact RCTScrollView#me -> real UIScrollView deep walk with hydration + restoration; other non-PDP FULL uses guarded automatic root/overflow walking; PDP FULL verifies screenshot-share unlock before automatic DOM walking\nprivacy=no visible text strings, accessibilityLabel/value strings, URL/src/href values, network payloads or clipboard data; text is length+hash only; frame origin/path/referrer are hash-only; technical class/id/testid/component paint metadata retained\ncrossframe=all-frame documentStart bridge; child frames self-inspect their own DOM and computed paint, then send chunked sanitized results to native; main frame never attempts cross-origin contentDocument access\nweb=%@\nnative=%@\nnormal_runtime=single screenshot notification + one next-background lifecycle observer + optional foreground SIGUSR2 compatibility dispatch source + one inert message listener per web document frame; FULL traversal is cooperative and opt-in; no production MutationObserver/timer/RAF/web-scroll listener/polling/recurring hierarchy scan\nwebviews=%@\n\n===== NATIVE INITIAL %@ SNAPSHOT =====\n",
+    NSString *header=[NSString stringWithFormat:@"AMAZONDARK v7.520 UNIVERSAL %@ UI FORENSICS PROBE\nversion=%s\ncategory=%@\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\ncontract=screenshot captures FULL SWEEP; scripts/ui-probe.sh arm is consumed at the next WillResignActive boundary to freeze VIEWPORT before background export\nbackground_boundary=%d\nroute_policy=Person FULL uses exact RCTScrollView#me; Hamburger FULL uses exact RCTScrollView#scrolled-hamburger -> RCTCustomScrollView; both deep-walk with hydration + restoration; other non-PDP FULL uses guarded automatic root/overflow walking; PDP FULL verifies screenshot-share unlock before automatic DOM walking\nprivacy=no visible text strings, accessibilityLabel/value strings, URL/src/href values, network payloads or clipboard data; text is length+hash only; frame origin/path/referrer are hash-only; technical class/id/testid/component paint metadata retained\ncrossframe=all-frame documentStart bridge; child frames self-inspect their own DOM and computed paint, then send chunked sanitized results to native; main frame never attempts cross-origin contentDocument access\nweb=%@\nnative=%@\nnormal_runtime=single screenshot notification + one next-background lifecycle observer + optional foreground SIGUSR2 compatibility dispatch source + one inert message listener per web document frame; FULL traversal is cooperative and opt-in; no production MutationObserver/timer/RAF/web-scroll listener/polling/recurring hierarchy scan\nwebviews=%@\n\n===== NATIVE INITIAL %@ SNAPSHOT =====\n",
         viewportOnly?@"VIEWPORT":@"FULL-SWEEP",AD_VERSION,viewportOnly?@"viewport":@"full-web-native-sweep",trigger?:@"unknown",[NSDate date],path.lastPathComponent,cap,backgroundBoundary?1:0,
         viewportOnly?@"current visual viewport of every on-screen WKWebView plus every visible child/SafeFrame document; no offset mutation":@"non-PDP: guarded automatic root/overflow walk plus mounted-DOM catch-up; PDP: screenshot-share dismissal, verified unlock, automatic root/overflow walk and mounted-DOM inventory",
         viewportOnly?@"current screen-intersecting UIKit/React hierarchy only":@"read-only initial/final hierarchy batches; PDP sessions skip native scroll discovery/sweep entirely; non-PDP keeps inherited cooperative native scroll diagnostics",
@@ -919,14 +934,23 @@ static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){
         ADUIAppend7362(path,[NSString stringWithFormat:@"WEBVIEWS_DISCOVERED cooperative=1 count=%lu\n",(unsigned long)webs.count],cap);
         UIView *personWrap=ADUIPersonWrapper7519();
         if(personWrap){
-            ADUIAppend7362(path,[NSString stringWithFormat:@"FULL_ROUTE_POLICY personExact=1 personPriority=before-PDP-detection personPolicy=exact-RCTScrollView-me-to-real-scroll webviews=%lu\n",(unsigned long)webs.count],cap);
+            // Keep the legacy FULL_ROUTE_POLICY prefix stable for historical parsers/tests.
+            ADUIAppend7362(path,[NSString stringWithFormat:@"FULL_ROUTE_POLICY pdpDetected=0 personExact=1 menuExact=0 personPriority=before-PDP-detection personPolicy=exact-RCTScrollView-me-to-real-scroll webviews=%lu\n",(unsigned long)webs.count],cap);
             ADUIScanPersonFull7519(path,cap,^{
                 ADUIProcessWebViews7364(webs,0,NO,path,cap,^{ADUIFinishCapture7364(NO,webs,path,cap);});
             });
             return;
         }
+        UIView *menuWrap=ADUIMenuWrapper7520();
+        if(menuWrap){
+            ADUIAppend7362(path,[NSString stringWithFormat:@"FULL_ROUTE_POLICY pdpDetected=0 personExact=0 menuExact=1 menuPriority=before-PDP-detection menuPolicy=exact-RCTScrollView-scrolled-hamburger-to-RCTCustomScrollView webviews=%lu\n",(unsigned long)webs.count],cap);
+            ADUIScanMenuFull7520(path,cap,^{
+                ADUIProcessWebViews7364(webs,0,NO,path,cap,^{ADUIFinishCapture7364(NO,webs,path,cap);});
+            });
+            return;
+        }
         ADUIDetectPDPSession7451(webs,^{
-            ADUIAppend7362(path,[NSString stringWithFormat:@"FULL_ROUTE_POLICY personExact=0 pdpDetected=%d pdpWebPolicy=%@ nonPDPWebPolicy=automatic-root-owner-walk webviews=%lu\n",gADUIFullHasPDP7451?1:0,gADUIFullHasPDP7451?@"share-unlock-then-automatic-walk":@"not-applicable",(unsigned long)webs.count],cap);
+            ADUIAppend7362(path,[NSString stringWithFormat:@"FULL_ROUTE_POLICY pdpDetected=%d personExact=0 menuExact=0 pdpWebPolicy=%@ nonPDPWebPolicy=automatic-root-owner-walk webviews=%lu\n",gADUIFullHasPDP7451?1:0,gADUIFullHasPDP7451?@"share-unlock-then-automatic-walk":@"not-applicable",(unsigned long)webs.count],cap);
             ADUIProcessWebViews7364(webs,0,NO,path,cap,^{
                 if(gADUIFullHasPDP7451){
                     ADUIAppend7362(path,@"\n===== NATIVE SCROLL DISCOVERY / SWEEP =====\nPDP_READONLY_NATIVE_SCROLL policy=skipped reason=DOM-walker-owns-product-scrolling\n",cap);
@@ -940,7 +964,7 @@ static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){
     });
 }
 
-static NSString *ADUIViewportArmPath7362(void){ return [ADUIDocuments7362() stringByAppendingPathComponent:@"AmazonDark-v7.519-ui-viewport.arm"]; }
+static NSString *ADUIViewportArmPath7362(void){ return [ADUIDocuments7362() stringByAppendingPathComponent:@"AmazonDark-v7.520-ui-viewport.arm"]; }
 static BOOL ADUIConsumeViewportArm7362(void){
     NSString *p=ADUIViewportArmPath7362(); NSFileManager *fm=NSFileManager.defaultManager; if(![fm fileExistsAtPath:p])return NO;
     BOOL ok=NO; @try {

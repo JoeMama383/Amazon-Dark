@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.519-person-deepscan-stock-returns-border"
+#define AD_VERSION "v7.520-full-probe-route-contract-menu-deepscan"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
