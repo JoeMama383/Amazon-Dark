@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.518-person-probe-foreground-repair"
+#define AD_VERSION "v7.519-person-deepscan-stock-returns-border"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -9212,6 +9212,7 @@ static void ADOwnReactView7226(UIView *v){
 }
 - (void)setBorderColor:(UIColor *)value {
     UIView *pv=(UIView *)self;
+    if(gP.enabled&&ADPersonReturnsCard7514(pv))value=ADBorderGray706();
     if(gP.enabled&&ADInLocationCanonical7416(pv)){
         UIColor *paint=(ADLocationApply7416(pv)||ADLocationNeutralColor7416(value))?ADMenuButtonBorder7255():value;
         %orig(paint);
@@ -9236,6 +9237,7 @@ static void ADOwnReactView7226(UIView *v){
 }
 - (void)setBorderBottomColor:(UIColor *)value {
     UIView *v=(UIView *)self;
+    if(gP.enabled&&ADPersonReturnsCard7514(v))value=ADBorderGray706();
     if(gP.enabled&&ADInLocationCanonical7416(v)&&ADLocationNeutralColor7416(value)){
         UIColor *edge=ADMenuButtonBorder7255();
         %orig(edge);
@@ -9245,6 +9247,7 @@ static void ADOwnReactView7226(UIView *v){
 }
 - (void)setBorderTopColor:(UIColor *)value {
     UIView *v=(UIView *)self;
+    if(gP.enabled&&ADPersonReturnsCard7514(v))value=ADBorderGray706();
     if(gP.enabled&&ADInLocationCanonical7416(v)&&ADLocationNeutralColor7416(value)){
         UIColor *edge=ADMenuButtonBorder7255();
         %orig(edge);
@@ -9254,6 +9257,7 @@ static void ADOwnReactView7226(UIView *v){
 }
 - (void)setBorderLeftColor:(UIColor *)value {
     UIView *v=(UIView *)self;
+    if(gP.enabled&&ADPersonReturnsCard7514(v))value=ADBorderGray706();
     if(gP.enabled&&ADInLocationCanonical7416(v)&&ADLocationNeutralColor7416(value)){
         UIColor *edge=ADMenuButtonBorder7255();
         %orig(edge);
@@ -9263,6 +9267,7 @@ static void ADOwnReactView7226(UIView *v){
 }
 - (void)setBorderRightColor:(UIColor *)value {
     UIView *v=(UIView *)self;
+    if(gP.enabled&&ADPersonReturnsCard7514(v))value=ADBorderGray706();
     if(gP.enabled&&ADInLocationCanonical7416(v)&&ADLocationNeutralColor7416(value)){
         UIColor *edge=ADMenuButtonBorder7255();
         %orig(edge);
@@ -12051,8 +12056,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 }
 
 
-// v7.436: universal native/main-Web/cross-frame UI forensics subsystem.
-// Screenshot = FULL finite sweep. scripts/ui-probe.sh arm = one VIEWPORT frozen at the next background boundary.
+// Universal FULL/VIEWPORT forensics.
 #include "ADUniversalUIProbe7362.inc"
 
 // v7.272 optimized keeps the same visual contract/probes while removing alternate owners, dead code and redundant hot-path work.

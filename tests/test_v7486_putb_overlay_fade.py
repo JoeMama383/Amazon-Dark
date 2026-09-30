@@ -36,5 +36,5 @@ for bad in ('MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addE
 
 for h in ('## FULL — v7.486','## VIEWPORT — v7.486','## TRANSITION — v7.486'):
     assert h in CMD, h
-assert all("status" not in line.split() for line in CMD.lower().splitlines() if "-probe.sh" in line)
+assert ' status' not in CMD.lower()
 print('PASS: v7.486 removes the probe-proven 48px PUTB card ::after gradient from both immersive book menus')

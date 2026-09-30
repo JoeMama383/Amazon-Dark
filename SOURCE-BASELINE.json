@@ -1,7 +1,7 @@
 {
-  "version": "7.518~person-probe-foreground-repair",
-  "direct_parent": "7.517~person-returns-probe-rollback",
-  "parent_commit": "8352243594ad22499be22a7f638ceed4558e79fe",
-  "scope": "Foreground probe routing, measured native scrolling, independent busy VIEWPORT evidence and one foreground Returns contour",
-  "device_validation": "Pending; no latest Person probe available"
+  "version": "7.519~person-deepscan-stock-returns-border",
+  "direct_parent": "7.518~person-probe-foreground-repair",
+  "parent_commit": "device/library v7.518 handoff",
+  "scope": "Restore exact Person FULL deep-scan transport, restore pre-v7.518 VIEWPORT boundary semantics, preserve authored Returns border geometry and reassert border paint only",
+  "device_validation": "Pending current v7.519 Person FULL + VIEWPORT evidence"
 }

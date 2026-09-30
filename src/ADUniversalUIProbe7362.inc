@@ -1,4 +1,4 @@
-// v7.518 FULL verifies PDP screenshot-share unlock, then runs the automatic DOM walker.
+// v7.519 FULL verifies PDP screenshot-share unlock, then runs the automatic DOM walker.
 // Non-PDP traversal and VIEWPORT retain their previous paths.
 // VIEWPORT coverage remains inherited.
 // Exactly two UI forensics categories remain:
@@ -92,25 +92,6 @@ static BOOL ADUIViewActuallyVisible7362(UIView *v){
         CGRect wr=[v convertRect:v.bounds toView:nil];
         return wr.size.width>=0.1&&wr.size.height>=0.1&&CGRectIntersectsRect(wr,UIScreen.mainScreen.bounds);
     } @catch(...) { return NO; }
-}
-
-// Probe-only foreground ownership: geometry alone also matches retained tab views.
-// Hit tests do not send touches or modify the UI. Sample several points so sticky
-// headers and partial overlays do not exclude a genuinely visible renderer.
-static BOOL ADUIRendererExposed7518(UIView *v){
-    if(!ADUIViewActuallyVisible7362(v))return NO;
-    @try {
-        UIWindow *w=v.window;CGRect rect=[v convertRect:v.bounds toView:w];
-        rect=CGRectIntersection(rect,w.bounds);
-        for(UIView *n=v.superview;n&&n!=w;n=n.superview)if(n.clipsToBounds)rect=CGRectIntersection(rect,[n convertRect:n.bounds toView:w]);
-        if(CGRectIsNull(rect)||CGRectIsEmpty(rect))return NO;
-        for(int y=1;y<=3;y++)for(int x=1;x<=3;x++){
-            CGPoint point=CGPointMake(rect.origin.x+rect.size.width*x/4.0,rect.origin.y+rect.size.height*y/4.0);
-            UIView *hit=[w hitTest:point withEvent:nil];
-            if(hit==v||[hit isDescendantOfView:v])return YES;
-        }
-    } @catch(...) {}
-    return NO;
 }
 
 static NSString *ADUITextMeta7362(UIView *v){
@@ -216,14 +197,14 @@ static NSArray *ADUIWebViews7362(void){
         for(UIWindow *w in UIApplication.sharedApplication.windows){
             if(!w||w.hidden||w.alpha<0.005)continue; NSMutableArray *q=[NSMutableArray arrayWithObject:w]; NSUInteger n=0,qi=0;
             while(qi<q.count&&n++<12000){ UIView *v=q[qi++]; if(!v)continue;
-                if([v isKindOfClass:[WKWebView class]]&&ADUIRendererExposed7518(v)){
+                if([v isKindOfClass:[WKWebView class]]&&ADUIViewActuallyVisible7362(v)){
                     NSString *key=[NSString stringWithFormat:@"%p",v]; if(![seen containsObject:key]){[seen addObject:key];[out addObject:v];}
                 }
                 if(q.count<11000)for(UIView *c in v.subviews)[q addObject:c];
             }
         }
         for(WKWebView *wv in ADTrackedWebViews()){
-            if(!wv||![wv isKindOfClass:[WKWebView class]]||!ADUIRendererExposed7518(wv))continue; NSString *key=[NSString stringWithFormat:@"%p",wv]; if(![seen containsObject:key]){[seen addObject:key];[out addObject:wv];}
+            if(!wv||![wv isKindOfClass:[WKWebView class]]||!ADUIViewActuallyVisible7362(wv))continue; NSString *key=[NSString stringWithFormat:@"%p",wv]; if(![seen containsObject:key]){[seen addObject:key];[out addObject:wv];}
         }
     } @catch(...) {}
     return out;
@@ -234,13 +215,13 @@ static NSString *ADUIProbePath7362(BOOL viewportOnly,NSUInteger run){
         static NSDateFormatter *f=nil;static dispatch_once_t once;dispatch_once(&once,^{f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";});
         NSString *stamp=nil;@synchronized(f){f.timeZone=[NSTimeZone localTimeZone];stamp=[f stringFromDate:[NSDate date]];}
         NSString *stem=viewportOnly?@"ui-viewport-probe":@"ui-full-probe";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.518-%@-%@-r%lu.txt",stem,stamp?:@"unknown",(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.519-%@-%@-r%lu.txt",stem,stamp?:@"unknown",(unsigned long)run];
         return [ADUIDocuments7362() stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.518-ui-probe.txt"]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.519-ui-probe.txt"]; }
 }
 
 static NSString *ADUIStatePath7445(BOOL viewportOnly){
-    NSString *name=viewportOnly?@"AmazonDark-v7.518-ui-viewport.state":@"AmazonDark-v7.518-ui-full.state";
+    NSString *name=viewportOnly?@"AmazonDark-v7.519-ui-viewport.state":@"AmazonDark-v7.519-ui-full.state";
     return [ADUIDocuments7362() stringByAppendingPathComponent:name];
 }
 static void ADUIWriteState7445(BOOL viewportOnly,NSString *state,NSString *path){
@@ -289,7 +270,7 @@ static void ADUINativeSnapshotAsync7449(UIView *root,BOOL viewportOnly,NSUIntege
                 NSDictionary *it=q[qi++];UIView *v=it[@"v"];NSUInteger d=[it[@"d"] unsignedIntegerValue];if(!v)continue;visited++;batch++;
                 CGRect wr=CGRectZero;@try{wr=[v convertRect:v.bounds toView:nil];}@catch(...){}
                 BOOL on=!v.hidden&&v.alpha>=0.005&&wr.size.width>=0.1&&wr.size.height>=0.1&&CGRectIntersectsRect(wr,screen);if(on)onscreen++;
-                if(webs&&[v isKindOfClass:[WKWebView class]]&&ADUIRendererExposed7518(v)){NSString *key=[NSString stringWithFormat:@"%p",v];if(![webSeen containsObject:key]){[webSeen addObject:key];[webs addObject:v];}}
+                if(webs&&[v isKindOfClass:[WKWebView class]]&&on){NSString *key=[NSString stringWithFormat:@"%p",v];if(![webSeen containsObject:key]){[webSeen addObject:key];[webs addObject:v];}}
                 BOOL emit=root?YES:(!viewportOnly||on);
                 if(emit){
                     CGAffineTransform t=v.transform;NSString *cn=NSStringFromClass(v.class)?:@"?",*aid=ADUISafe7362(v.accessibilityIdentifier);
@@ -307,7 +288,7 @@ static void ADUINativeSnapshotAsync7449(UIView *root,BOOL viewportOnly,NSUIntege
         } @catch(NSException *e){[m appendFormat:@"NATIVE_ASYNC_EXCEPTION phase=%@ %@\n",phase?:@"?",ADUISafe7362(e.reason)];gADUIProbePartial7446=YES;}
         if(m.length)ADUIAppend7362(path,m,cap);
         if(qi<q.count&&visited<maxVisited&&logged<maxLogged){dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.010*NSEC_PER_SEC)),dispatch_get_main_queue(),pump);return;}
-        if(webs){@try{for(WKWebView *wv in ADTrackedWebViews()){if(!wv||![wv isKindOfClass:[WKWebView class]]||!ADUIRendererExposed7518(wv))continue;NSString *key=[NSString stringWithFormat:@"%p",wv];if(![webSeen containsObject:key]){[webSeen addObject:key];[webs addObject:wv];}}}@catch(...) {}}
+        if(webs){@try{for(WKWebView *wv in ADTrackedWebViews()){if(!wv||![wv isKindOfClass:[WKWebView class]]||!ADUIViewActuallyVisible7362(wv))continue;NSString *key=[NSString stringWithFormat:@"%p",wv];if(![webSeen containsObject:key]){[webSeen addObject:key];[webs addObject:wv];}}}@catch(...) {}}
         BOOL truncated=(qi<q.count||visited>=maxVisited||logged>=maxLogged);if(truncated)gADUIProbePartial7446=YES;
         if(root)ADUIAppend7362(path,[NSString stringWithFormat:@"NATIVE_SWEEP_COUNTS phase=%@ visited=%lu logged=%lu onscreen=%lu truncated=%d\n",phase?:@"?",(unsigned long)visited,(unsigned long)logged,(unsigned long)onscreen,truncated?1:0],cap);
         else ADUIAppend7362(path,[NSString stringWithFormat:@"NATIVE_END mode=%@ windows=%lu visited=%lu logged=%lu truncated=%d\n",viewportOnly?@"viewport":@"full",(unsigned long)windows,(unsigned long)visited,(unsigned long)logged,truncated?1:0],cap);
@@ -487,11 +468,11 @@ static NSArray *ADUINativeScrollCandidates7364(NSString *path,unsigned long long
                     BOOL web=ADUIAncestorClassContains7364(sv,@"WKWebView")||ADUIAncestorClassContains7364(sv,@"WKScroll")||[NSStringFromClass(sv.class) rangeOfString:@"WK" options:NSCaseInsensitiveSearch].location!=NSNotFound;
                     BOOL chrome=ADUIAncestorClassContains7364(sv,@"Keyboard")||ADUIAncestorClassContains7364(sv,@"ANXTabBar")||[NSStringFromClass(sv.class) rangeOfString:@"ScrollIndicator" options:NSCaseInsensitiveSearch].location!=NSNotFound;
                     UIEdgeInsets in=sv.adjustedContentInset;CGFloat spanY=sv.contentSize.height-sv.bounds.size.height+in.top+in.bottom,spanX=sv.contentSize.width-sv.bounds.size.width+in.left+in.right;
-                    BOOL vy=spanY>8.0,hx=spanX>8.0,visible=ADUIRendererExposed7518(sv)&&CGRectIntersectsRect(wr,screen);
+                    BOOL vy=spanY>8.0,hx=spanX>8.0,visible=ADUIViewActuallyVisible7362(sv)&&CGRectIntersectsRect(wr,screen);
                     if(!web&&!chrome&&visible&&(vy||hx)&&wr.size.width>=80.0&&wr.size.height>=70.0){
                         NSString *cn=NSStringFromClass(sv.class)?:@"?";CGFloat area=wr.size.width*wr.size.height;NSInteger score=(NSInteger)MIN(area,400000.0);
                         if(vy)score+=500000;if(hx)score+=180000;
-                        if(([cn rangeOfString:@"RCTScroll" options:NSCaseInsensitiveSearch].location!=NSNotFound||[cn rangeOfString:@"RCTCustomScroll" options:NSCaseInsensitiveSearch].location!=NSNotFound))score+=450000;
+                        if([cn rangeOfString:@"RCTScroll" options:NSCaseInsensitiveSearch].location!=NSNotFound)score+=450000;
                         if([cn rangeOfString:@"CollectionView" options:NSCaseInsensitiveSearch].location!=NSNotFound)score+=320000;
                         if([cn rangeOfString:@"TableView" options:NSCaseInsensitiveSearch].location!=NSNotFound)score+=320000;
                         if(wr.size.width>=screen.size.width*0.70)score+=220000;if(wr.size.height>=screen.size.height*0.35)score+=220000;
@@ -532,9 +513,9 @@ static void ADUINativeScrollCandidatesAsync7449(NSString *path,unsigned long lon
                     UIScrollView *sv=(UIScrollView *)v;CGRect wr=CGRectZero;@try{wr=[sv convertRect:sv.bounds toView:nil];}@catch(...){}
                     BOOL web=ADUIAncestorClassContains7364(sv,@"WKWebView")||ADUIAncestorClassContains7364(sv,@"WKScroll")||[NSStringFromClass(sv.class) rangeOfString:@"WK" options:NSCaseInsensitiveSearch].location!=NSNotFound;
                     BOOL chrome=ADUIAncestorClassContains7364(sv,@"Keyboard")||ADUIAncestorClassContains7364(sv,@"ANXTabBar")||[NSStringFromClass(sv.class) rangeOfString:@"ScrollIndicator" options:NSCaseInsensitiveSearch].location!=NSNotFound;
-                    UIEdgeInsets in=sv.adjustedContentInset;CGFloat spanY=sv.contentSize.height-sv.bounds.size.height+in.top+in.bottom,spanX=sv.contentSize.width-sv.bounds.size.width+in.left+in.right;BOOL vy=spanY>8.0,hx=spanX>8.0,visible=ADUIRendererExposed7518(sv)&&CGRectIntersectsRect(wr,screen);
+                    UIEdgeInsets in=sv.adjustedContentInset;CGFloat spanY=sv.contentSize.height-sv.bounds.size.height+in.top+in.bottom,spanX=sv.contentSize.width-sv.bounds.size.width+in.left+in.right;BOOL vy=spanY>8.0,hx=spanX>8.0,visible=ADUIViewActuallyVisible7362(sv)&&CGRectIntersectsRect(wr,screen);
                     if(!web&&!chrome&&visible&&(vy||hx)&&wr.size.width>=80.0&&wr.size.height>=70.0){
-                        NSString *cn=NSStringFromClass(sv.class)?:@"?";CGFloat area=wr.size.width*wr.size.height;NSInteger score=(NSInteger)MIN(area,400000.0);if(vy)score+=500000;if(hx)score+=180000;if(([cn rangeOfString:@"RCTScroll" options:NSCaseInsensitiveSearch].location!=NSNotFound||[cn rangeOfString:@"RCTCustomScroll" options:NSCaseInsensitiveSearch].location!=NSNotFound))score+=450000;if([cn rangeOfString:@"CollectionView" options:NSCaseInsensitiveSearch].location!=NSNotFound)score+=320000;if([cn rangeOfString:@"TableView" options:NSCaseInsensitiveSearch].location!=NSNotFound)score+=320000;if(wr.size.width>=screen.size.width*0.70)score+=220000;if(wr.size.height>=screen.size.height*0.35)score+=220000;
+                        NSString *cn=NSStringFromClass(sv.class)?:@"?";CGFloat area=wr.size.width*wr.size.height;NSInteger score=(NSInteger)MIN(area,400000.0);if(vy)score+=500000;if(hx)score+=180000;if([cn rangeOfString:@"RCTScroll" options:NSCaseInsensitiveSearch].location!=NSNotFound)score+=450000;if([cn rangeOfString:@"CollectionView" options:NSCaseInsensitiveSearch].location!=NSNotFound)score+=320000;if([cn rangeOfString:@"TableView" options:NSCaseInsensitiveSearch].location!=NSNotFound)score+=320000;if(wr.size.width>=screen.size.width*0.70)score+=220000;if(wr.size.height>=screen.size.height*0.35)score+=220000;
                         NSDictionary *d=@{ @"sv":sv,@"score":@(score),@"v":@(vy),@"h":@(hx),@"frame":[NSValue valueWithCGRect:wr],@"idx":@(index++) };[all addObject:d];
                         [log appendFormat:@"NATIVE_SCROLL_CANDIDATE idx=%lu ptr=%p cls=%@ aid=\"%@\" score=%ld frame=%@ content=(%.1fx%.1f) bounds=(%.1fx%.1f) vertical=%d horizontal=%d offset=(%.1f,%.1f)\n",(unsigned long)[d[@"idx"] unsignedIntegerValue],sv,cn,ADUISafe7362(sv.accessibilityIdentifier),(long)score,ADUIRect7362(wr),sv.contentSize.width,sv.contentSize.height,sv.bounds.size.width,sv.bounds.size.height,vy?1:0,hx?1:0,sv.contentOffset.x,sv.contentOffset.y];
                     }
@@ -636,14 +617,14 @@ static void ADUIScrollCommand7446(WKWebView *wv,NSString *command,void (^done)(N
     });
 }
 
-// v7.518 automatic FULL: streaming inventory is retained after the guarded walk.
+// v7.519 automatic FULL: streaming inventory is retained after the guarded walk.
 // Per-step evidence uses bounded
 // hit-test sampling instead of restarting a whole-document TreeWalker on every offset.
 static void ADUIScanWebViewFull7364(WKWebView *wv,NSUInteger index,NSString *path,unsigned long long cap,void (^done)(void)){
     if(!wv){if(done)done();return;}
     __block BOOL finishing=NO;__block NSString *kind=@"root";__block NSUInteger ownerStep=0,totalSteps=0,bottomStable=0,stalled=0,lastOwnerIndex=NSNotFound;__block NSInteger lastNodeCount=-1;__block CGFloat lastMax=-1,targetY=0;
     __block void (^next)(NSDictionary *)=nil;__block void (^finish)(NSString *)=nil;__block void (^startRoot)(BOOL)=nil;__block void (^startOwners)(void)=nil;__block void (^afterOwners)(void)=nil;
-    ADUIAppend7362(path,@"WEB_DOCUMENT_SWEEP v7.518 root-first lazy-load drive; final complete DOM inventory; nested-owner sweep; unseen-node catch-up; scrollLock=none\n",cap);
+    ADUIAppend7362(path,@"WEB_DOCUMENT_SWEEP v7.519 root-first lazy-load drive; final complete DOM inventory; nested-owner sweep; unseen-node catch-up; scrollLock=none\n",cap);
     void (^resetOwnerState)(void)=^{ownerStep=0;bottomStable=0;stalled=0;lastOwnerIndex=NSNotFound;lastNodeCount=-1;lastMax=-1;targetY=0;};
     void (^restoreAndFinish)(NSString *)=^(NSString *reason){
         ADUIScrollCommand7446(wv,@"'restore'",^(NSDictionary *restored){
@@ -684,7 +665,7 @@ static void ADUIScanWebViewFull7364(WKWebView *wv,NSUInteger index,NSString *pat
     next=^(NSDictionary *m){
         if(finishing)return;
         if(m[@"error"]){ADUIAppend7362(path,[NSString stringWithFormat:@"WEB_WALK_FAILURE %@\n",m],cap);finish(@"renderer-or-owner-failure");return;}
-        if(ADUIExpired7446()||[gADUIFailedWebs7446 containsObject:wv]||!wv.window||UIApplication.sharedApplication.applicationState!=UIApplicationStateActive){ADUIAppend7362(path,[NSString stringWithFormat:@"WEB_CANCEL deadline=%d failed=%d attached=%d appState=%ld\n",ADUIExpired7446(),[gADUIFailedWebs7446 containsObject:wv],wv.window!=nil,(long)UIApplication.sharedApplication.applicationState],cap);finish(@"cancelled-or-web-error");return;}
+        if(ADUIExpired7446()||[gADUIFailedWebs7446 containsObject:wv]||!wv.window||UIApplication.sharedApplication.applicationState!=UIApplicationStateActive){finish(@"cancelled-or-web-error");return;}
         if([m[@"done"] boolValue]){
             if([kind hasPrefix:@"root"]){
                 
@@ -719,7 +700,7 @@ static void ADUIScanWebViewFull7364(WKWebView *wv,NSUInteger index,NSString *pat
     startRoot(NO);
 }
 
-// v7.518: PDP detection selects the product-safe manual/read-only FULL path.
+// v7.519: PDP detection selects the product-safe manual/read-only FULL path.
 // Non-PDP Web documents continue to use the isolated guarded automatic walk.
 static BOOL ADUIURLIsPDP7451(WKWebView *wv){
     if(!wv)return NO;@try{NSString *p=wv.URL.path?:@"";return [p isEqualToString:@"/dp"]||[p hasPrefix:@"/dp/"]||[p isEqualToString:@"/gp/product"]||[p hasPrefix:@"/gp/product/"]||[p isEqualToString:@"/gp/aw/d"]||[p hasPrefix:@"/gp/aw/d/"];}@catch(...){return NO;}
@@ -794,16 +775,12 @@ static void ADUIProcessWebViews7364(NSArray *webs,NSUInteger index,BOOL viewport
 
 static void ADUIScanNativeAxis7364(UIScrollView *sv,NSUInteger selectedIndex,BOOL horizontal,NSString *path,unsigned long long cap,CGPoint original,void (^done)(void)){
     if(!sv){if(done)done();return;}UIEdgeInsets in=sv.adjustedContentInset;CGFloat min=horizontal?-in.left:-in.top;CGFloat viewport=MAX(1.0,horizontal?sv.bounds.size.width:sv.bounds.size.height);CGFloat stride=MAX(180.0,MIN(620.0,viewport*0.62));NSUInteger maxSteps=horizontal?16:32;
-    __block NSUInteger step=0,stalls=0;__block CGFloat target=min,last=-999999;__block BOOL finishing=NO;__block void (^next)(void)=nil;__block void (^finish)(NSString *)=nil;
+    __block NSUInteger step=0;__block CGFloat target=min,last=-999999;__block BOOL finishing=NO;__block void (^next)(void)=nil;__block void (^finish)(NSString *)=nil;
     finish=^(NSString *reason){if(finishing)return;finishing=YES;@try{CGPoint p=sv.contentOffset;if(horizontal)p.x=original.x;else p.y=original.y;[sv setContentOffset:p animated:NO];/* UIKit lays out on its next normal turn. */}@catch(...){}ADUIAppend7362(path,[NSString stringWithFormat:@"NATIVE_AXIS_END selected=%lu ptr=%p axis=%@ reason=%@ steps=%lu offset=(%.1f,%.1f)\n",(unsigned long)selectedIndex,sv,horizontal?@"x":@"y",reason?:@"done",(unsigned long)step,sv.contentOffset.x,sv.contentOffset.y],cap);if(done)done();next=nil;finish=nil;};
     next=^{
-        if(finishing)return;if(ADUIExpired7446()){gADUIProbePartial7446=YES;finish(@"cancelled-or-deadline");return;}if(!sv.window||!sv.superview||UIApplication.sharedApplication.applicationState!=UIApplicationStateActive){gADUIProbePartial7446=YES;finish(@"native-left-foreground");return;}if(step>=maxSteps){gADUIProbePartial7446=YES;finish(@"step-cap");return;}UIEdgeInsets ci=sv.adjustedContentInset;CGFloat cmin=horizontal?-ci.left:-ci.top;CGFloat max=horizontal?MAX(cmin,sv.contentSize.width-sv.bounds.size.width+ci.right):MAX(cmin,sv.contentSize.height-sv.bounds.size.height+ci.bottom);target=MIN(MAX(cmin,target),max);
+        if(finishing)return;if(ADUIExpired7446()){gADUIProbePartial7446=YES;finish(@"cancelled-or-deadline");return;}if(!sv.window||!sv.superview){finish(@"native-left-window");return;}if(step>=maxSteps){gADUIProbePartial7446=YES;finish(@"step-cap");return;}UIEdgeInsets ci=sv.adjustedContentInset;CGFloat cmin=horizontal?-ci.left:-ci.top;CGFloat max=horizontal?MAX(cmin,sv.contentSize.width-sv.bounds.size.width+ci.right):MAX(cmin,sv.contentSize.height-sv.bounds.size.height+ci.bottom);target=MIN(MAX(cmin,target),max);
         if(step>0&&fabs(target-last)<0.5&&fabs(target-max)<0.5){finish(@"edge");return;}CGPoint p=original;if(horizontal){p.x=target;p.y=sv.contentOffset.y;}else{p.y=target;p.x=sv.contentOffset.x;}@try{[sv setContentOffset:p animated:NO];/* UIKit lays out on its next normal turn. */}@catch(...){}NSUInteger thisStep=step++;CGFloat thisTarget=target;last=target;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.08*NSEC_PER_SEC)),dispatch_get_main_queue(),^{CGFloat actual=horizontal?sv.contentOffset.x:sv.contentOffset.y;
-            ADUIAppend7362(path,[NSString stringWithFormat:@"NATIVE_MOVE selected=%lu axis=%@ target=%.1f actual=%.1f\n",(unsigned long)selectedIndex,horizontal?@"x":@"y",thisTarget,actual],cap);
-            if(fabs(actual-thisTarget)>3.0)stalls++;else stalls=0;
-            if(stalls>=3){gADUIProbePartial7446=YES;finish(@"offset-not-accepted");return;}
-            NSString *phase=[NSString stringWithFormat:@"candidate-%lu-%@-step-%lu",(unsigned long)selectedIndex,horizontal?@"x":@"y",(unsigned long)thisStep];ADUINativeSnapshotAsync7449(sv,NO,3700,2500,phase,path,cap,nil,^{UIEdgeInsets ni=sv.adjustedContentInset;CGFloat nmin=horizontal?-ni.left:-ni.top;CGFloat nmax=horizontal?MAX(nmin,sv.contentSize.width-sv.bounds.size.width+ni.right):MAX(nmin,sv.contentSize.height-sv.bounds.size.height+ni.bottom);CGFloat settled=horizontal?sv.contentOffset.x:sv.contentOffset.y;if(fabs(settled-nmax)<0.5){finish(@"edge");return;}target=MIN(nmax,thisTarget+stride);dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.03*NSEC_PER_SEC)),dispatch_get_main_queue(),next);});});
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.08*NSEC_PER_SEC)),dispatch_get_main_queue(),^{NSString *phase=[NSString stringWithFormat:@"candidate-%lu-%@-step-%lu",(unsigned long)selectedIndex,horizontal?@"x":@"y",(unsigned long)thisStep];ADUINativeSnapshotAsync7449(sv,NO,3700,2500,phase,path,cap,nil,^{UIEdgeInsets ni=sv.adjustedContentInset;CGFloat nmin=horizontal?-ni.left:-ni.top;CGFloat nmax=horizontal?MAX(nmin,sv.contentSize.width-sv.bounds.size.width+ni.right):MAX(nmin,sv.contentSize.height-sv.bounds.size.height+ni.bottom);if(fabs(thisTarget-nmax)<0.5){finish(@"edge");return;}target=MIN(nmax,thisTarget+stride);dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.03*NSEC_PER_SEC)),dispatch_get_main_queue(),next);});});
     };dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.04*NSEC_PER_SEC)),dispatch_get_main_queue(),next);
 }
 
@@ -818,6 +795,86 @@ static void ADUIScanNativeCandidate7364(NSDictionary *meta,NSUInteger selectedIn
 
 static void ADUIProcessNativeCandidates7364(NSArray *candidates,NSUInteger index,NSString *path,unsigned long long cap,void (^done)(void)){
     if(index>=candidates.count){if(done)done();return;}ADUIScanNativeCandidate7364(candidates[index],index,path,cap,^{ADUIProcessNativeCandidates7364(candidates,index+1,path,cap,done);});
+}
+
+// v7.519: restore the historically proven Person FULL transport instead of
+// asking generic scroll scoring to infer the React Native owner. Amazon's Person
+// wrapper is RCTScrollView accessibilityIdentifier="me"; the actual mover is its
+// UIScrollView/RCTCustomScrollView descendant. This path is finite, trigger-only,
+// non-animated, and restores Amazon's exact authored offset without changing scrollEnabled.
+static UIView *ADUIPersonWrapper7519(void){
+    @try {
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w||w.hidden||w.alpha<0.01)continue;
+            NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:w];NSUInteger qi=0,seen=0;
+            while(qi<q.count&&seen++<4200){
+                UIView *v=q[qi++];if(!v)continue;
+                NSString *cn=NSStringFromClass(v.class)?:@"";
+                if([cn isEqualToString:@"RCTScrollView"]&&[v.accessibilityIdentifier isEqualToString:@"me"]&&v.window&&ADUIViewActuallyVisible7362(v))return v;
+                if(q.count<4000)for(UIView *c in v.subviews)if(c)[q addObject:c];
+            }
+        }
+    } @catch(...) {}
+    return nil;
+}
+static UIScrollView *ADUIPersonScroll7519(UIView **wrapperOut){
+    UIView *wrap=ADUIPersonWrapper7519();if(wrapperOut)*wrapperOut=wrap;if(!wrap)return nil;
+    @try {
+        if([wrap isKindOfClass:UIScrollView.class])return (UIScrollView *)wrap;
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:wrap.subviews];NSUInteger qi=0,seen=0;
+        UIScrollView *fallback=nil;
+        while(qi<q.count&&seen++<180){
+            UIView *v=q[qi++];if(!v)continue;
+            if([v isKindOfClass:UIScrollView.class]){
+                NSString *cn=NSStringFromClass(v.class)?:@"";
+                if([cn rangeOfString:@"RCTCustomScroll" options:NSCaseInsensitiveSearch].location!=NSNotFound)return (UIScrollView *)v;
+                if(!fallback)fallback=(UIScrollView *)v;
+            }
+            if(q.count<170)for(UIView *c in v.subviews)if(c)[q addObject:c];
+        }
+        return fallback;
+    } @catch(...) {}
+    return nil;
+}
+static void ADUIScanPersonFull7519(NSString *path,unsigned long long cap,void (^done)(void)){
+    UIView *wrap=nil;UIScrollView *root=ADUIPersonScroll7519(&wrap);
+    if(!root||!wrap){ADUIAppend7362(path,@"PERSON_FULL_ROUTE unavailable exact-wrapper-or-scroll-missing\n",cap);if(done)done();return;}
+    CGPoint original=root.contentOffset;BOOL originalScroll=root.scrollEnabled;
+    UIEdgeInsets initialInset=root.adjustedContentInset;
+    CGFloat minY=-initialInset.top,viewport=MAX(1.0,root.bounds.size.height),stride=MAX(320.0,MIN(600.0,viewport*0.58));
+    __block NSUInteger step=0,stalls=0;__block CGFloat targetY=minY,lastTarget=-CGFLOAT_MAX;__block BOOL finishing=NO;__block void (^next)(void)=nil;__block void (^finish)(NSString *)=nil;
+    ADUIAppend7362(path,[NSString stringWithFormat:@"\n===== PERSON DEDICATED FULL SWEEP v7.519 =====\nPERSON_FULL_ROUTE wrapper=%p wrapperCls=%@ scroll=%p scrollCls=%@ aid=\"%@\" originalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40 hydrationMs=340 geometry=authored-readonly\n",wrap,NSStringFromClass(wrap.class)?:@"?",root,NSStringFromClass(root.class)?:@"?",ADUISafe7362(wrap.accessibilityIdentifier),original.x,original.y,root.contentSize.width,root.contentSize.height,viewport,stride],cap);
+    finish=^(NSString *reason){
+        if(finishing)return;finishing=YES;
+        @try {[root setContentOffset:original animated:NO];[root layoutIfNeeded];}@catch(...){}
+        ADUIAppend7362(path,[NSString stringWithFormat:@"PERSON_FULL_SCAN_END reason=%@ steps=%lu restoredOffset=(%.1f,%.1f) finalContent=(%.1fx%.1f) scrollEnabledPreserved=%d/%d\n",reason?:@"done",(unsigned long)step,root.contentOffset.x,root.contentOffset.y,root.contentSize.width,root.contentSize.height,originalScroll?1:0,root.scrollEnabled?1:0],cap);
+        next=nil;if(done)done();
+    };
+    next=^{
+        if(finishing)return;
+        if(ADUIExpired7446()){gADUIProbePartial7446=YES;finish(@"deadline");return;}
+        if(UIApplication.sharedApplication.applicationState!=UIApplicationStateActive||!root.window||!wrap.window){gADUIProbePartial7446=YES;finish(@"person-left-foreground");return;}
+        if(step>=40){gADUIProbePartial7446=YES;finish(@"step-cap");return;}
+        UIEdgeInsets in=root.adjustedContentInset;CGFloat currentMin=-in.top;CGFloat maxY=MAX(currentMin,root.contentSize.height-root.bounds.size.height+in.bottom);
+        targetY=MIN(MAX(currentMin,targetY),maxY);
+        if(step>0&&fabs(targetY-lastTarget)<0.5&&fabs(targetY-maxY)<0.5){finish(@"bottom");return;}
+        CGPoint p=CGPointMake(original.x,targetY);@try{[root setContentOffset:p animated:NO];[root layoutIfNeeded];}@catch(...){}
+        NSUInteger thisStep=step++;CGFloat thisTarget=targetY;lastTarget=targetY;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.34*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            if(finishing)return;CGFloat actual=root.contentOffset.y;
+            ADUIAppend7362(path,[NSString stringWithFormat:@"PERSON_FULL_MOVE step=%lu target=%.1f actual=%.1f content=(%.1fx%.1f)\n",(unsigned long)thisStep,thisTarget,actual,root.contentSize.width,root.contentSize.height],cap);
+            if(fabs(actual-thisTarget)>4.0)stalls++;else stalls=0;
+            if(stalls>=3){gADUIProbePartial7446=YES;finish(@"offset-not-accepted");return;}
+            NSString *phase=[NSString stringWithFormat:@"person-step-%lu-target-%.0f-actual-%.0f",(unsigned long)thisStep,thisTarget,actual];
+            ADUINativeSnapshotAsync7449(wrap,NO,5200,3900,phase,path,cap,nil,^{
+                UIEdgeInsets ni=root.adjustedContentInset;CGFloat nmin=-ni.top;CGFloat nmax=MAX(nmin,root.contentSize.height-root.bounds.size.height+ni.bottom);CGFloat settled=root.contentOffset.y;
+                if(fabs(settled-nmax)<1.0||fabs(thisTarget-nmax)<0.5){finish(@"bottom");return;}
+                targetY=MIN(nmax,MAX(nmin,thisTarget+stride));
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.06*NSEC_PER_SEC)),dispatch_get_main_queue(),next);
+            });
+        });
+    };
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.05*NSEC_PER_SEC)),dispatch_get_main_queue(),next);
 }
 
 static void ADUIFinishCapture7364(BOOL viewportOnly,NSArray *webs,NSString *path,unsigned long long cap){
@@ -851,7 +908,7 @@ static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){
     gADUIFailedWebs7446=[NSHashTable weakObjectsHashTable];
     NSUInteger run=viewportOnly?++gADUIViewportRun7362:++gADUIFullRun7362;unsigned long long cap=viewportOnly?kADUIViewportCap7362:kADUIFullCap7362;NSString *path=ADUIProbePath7362(viewportOnly,run);NSMutableArray *webs=viewportOnly?[ADUIWebViews7362() mutableCopy]:[NSMutableArray array];if(!webs)webs=[NSMutableArray array];
     ADUIWriteState7445(viewportOnly,@"started",path);gADUIProbeActivePath7433=path;gADUIProbeActiveCap7433=cap;gADUIProbeActiveNonce7433=[NSString stringWithFormat:@"%lld-%d-%lu",(long long)(NSDate.date.timeIntervalSince1970*1000.0),getpid(),(unsigned long)run];if(gADUniversalUIBridge7433)[gADUniversalUIBridge7433.pending removeAllObjects];
-    NSString *header=[NSString stringWithFormat:@"AMAZONDARK v7.518 UNIVERSAL %@ UI FORENSICS PROBE\nversion=%s\ncategory=%@\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\ncontract=screenshot captures FULL SWEEP; scripts/ui-probe.sh arm is consumed at the next WillResignActive boundary to freeze VIEWPORT before background export\nbackground_boundary=%d\nroute_policy=non-PDP FULL uses guarded automatic root/overflow walking; PDP FULL verifies screenshot-share unlock before automatic DOM walking; every current on-screen WKWebView plus eligible current native renderers are discovered dynamically\nprivacy=no visible text strings, accessibilityLabel/value strings, URL/src/href values, network payloads or clipboard data; text is length+hash only; frame origin/path/referrer are hash-only; technical class/id/testid/component paint metadata retained\ncrossframe=all-frame documentStart bridge; child frames self-inspect their own DOM and computed paint, then send chunked sanitized results to native; main frame never attempts cross-origin contentDocument access\nweb=%@\nnative=%@\nnormal_runtime=single screenshot notification + one next-background lifecycle observer + optional foreground SIGUSR2 compatibility dispatch source + one inert message listener per web document frame; FULL traversal is cooperative and opt-in; no production MutationObserver/timer/RAF/web-scroll listener/polling/recurring hierarchy scan\nwebviews=%@\n\n===== NATIVE INITIAL %@ SNAPSHOT =====\n",
+    NSString *header=[NSString stringWithFormat:@"AMAZONDARK v7.519 UNIVERSAL %@ UI FORENSICS PROBE\nversion=%s\ncategory=%@\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\ncontract=screenshot captures FULL SWEEP; scripts/ui-probe.sh arm is consumed at the next WillResignActive boundary to freeze VIEWPORT before background export\nbackground_boundary=%d\nroute_policy=Person FULL uses exact RCTScrollView#me -> real UIScrollView deep walk with hydration + restoration; other non-PDP FULL uses guarded automatic root/overflow walking; PDP FULL verifies screenshot-share unlock before automatic DOM walking\nprivacy=no visible text strings, accessibilityLabel/value strings, URL/src/href values, network payloads or clipboard data; text is length+hash only; frame origin/path/referrer are hash-only; technical class/id/testid/component paint metadata retained\ncrossframe=all-frame documentStart bridge; child frames self-inspect their own DOM and computed paint, then send chunked sanitized results to native; main frame never attempts cross-origin contentDocument access\nweb=%@\nnative=%@\nnormal_runtime=single screenshot notification + one next-background lifecycle observer + optional foreground SIGUSR2 compatibility dispatch source + one inert message listener per web document frame; FULL traversal is cooperative and opt-in; no production MutationObserver/timer/RAF/web-scroll listener/polling/recurring hierarchy scan\nwebviews=%@\n\n===== NATIVE INITIAL %@ SNAPSHOT =====\n",
         viewportOnly?@"VIEWPORT":@"FULL-SWEEP",AD_VERSION,viewportOnly?@"viewport":@"full-web-native-sweep",trigger?:@"unknown",[NSDate date],path.lastPathComponent,cap,backgroundBoundary?1:0,
         viewportOnly?@"current visual viewport of every on-screen WKWebView plus every visible child/SafeFrame document; no offset mutation":@"non-PDP: guarded automatic root/overflow walk plus mounted-DOM catch-up; PDP: screenshot-share dismissal, verified unlock, automatic root/overflow walk and mounted-DOM inventory",
         viewportOnly?@"current screen-intersecting UIKit/React hierarchy only":@"read-only initial/final hierarchy batches; PDP sessions skip native scroll discovery/sweep entirely; non-PDP keeps inherited cooperative native scroll diagnostics",
@@ -860,23 +917,30 @@ static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){
     if(viewportOnly){ADUIAppend7362(path,ADUINativeSnapshot7362(YES),cap);ADUIProcessWebViews7364(webs,0,YES,path,cap,^{ADUIFinishCapture7364(YES,webs,path,cap);});return;}
     ADUINativeSnapshotAsync7449(nil,NO,30000,28000,@"initial-full",path,cap,webs,^{
         ADUIAppend7362(path,[NSString stringWithFormat:@"WEBVIEWS_DISCOVERED cooperative=1 count=%lu\n",(unsigned long)webs.count],cap);
-        ADUIDetectPDPSession7451(webs,^{
-        ADUIAppend7362(path,[NSString stringWithFormat:@"FULL_ROUTE_POLICY pdpDetected=%d pdpWebPolicy=%@ nonPDPWebPolicy=automatic-root-owner-walk webviews=%lu\n",gADUIFullHasPDP7451?1:0,gADUIFullHasPDP7451?@"share-unlock-then-automatic-walk":@"not-applicable",(unsigned long)webs.count],cap);
-        void (^scanWeb)(void)=^{ADUIProcessWebViews7364(webs,0,NO,path,cap,^{ADUIFinishCapture7364(NO,webs,path,cap);});};
-        if(gADUIFullHasPDP7451){
-            ADUIAppend7362(path,@"PDP_READONLY_NATIVE_SCROLL policy=skipped reason=foreground-DOM-owner\n",cap);
-            scanWeb();return;
+        UIView *personWrap=ADUIPersonWrapper7519();
+        if(personWrap){
+            ADUIAppend7362(path,[NSString stringWithFormat:@"FULL_ROUTE_POLICY personExact=1 personPriority=before-PDP-detection personPolicy=exact-RCTScrollView-me-to-real-scroll webviews=%lu\n",(unsigned long)webs.count],cap);
+            ADUIScanPersonFull7519(path,cap,^{
+                ADUIProcessWebViews7364(webs,0,NO,path,cap,^{ADUIFinishCapture7364(NO,webs,path,cap);});
+            });
+            return;
         }
-        // Native renderers must not wait behind retained/background WebKit pages.
-        ADUIAppend7362(path,@"NATIVE_FIRST_DISCOVERY foreground-hit-test=1\n",cap);
-        ADUINativeScrollCandidatesAsync7449(path,cap,^(NSArray *native){
-            ADUIProcessNativeCandidates7364(native,0,path,cap,scanWeb);
-        });
+        ADUIDetectPDPSession7451(webs,^{
+            ADUIAppend7362(path,[NSString stringWithFormat:@"FULL_ROUTE_POLICY personExact=0 pdpDetected=%d pdpWebPolicy=%@ nonPDPWebPolicy=automatic-root-owner-walk webviews=%lu\n",gADUIFullHasPDP7451?1:0,gADUIFullHasPDP7451?@"share-unlock-then-automatic-walk":@"not-applicable",(unsigned long)webs.count],cap);
+            ADUIProcessWebViews7364(webs,0,NO,path,cap,^{
+                if(gADUIFullHasPDP7451){
+                    ADUIAppend7362(path,@"\n===== NATIVE SCROLL DISCOVERY / SWEEP =====\nPDP_READONLY_NATIVE_SCROLL policy=skipped reason=DOM-walker-owns-product-scrolling\n",cap);
+                    ADUIFinishCapture7364(NO,webs,path,cap);
+                    return;
+                }
+                ADUIAppend7362(path,@"\n===== NATIVE SCROLL DISCOVERY / SWEEP (cooperative) =====\n",cap);
+                ADUINativeScrollCandidatesAsync7449(path,cap,^(NSArray *native){ADUIProcessNativeCandidates7364(native,0,path,cap,^{ADUIFinishCapture7364(NO,webs,path,cap);});});
+            });
         });
     });
 }
 
-static NSString *ADUIViewportArmPath7362(void){ return [ADUIDocuments7362() stringByAppendingPathComponent:@"AmazonDark-v7.518-ui-viewport.arm"]; }
+static NSString *ADUIViewportArmPath7362(void){ return [ADUIDocuments7362() stringByAppendingPathComponent:@"AmazonDark-v7.519-ui-viewport.arm"]; }
 static BOOL ADUIConsumeViewportArm7362(void){
     NSString *p=ADUIViewportArmPath7362(); NSFileManager *fm=NSFileManager.defaultManager; if(![fm fileExistsAtPath:p])return NO;
     BOOL ok=NO; @try {
@@ -885,21 +949,10 @@ static BOOL ADUIConsumeViewportArm7362(void){
     } @catch(...) {} [fm removeItemAtPath:p error:nil]; return ok;
 }
 
-// A running FULL must not swallow an armed VIEWPORT at the only foreground
-// boundary. Save independent native evidence without touching FULL's bridge/state.
-static void ADUIViewportBusyBoundary7518(void){
-    NSString *path=ADUIProbePath7362(YES,++gADUIViewportRun7362);
-    NSString *native=ADUINativeSnapshot7362(YES);
-    NSString *text=[NSString stringWithFormat:@"AMAZONDARK v7.518 UNIVERSAL VIEWPORT UI FORENSICS PROBE\ncategory=viewport\ntrigger=armed-will-resign-active\nVIEWPORT_NATIVE_FALLBACK reason=full-in-flight web=omitted coverage=partial\n%@\nUI_PROBE_END category=viewport\n================ END RUN ================\nCOVERAGE state=partial\n",native];
-    NSError *error=nil;
-    BOOL saved=[text writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:&error];
-    ADUIWriteState7445(YES,saved?@"partial":@"write-failed",path);
-}
-
 static void ADUIHandleWillResignActive7447(void){
     if(!gP.enabled)return;
+    if(gADUIProbeBusy7362)return;
     if(!ADUIConsumeViewportArm7362())return;
-    if(gADUIProbeBusy7362){ADUIViewportBusyBoundary7518();return;}
     ADUIBeginViewportBackgroundTask7447();
     ADCaptureUniversalUIProbe7362(YES,@"armed-will-resign-active");
 }

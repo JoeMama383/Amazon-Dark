@@ -1,6 +1,6 @@
-# AmazonDark v7.518 — Person probe routing and Returns contours
+# AmazonDark v7.519 — Person deep scan and stock Returns border geometry
 
-See REVIEW-v7.518.md for findings, evidence limits and validation; COMMANDS.md for copy/push and separate probe commands.
+See REVIEW-v7.519.md for the current delta and evidence contract; COMMANDS.md contains the push workflow and the FULL, VIEWPORT, and TRANSITION commands as separate blocks.
 
 # AmazonDark v7.494 — exact Your Orders owner correction
 

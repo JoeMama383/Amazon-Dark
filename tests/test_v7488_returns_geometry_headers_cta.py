@@ -10,7 +10,7 @@ assert 'Version: 7.488~returns-geometry-header-cta' in C
 assert '#define AD_VERSION "v7.488-returns-geometry-header-cta"' in T
 for h in ('## FULL — v7.488','## VIEWPORT — v7.488','## TRANSITION — v7.488'):
     assert h in CMD, h
-assert all("status" not in line.split() for line in CMD.lower().splitlines() if "-probe.sh" in line)
+assert ' status' not in CMD.lower()
 
 # ORC warning: theme only its floor; do not redraw/re-size/recolor Amazon's authored warning frame.
 warning = '#a-page:has(#orc-items-details-and-content-section) :is(.a-alert-warning,.a-alert-warning>.a-alert-container,.a-alert-warning .a-alert-container){background:#000!important;}'

@@ -11,7 +11,7 @@ assert 'Version: 7.485~ci-validator-identity-repair' in C
 assert '#define AD_VERSION "v7.485-ci-validator-identity-repair"' in T
 for h in ('## FULL — v7.485','## VIEWPORT — v7.485','## TRANSITION — v7.485'):
     assert h in CMD, h
-assert all("status" not in line.split() for line in CMD.lower().splitlines() if "-probe.sh" in line)
+assert ' status' not in CMD.lower()
 
 # PUTB follow-up: broad text whitening + fade collapse retained under the exact immersive owner.
 for token in (
