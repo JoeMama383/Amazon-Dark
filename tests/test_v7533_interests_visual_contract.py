@@ -15,10 +15,10 @@ for token in (
  '.lists-framework-filled-heart-icon',
  ':has(.a-icon-star-mini)',
  'body:has(._bW9ia_prompt-bottom-sheet_1NiWU)',
- '._bW9ia_close-icon_2PTPP',
+ 'i.a-icon-close._bW9ia_close-icon_3w-DL',
 ): assert token in CSS, token
 for good in ('ui-probe.sh export full','ui-probe.sh arm','ui-probe.sh export viewport','skeleton-probe.sh arm transition','skeleton-probe.sh export','git push origin main'):
     assert good in CMD, good
 for bad in ('git init','rm -rf .git','git push -uf','ui-probe.sh full','viewport-arm','viewport-export'):
     assert bad not in CMD, bad
-print('PASS: v7.533 preserves the exact Interests visual owners and frozen handoff contract while repairing WebKit payload parsing')
+print('PASS: current build preserves exact Interests visual owners, top close-X paint, and frozen handoff contract')

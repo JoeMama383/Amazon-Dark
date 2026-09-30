@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.533-web-theme-parse-regression-repair"
+#define AD_VERSION "v7.534-interests-modal-stock-geometry-keyboard-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2729,10 +2729,7 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 
 static void ADPrepareSearchKeyboard7120(UIView *v);
 
-// v7.512: WebKit does not source the software-keyboard skin from WKContentView's
-// own keyboardAppearance selector.  It hands UIKit a cached UITextInputTraits
-// object.  Force that exact traits object dark before the remote keyboard service
-// chooses its keycap artwork; keep the existing OLED keyboard floor owners below.
+// WebKit cached input traits must be dark before remote keycap selection.
 static id ADDarkWebInputTraits7512(id traits){
     if(!gP.enabled||!traits)return traits;
     @try {
@@ -5117,6 +5114,7 @@ static void ADPrepareSearchKeyboard7120(UIView *v){
     @try {
         SEL sel=@selector(setKeyboardAppearance:);
         if([v respondsToSelector:sel]) ((void(*)(id,SEL,NSInteger))objc_msgSend)(v,sel,(NSInteger)UIKeyboardAppearanceDark);
+        if(ADClassNameIs7183(v,"WKContentView")) ADDarkWebInputTraits7512(((id(*)(id,SEL))objc_msgSend)(v,@selector(textInputTraitsForWebView)));
     } @catch(...) {}
 }
 

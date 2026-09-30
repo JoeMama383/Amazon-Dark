@@ -14,12 +14,11 @@ for token in (
  '[class*=filled-heart]',
  ':has(.a-icon-star-mini)',
  'body:has(._bW9ia_prompt-bottom-sheet_1NiWU)',
- '._bW9ia_close-icon_2PTPP',
- 'caret-color:#fff!important',
+ 'i.a-icon-close._bW9ia_close-icon_3w-DL',
 ):
     assert token in CSS, token
 for token in ('- (id)_textInputTraits {','- (UIKeyboardAppearance)keyboardAppearance {','return UIKeyboardAppearanceDark;'):
     assert token in T, token
 for good in ('ui-probe.sh export full','ui-probe.sh arm','ui-probe.sh export viewport','skeleton-probe.sh arm transition','skeleton-probe.sh export','git push origin main'):
     assert good in CMD, good
-print('PASS: v7.530 fixes Interests plus/heart/rating and themes the Update your Interest bottom sheet including dark WebKit keyboard traits while preserving the frozen handoff contract')
+print('PASS: current build preserves Interests plus/heart/rating, OLED modal paint, top close-X whitening and WebKit dark keyboard traits without owning the stock inner clear control')
