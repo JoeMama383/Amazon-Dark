@@ -13,6 +13,7 @@ wk=S.split('%hook WKContentView',1)[1].split('%end',1)[0]
 assert 'static id ADDarkWebInputTraits7512' in S
 # v7.539 adds observational owner evidence between the original call and policy.
 # Remove only that exact guarded statement before checking the production shape.
+wk=wk.replace('    ADKeyboardOwner7546(self,traits);\n','')
 wk=wk.replace('    if(ADSkelTransition7339&&ADSkelActive7339())ADKeyboardTrace7538(traits,[NSString stringWithFormat:@"owner:%p",self],-1,-1);\n','')
 # Logos cannot safely expand %orig when it is nested inside another call; keep it as a statement.
 assert '- (id)textInputTraits {\n    id traits=%orig;\n    return ADDarkWebInputTraits7512(traits);\n}' in wk

@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.545-keyboard-scene-bridge-probe"
+#define AD_VERSION "v7.546-webkit-editing-trait-repair"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2734,6 +2734,7 @@ static void ADPrepareSearchKeyboard7120(UIView *v);
 
 // v7.537: WebKit has two text-input trait paths.
 #include "ADKeyboardTrace7538.h"
+#include "ADWebKeyboardStyle7546.h"
 static id ADDarkWebInputTraits7512(id t){
     ADKeyboardTrace7538(t,@"traits.read",-1,-1);
     if(!gP.enabled||!t)return t;
@@ -2771,17 +2772,17 @@ static id ADDarkWebInputTraits7512(id t){
 %hook WKContentView
 - (id)textInputTraits {
     id traits=%orig;
-    if(ADSkelTransition7339&&ADSkelActive7339())ADKeyboardTrace7538(traits,[NSString stringWithFormat:@"owner:%p",self],-1,-1);
+    ADKeyboardOwner7546(self,traits);
     return ADDarkWebInputTraits7512(traits);
 }
 - (id)textInputTraitsForWebView {
     id traits=%orig;
-    if(ADSkelTransition7339&&ADSkelActive7339())ADKeyboardTrace7538(traits,[NSString stringWithFormat:@"owner:%p",self],-1,-1);
+    ADKeyboardOwner7546(self,traits);
     return ADDarkWebInputTraits7512(traits);
 }
 - (id)_textInputTraits {
     id traits=%orig;
-    if(ADSkelTransition7339&&ADSkelActive7339())ADKeyboardTrace7538(traits,[NSString stringWithFormat:@"owner:%p",self],-1,-1);
+    ADKeyboardOwner7546(self,traits);
     return ADDarkWebInputTraits7512(traits);
 }
 - (UIKeyboardAppearance)keyboardAppearance {
@@ -2789,10 +2790,21 @@ static id ADDarkWebInputTraits7512(id t){
     return %orig;
 }
 - (BOOL)becomeFirstResponder {
+    ADWebKeyboardStyle7546((UIView *)self,YES);
     if(gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
     BOOL became=%orig;
     if(became&&gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
+    if(!became&&!self.isFirstResponder)ADWebKeyboardStyle7546((UIView *)self,NO);
     return became;
+}
+- (BOOL)resignFirstResponder {
+    BOOL resigned=%orig;
+    if(resigned)ADWebKeyboardStyle7546((UIView *)self,NO);
+    return resigned;
+}
+- (void)setOverrideUserInterfaceStyle:(UIUserInterfaceStyle)style {
+    UIUserInterfaceStyle next=ADWebKeyboardRequestedStyle7546((UIView *)self,style);
+    %orig(next);
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
@@ -4906,9 +4918,6 @@ static void ADOwnWebFormAccessory7394(UIToolbar *bar){
 }
 %end
 
-// v7.543: v7.542 consumer trace shows the keyboard traits, UIKeyboardImpl,
-// remote host and active keyboard are dark while UITextEffectsWindow alone stays
-// explicitly Light. Clamp only that keyboard-effects window; no geometry changes.
 %hook UITextEffectsWindow
 - (void)setOverrideUserInterfaceStyle:(UIUserInterfaceStyle)style {
     if(gP.enabled){

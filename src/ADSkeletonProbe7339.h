@@ -122,8 +122,8 @@ static NSArray *ADSkelLifecycleWindows7379(void){
     } @catch(...) {}
     return out;
 }
-// v7.545 keyboard consumer trace.
-// v7.545 private-state expansion: the v7.543 device trace proves the effects-window
+// v7.546 keyboard consumer trace.
+// v7.546 private-state expansion: the v7.543 device trace proves the effects-window
 // clamp held Dark while the visible keycaps still flipped. The v7.539 trace proved that legacy
 // UITextInputTraits objects are recreated during the Interests focus handoff, but it
 // did not observe the UIKit consumer that chooses the remote keycap skin. This is
@@ -141,12 +141,31 @@ static id ADSkelKeyboardInteger7542(id obj,NSString *name){
     @catch(...) {}
     return [NSNull null];
 }
+// Read only the exact scalar appearance field; never invoke an appearance getter.
+static id ADSkelStoredKeyboardAppearance7546(id obj){
+    if(!obj)return [NSNull null];
+    for(NSString *name in @[@"_keyboardAppearance",@"keyboardAppearance"]){
+        Ivar iv=class_getInstanceVariable([obj class],name.UTF8String);if(!iv)continue;
+        const char *type=ivar_getTypeEncoding(iv);if(!type)continue;
+        ptrdiff_t off=ivar_getOffset(iv);size_t len=class_getInstanceSize([obj class]);
+        if(off<0||(size_t)off>=len)continue;
+        const unsigned char *base=(const unsigned char *)(__bridge const void *)obj;
+        if((type[0]=='q'||type[0]=='Q')&&len-(size_t)off>=sizeof(long long)){
+            long long value=0;memcpy(&value,base+off,sizeof(value));return @(value);
+        }
+        if((type[0]=='i'||type[0]=='I')&&len-(size_t)off>=sizeof(int)){
+            int value=0;memcpy(&value,base+off,sizeof(value));return @(value);
+        }
+    }
+    return [NSNull null];
+}
 static NSDictionary *ADSkelKeyboardObjectState7542(id obj){
     if(!obj)return @{};
     NSMutableDictionary *d=[NSMutableDictionary dictionary];
     @try {
         d[@"ptr"]=[NSString stringWithFormat:@"%p",obj];
         d[@"class"]=NSStringFromClass([obj class])?:@"";
+        d[@"storedKeyboardAppearance"]=ADSkelStoredKeyboardAppearance7546(obj);
         d[@"keyboardAppearance"]=ADSkelKeyboardInteger7542(obj,@"keyboardAppearance");
         d[@"keyboardType"]=ADSkelKeyboardInteger7542(obj,@"keyboardType");
         d[@"returnKeyType"]=ADSkelKeyboardInteger7542(obj,@"returnKeyType");
@@ -164,6 +183,7 @@ static NSDictionary *ADSkelKeyboardObjectState7542(id obj){
             id child=ADSkelKeyboardObject7542(obj,selName); if(!child)continue;
             d[[selName stringByAppendingString:@"Class"]]=NSStringFromClass([child class])?:@"";
             d[[selName stringByAppendingString:@"Ptr"]]=[NSString stringWithFormat:@"%p",child];
+            d[[selName stringByAppendingString:@"StoredAppearance"]]=ADSkelStoredKeyboardAppearance7546(child);
             id appearance=ADSkelKeyboardInteger7542(child,@"keyboardAppearance");
             if(appearance!=[NSNull null])d[[selName stringByAppendingString:@"Appearance"]]=appearance;
         }
@@ -428,7 +448,7 @@ static NSArray *ADSkelAnimations7339(CALayer *layer){
     return out;
 }
 
-// v7.545 transition expansion: capture the exact AMIWebViewController/root lifecycle
+// v7.546 transition expansion: capture the exact AMIWebViewController/root lifecycle
 // ordering needed to explain the Book Details See more presentation/dismissal flashes.
 // Probe-only: no color, alpha, geometry, timing, hierarchy, or transition state is written.
 static const void *kADSkelBookAMIRoot7489=&kADSkelBookAMIRoot7489;
@@ -656,8 +676,8 @@ static void ADSkelInstall7339(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(!docs.length)return;
-        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.545-probe.arm"];
-        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.545-probe-status.json"];
+        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.546-probe.arm"];
+        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.546-probe-status.json"];
         NSError *error=nil;
         NSString *arm=[NSString stringWithContentsOfFile:ADSkelArmPath7339 encoding:NSUTF8StringEncoding error:&error];
         if(!arm){
@@ -677,7 +697,7 @@ static void ADSkelInstall7339(void){
         ADSkelTransition7339=[label isEqualToString:@"transition"];
         ADSkelUntil7339=MIN(expiry,now+(ADSkelLaunchOnly7339?20:(ADSkelTransition7339?120:120)));
         ADSkelSession7339=[NSString stringWithFormat:@"%.0f-%d-%@",now*1000,getpid(),label];
-        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.545-skeleton-%@.jsonl",ADSkelSession7339]];
+        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.546-skeleton-%@.jsonl",ADSkelSession7339]];
         int fd=open(ADSkelPath7339.fileSystemRepresentation,O_WRONLY|O_CREAT|O_EXCL,0600);
         if(fd<0){ADSkelStatus7339(@"capture-create-failed",errno);ADSkelUntil7339=0;return;}
         close(fd);ADSkelStatus7339(@"capture-started",0);

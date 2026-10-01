@@ -1,6 +1,6 @@
 {
-  "version": "7.545~keyboard-scene-bridge-probe",
-  "baseline": "v7.543",
-  "focus": "Expand the transition probe past the app-side Dark owners into responder styling, UIKeyboardImpl private state, remote keyboard window/scene state, and delayed post-show state.",
-  "device_validation": "v7.543 still flips even though all previously instrumented keyboard consumers and UITextEffectsWindow remain Dark; v7.545 is diagnostic-only."
+  "version": "7.546~webkit-editing-trait-repair",
+  "baseline": "63a8dff1 / v7.545",
+  "focus": "Match focused native WKContentView appearance to existing Dark keyboard traits; record stored versus effective appearance",
+  "device_validation": "Repair candidate; visual result not yet verified"
 }
