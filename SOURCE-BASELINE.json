@@ -1,6 +1,6 @@
 {
-  "version": "7.543~keyboard-window-style-fix",
-  "baseline": "v7.542",
-  "focus": "Clamp the probe-proven Light UITextEffectsWindow to Dark while preserving all existing keyboard traits and modal geometry.",
-  "device_validation": "Pending device confirmation after v7.542 trace showed UITextEffectsWindow as the only light UIKit keyboard surface."
+  "version": "7.544~keyboard-private-state-probe",
+  "baseline": "v7.543",
+  "focus": "Expand the transition probe past the app-side Dark owners into responder styling, UIKeyboardImpl private state, remote keyboard window/scene state, and delayed post-show state.",
+  "device_validation": "v7.543 still flips even though all previously instrumented keyboard consumers and UITextEffectsWindow remain Dark; v7.544 is diagnostic-only."
 }
