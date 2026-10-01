@@ -1,6 +1,6 @@
-# AmazonDark v7.540 commands
+# AmazonDark v7.541 commands
 
-Save `AmazonDark-v7.540-keyboard-legacy-traits-clamp-source.zip` on the phone first.
+Save `AmazonDark-v7.541-keyboard-legacy-build-fix-source.zip` on the phone first.
 
 ## Push
 
@@ -8,48 +8,48 @@ Save `AmazonDark-v7.540-keyboard-legacy-traits-clamp-source.zip` on the phone fi
 sh <<'SH'
 set -eu
 cd /var/mobile/Amazon-Dark-phone
-ZIP=$(find /var/mobile -type d -name '.Trash*' -prune -o -type f -name 'AmazonDark-v7.540-keyboard-legacy-traits-clamp-source*.zip' -print 2>/dev/null |
+ZIP=$(find /var/mobile -type d -name '.Trash*' -prune -o -type f -name 'AmazonDark-v7.541-keyboard-legacy-build-fix-source*.zip' -print 2>/dev/null |
 while IFS= read -r candidate; do
   if unzip -tq "$candidate" >/dev/null 2>&1; then printf '%s\n' "$candidate"; break; fi
 done)
 [ -n "$ZIP" ] || { echo "Save the source ZIP to your phone first."; exit 1; }
-STAGE=$(mktemp -d /var/mobile/ad7540.XXXXXX)
+STAGE=$(mktemp -d /var/mobile/ad7541.XXXXXX)
 unzip -q "$ZIP" -d "$STAGE"
-grep -qx 'Version: 7.540~keyboard-legacy-traits-clamp' "$STAGE/layout/DEBIAN/control"
+grep -qx 'Version: 7.541~keyboard-legacy-build-fix' "$STAGE/layout/DEBIAN/control"
 cp -a "$STAGE/." .
 chmod 755 layout/DEBIAN/postinst
 AD_STRICT_VALIDATE=0 sh scripts/validate.sh
 git add -A
-if ! git diff --cached --quiet; then git commit -m "v7.540: clamp legacy keyboard traits dark across focus handoff"; fi
+if ! git diff --cached --quiet; then git commit -m "v7.541: repair Logos build for legacy keyboard clamp"; fi
 git push origin main
 SH
 ```
 
-## FULL — v7.540
+## FULL — v7.541
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export full
 ```
 
-## VIEWPORT — v7.540 ARM
+## VIEWPORT — v7.541 ARM
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh arm
 ```
 
-## VIEWPORT — v7.540 EXPORT
+## VIEWPORT — v7.541 EXPORT
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export viewport
 ```
 
-## TRANSITION — v7.540 ARM
+## TRANSITION — v7.541 ARM
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh arm transition
 ```
 
-## TRANSITION — v7.540 EXPORT
+## TRANSITION — v7.541 EXPORT
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh export

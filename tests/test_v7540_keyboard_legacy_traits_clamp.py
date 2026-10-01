@@ -4,7 +4,8 @@ S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD
 assert 'Version: 7.540~keyboard-legacy-traits-clamp' in C
 assert '#define AD_VERSION "v7.540-keyboard-legacy-traits-clamp"' in S
 block=S.split('%hook UITextInputTraits',1)[1].split('%end',1)[0]
-assert 'UIKeyboardAppearance a=%orig,next=gP.enabled?UIKeyboardAppearanceDark:a;' in block
+assert 'UIKeyboardAppearance a=%orig;' in block
+assert 'UIKeyboardAppearance next=gP.enabled?UIKeyboardAppearanceDark:a;' in block
 assert 'ADKeyboardTrace7538(self,@"legacy.read",a,next);' in block and 'return next;' in block
 assert 'UIKeyboardAppearance next=gP.enabled?UIKeyboardAppearanceDark:a;' in block
 assert '%orig(next);' in block and 'ADKeyboardTrace7538(self,@"legacy.write",a,next);' in block

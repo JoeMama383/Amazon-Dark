@@ -1,9 +1,6 @@
 {
-  "version": "7.540~keyboard-legacy-traits-clamp",
-  "baseline": "v7.539",
-  "scope": "Keyboard policy only; no Interests modal geometry or CSS changes",
-  "evidence": [
-    "AmazonDark-v7.539-transition-probe-20261001-082200-68385.tar",
-    "v7.539 KEYBOARD_TRAITS owner/read/write handoff evidence"
-  ]
+  "version": "7.541~keyboard-legacy-build-fix",
+  "baseline": "v7.540",
+  "focus": "Preserve the evidence-backed legacy UITextInputTraits dark clamp while repairing the Logos code-generation build failure caused by code following a bare %orig on the same line.",
+  "device_validation": "Same keyboard behavior target as v7.540; this release is a compile/build repair only."
 }

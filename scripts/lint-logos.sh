@@ -48,6 +48,19 @@ for f in "${files[@]}"; do
         || true
     )
 
+    # Bare %orig is replaced through end-of-line by Logos. A comma immediately
+    # after it looks like a normal C/ObjC declaration continuation, but Logos
+    # deletes that continuation before clang sees the generated file. v7.540
+    # hit this as: UIKeyboardAppearance a=%orig,next=...;
+    while IFS=: read -r lineno content; do
+        [ -z "${lineno:-}" ] && continue
+        echo "  $f:$lineno: bare %orig is followed by a comma on the same line"
+        echo "      $(echo "$content" | sed 's/^[[:space:]]*//')"
+        fail=1
+    done < <(
+        sed 's://.*::' "$f"         | grep -nE '%orig[[:space:]]*,'         || true
+    )
+
     # Logos's %orig argument tokenizer also chokes on a nested call inside the
     # parens, e.g. %orig(foo(x)) — resolve to a local and pass that instead.
     while IFS=: read -r lineno content; do
