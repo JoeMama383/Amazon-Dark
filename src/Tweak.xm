@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.546-full-menu-route-arbitration-repair"
+#define AD_VERSION "v7.547-webkit-editing-trait-merge-repair"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -67,19 +67,15 @@ extern char *__progname;
 
 @interface AWLoadingIndicatorFullScreenModalBar : UIView @end
 @interface AWLoadingIndicatorWidgets_BkgView : UIView @end
-// v7.407: exact Product Search -> PDP image-backed skeleton owner from transition probe.
 @interface IESSkeletonView : UIView @end
-// v7.348: exact native loading-strip renderer family proven by the v7.347 temporal capture.
 @interface AWLoadingIndicatorWidgets_Indicator : UIView @end
 @interface AWLoadingIndicatorWidgets_HighlightView : UIView @end
-// v7.345: the 430x5 content-backed Cart progress/strip owner captured by the transition recorder.
 @interface AWLoadingIndicatorBarView : UIView @end
 @interface AWLoadingIndicatorWidgets_LoadingText : UILabel @end
 @interface UIInputSetHostView : UIView @end
 @interface _UIRemoteKeyboardPlaceholderView : UIView @end
 @interface UITextEffectsWindow : UIWindow @end
 
-// OledKeyboard-derived UIKit owners. Kept local to the Amazon process by AmazonDark.plist.
 @interface UIKeyboard : UIView
 + (instancetype)activeKeyboard;
 @end
@@ -2687,8 +2683,6 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 %hook WKScrollView
 - (void)didMoveToSuperview {
     %orig;
-    // One mount owner is enough: prime the real WKScrollView before UIWindow
-    // attachment and set the indicator style in the same event.
     if(gP.enabled && self.superview && strcmp(object_getClassName(self), "WKScrollView")==0){
         self.opaque=NO;
         ADSetViewBackground7226(self,ADOLED(),YES);
@@ -2755,6 +2749,9 @@ static id ADDarkWebInputTraits7512(id t){
 }
 %end
 
+static const void *kADWebKeyboardStyle7546=&kADWebKeyboardStyle7546;
+static void ADWebKeyboardStyle7546(UIView*v,BOOL e){if(!v||strcmp(object_getClassName(v),"WKContentView"))return;@try{if(@available(iOS 13.0,*)){NSNumber*o=objc_getAssociatedObject(v,kADWebKeyboardStyle7546);if(e&&gP.enabled){if(!o)objc_setAssociatedObject(v,kADWebKeyboardStyle7546,@(v.overrideUserInterfaceStyle),OBJC_ASSOCIATION_RETAIN_NONATOMIC);if(v.overrideUserInterfaceStyle!=UIUserInterfaceStyleDark)v.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;}else if(o){v.overrideUserInterfaceStyle=(UIUserInterfaceStyle)o.integerValue;objc_setAssociatedObject(v,kADWebKeyboardStyle7546,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}}if(e&&gP.enabled&&[v respondsToSelector:@selector(textInputTraitsForWebView)])ADDarkWebInputTraits7512(((id(*)(id,SEL))objc_msgSend)(v,@selector(textInputTraitsForWebView)));}@catch(...){}}
+
 %hook WKExtendedTextInputTraits
 - (void)setKeyboardAppearance:(UIKeyboardAppearance)a {
     UIKeyboardAppearance next=gP.enabled?UIKeyboardAppearanceDark:a;
@@ -2789,10 +2786,19 @@ static id ADDarkWebInputTraits7512(id t){
     return %orig;
 }
 - (BOOL)becomeFirstResponder {
-    if(gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
+    if(gP.enabled){ADWebKeyboardStyle7546((UIView *)self,YES);ADPrepareSearchKeyboard7120((UIView *)self);}
     BOOL became=%orig;
-    if(became&&gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
+    if(became&&gP.enabled){ADWebKeyboardStyle7546((UIView *)self,YES);ADPrepareSearchKeyboard7120((UIView *)self);}
+    else if(!became)ADWebKeyboardStyle7546((UIView *)self,NO);
     return became;
+}
+- (BOOL)resignFirstResponder {
+    BOOL r=%orig;
+    if(r)ADWebKeyboardStyle7546((UIView *)self,NO);return r;
+}
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    %orig(previousTraitCollection);
+    if(gP.enabled&&self.isFirstResponder)ADWebKeyboardStyle7546((UIView *)self,YES);
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
@@ -4748,10 +4754,6 @@ static void ADSetCartTabSelected7345(BOOL selected){
 }
 %end
 
-// v7.348: the temporal recorder also catches an 860x5 CAGradientLayer
-// AWLoadingIndicatorWidgets_HighlightView inside the Cart bar.  Neutralize that exact
-// animated progress gradient only while cartTab is selected.  The 2.5pt Indicator
-// parent receives an OLED floor as a final exact-family seal; no geometry/animation is changed.
 static void ADOwnCartLoadingNativeLeaf7348(UIView *v){
     if(!v||!gP.enabled||!gADCartTabSelected7345||!v.window)return;
     @try {
@@ -4796,7 +4798,6 @@ static void ADOwnCartLoadingNativeLeaf7348(UIView *v){
 }
 %end
 
-// v7.130: OLED backing for the lower remote-keyboard host/placeholder only.
 static BOOL ADHiddenKeyboardDock7130(UIView *v){
     if(!v)return NO;
     @try {
@@ -4832,7 +4833,6 @@ static void ADOwnLowerKeyboardSurface7130(UIView *v){
     } @catch(...) {}
 }
 
-// v7.394: own only the WebKit form-accessory toolbar.
 static const void *kADWebFormBarImageHidden7394=&kADWebFormBarImageHidden7394;
 static BOOL ADInWebFormAccessory7394(UIView *v){
     @try {
@@ -4906,9 +4906,6 @@ static void ADOwnWebFormAccessory7394(UIToolbar *bar){
 }
 %end
 
-// v7.543: v7.542 consumer trace shows the keyboard traits, UIKeyboardImpl,
-// remote host and active keyboard are dark while UITextEffectsWindow alone stays
-// explicitly Light. Clamp only that keyboard-effects window; no geometry changes.
 %hook UITextEffectsWindow
 - (void)setOverrideUserInterfaceStyle:(UIUserInterfaceStyle)style {
     if(gP.enabled){

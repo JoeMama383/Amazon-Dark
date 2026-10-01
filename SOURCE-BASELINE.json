@@ -1,6 +1,6 @@
 {
-  "version": "7.546~full-menu-route-arbitration-repair",
-  "baseline": "v7.545",
-  "focus": "Repair FULL Hamburger menu routing so retained Person React surfaces cannot steal the capture; recognize both scrolled-hamburger and scrolled-hamburger-view owners while retaining the v7.545 keyboard transition diagnostics.",
-  "device_validation": "Pending v7.546 FULL Hamburger capture; expected evidence is FULL_ROUTE_ARBITRATION with menuFront=1 followed by MENU_FULL_ROUTE/MENU_FULL_MOVE/MENU_FULL_SCAN_END."
+  "version": "7.547~webkit-editing-trait-merge-repair",
+  "baseline": "v7.546",
+  "focus": "Restore the WebKit editing-trait production contract that the v7.546 overlay accidentally erased while retaining the v7.546 FULL Hamburger route-arbitration repair.",
+  "device_validation": "Pending v7.547 device verification; CI must first prove the retained v7.546 editing-trait regression and current v7.547 merge regression both pass."
 }

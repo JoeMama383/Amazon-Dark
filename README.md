@@ -1,7 +1,9 @@
-## v7.546 — FULL menu route arbitration repair
+## v7.547 — WebKit editing-trait merge repair
 
-Direct parent: v7.545.
+Direct parent: v7.546.
 
-The keyboard transition diagnostics from v7.545 are retained unchanged. v7.546 repairs a separate FULL-probe routing defect: the dedicated Hamburger scanner existed, but the capture dispatcher checked the retained Person `RCTScrollView#me` surface first. `ADUIViewActuallyVisible7362` only proves screen intersection; it does not prove that a React surface is frontmost. Amazon can retain the previous Person screen under the open Hamburger overlay, causing FULL to choose PERSON and return before the menu scanner ever runs.
+The v7.546 GitHub regression failure proved the release archive was built from a stale clean-tree baseline: the existing clone retained `test_v7546_webkit_editing_trait_repair.py`, but the v7.546 source ZIP overwrote `src/Tweak.xm` with a copy that no longer contained the `ADWebKeyboardStyle7546` implementation that regression expected. Because the phone workflow overlays the staged archive onto the existing clone, the test survived while its production implementation disappeared.
 
-The probe now identifies the foreground menu using hit-test ownership, recognizes both probe/theming-proven menu identities (`scrolled-hamburger` and `scrolled-hamburger-view`), resolves the actual `RCTCustomScrollView`, and arbitrates Menu vs Person using frontmost ownership before PDP detection. The dedicated scan remains finite, screenshot-triggered, non-animated, preserves `scrollEnabled`, and restores the authored offset. No production theming or keyboard behavior changes.
+v7.547 restores that WebKit editing-trait ownership instead of deleting or weakening the retained regression. Exact `WKContentView` editing now forces a Dark `overrideUserInterfaceStyle` before `becomeFirstResponder` reaches UIKit, re-primes the cached WebKit text-input traits, reasserts Dark when the active responder's trait collection changes, and restores the authored style after editing ends. No geometry, modal CSS, polling, timers, DOM walkers, or recurring keyboard hierarchy work are added.
+
+The independent v7.546 FULL Hamburger route-arbitration repair is retained unchanged: foreground Hamburger ownership still wins over retained Person surfaces and both `scrolled-hamburger` identities remain recognized.
