@@ -1,3 +1,5 @@
-# v7.536 — Interests keyboard trait rewrite guard
+# v7.537 — Interests WebKit extended keyboard fix
 
-Direct parent: v7.535. The supplied transition capture shows the Amazon-side keyboard host and remote placeholder remain OLED black through the later keyboard recreation, so the remaining failure is remote keycap appearance rather than keyboard-floor paint. v7.536 keeps all v7.535 modal paint/geometry unchanged and guards the exact concrete WebKit text-input-traits class discovered from `WKContentView`, clamping later `setKeyboardAppearance:` rewrites to dark. No polling, recurring traversal, or geometry changes.
+Direct parent: v7.536. The v7.535 transition showed the Amazon-side keyboard host and remote placeholder remain OLED black while the visible keycaps later revert. Public WebKit source shows the modern async text-input path uses `WKExtendedTextInputTraits`; its `restoreDefaultValues` explicitly writes `UIKeyboardAppearanceDefault`. v7.536 guarded only the legacy `UITextInputTraits` path, so it could not stop that modern-path reset.
+
+v7.537 removes the speculative concrete-class runtime replacement and instead owns the exact WebKit extended-traits class. `WKExtendedTextInputTraits` now clamps `setKeyboardAppearance:` to Dark while AmazonDark is enabled, and reapplies Dark immediately after `restoreDefaultValues`. Legacy WebKit traits remain forced dark as before. There is no polling, timer, DOM traversal, modal geometry change, or keyboard hierarchy scan.

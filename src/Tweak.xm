@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.536-interests-keyboard-trait-rewrite-guard"
+#define AD_VERSION "v7.537-interests-webkit-extended-keyboard-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -33,6 +33,7 @@ extern char *__progname;
 @interface TezBaseSplashScreenViewController : UIViewController @end
 @interface WKScrollView : UIScrollView @end
 @interface WKContentView : UIView @end
+@interface WKExtendedTextInputTraits : NSObject @end
 @interface RCTRootView : UIView @end
 @interface RCTRootContentView : UIView @end
 @interface SNPRootView : UIView @end
@@ -2729,26 +2730,25 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 
 static void ADPrepareSearchKeyboard7120(UIView *v);
 
-static char kADWebTraitsAppearance7536;
-static void ADWebTraitsSetAppearance7536(id o,SEL s,NSInteger a){
-    NSValue *v=(NSValue *)objc_getAssociatedObject((id)object_getClass(o),&kADWebTraitsAppearance7536);
-    IMP p=v?(IMP)[v pointerValue]:NULL;
-    if(p)((void(*)(id,SEL,NSInteger))p)(o,s,(NSInteger)UIKeyboardAppearanceDark);
+// v7.537: WebKit has two text-input trait paths. The legacy cached UITextInputTraits
+// path is still forced dark here; the async/remote keyboard path uses
+// WKExtendedTextInputTraits, whose restoreDefaultValues writes Default again.
+static id ADDarkWebInputTraits7512(id t){
+    if(!gP.enabled||!t)return t;
+    @try { SEL s=@selector(setKeyboardAppearance:); if([t respondsToSelector:s])((void(*)(id,SEL,NSInteger))objc_msgSend)(t,s,(NSInteger)UIKeyboardAppearanceDark); } @catch(...) {}
+    return t;
 }
-static void ADGuardWebTraitsAppearance7536(id o){
-    if(!gP.enabled||!o)return;
-    @try {
-        Class c=object_getClass(o); SEL s=@selector(setKeyboardAppearance:); Method m=c?class_getInstanceMethod(c,s):NULL; if(!m)return;
-        IMP p=class_getMethodImplementation(c,s); if(p==(IMP)ADWebTraitsSetAppearance7536)return;
-        objc_setAssociatedObject((id)c,&kADWebTraitsAppearance7536,[NSValue valueWithPointer:p],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        class_replaceMethod(c,s,(IMP)ADWebTraitsSetAppearance7536,method_getTypeEncoding(m));
-    } @catch(...) {}
+
+%hook WKExtendedTextInputTraits
+- (void)setKeyboardAppearance:(UIKeyboardAppearance)a {
+    UIKeyboardAppearance next=gP.enabled?UIKeyboardAppearanceDark:a;
+    %orig(next);
 }
-static id ADDarkWebInputTraits7512(id traits){
-    if(!gP.enabled||!traits)return traits;
-    @try { ADGuardWebTraitsAppearance7536(traits); SEL s=@selector(setKeyboardAppearance:); if([traits respondsToSelector:s])((void(*)(id,SEL,NSInteger))objc_msgSend)(traits,s,(NSInteger)UIKeyboardAppearanceDark); } @catch(...) {}
-    return traits;
+- (void)restoreDefaultValues {
+    %orig;
+    if(gP.enabled)ADDarkWebInputTraits7512(self);
 }
+%end
 
 %hook WKContentView
 - (id)textInputTraits {
