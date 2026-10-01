@@ -122,6 +122,127 @@ static NSArray *ADSkelLifecycleWindows7379(void){
     } @catch(...) {}
     return out;
 }
+// v7.542 keyboard consumer trace. The v7.539 trace proved that legacy
+// UITextInputTraits objects are recreated during the Interests focus handoff, but it
+// did not observe the UIKit consumer that chooses the remote keycap skin. This is
+// transition-probe-only, read-only instrumentation. It never changes input traits,
+// responder state, hierarchy, geometry or keyboard timing.
+static id ADSkelKeyboardObject7542(id obj,NSString *name){
+    if(!obj||!name.length)return nil;
+    @try { SEL sel=NSSelectorFromString(name); if([obj respondsToSelector:sel])return ((id(*)(id,SEL))objc_msgSend)(obj,sel); }
+    @catch(...) {}
+    return nil;
+}
+static id ADSkelKeyboardInteger7542(id obj,NSString *name){
+    if(!obj||!name.length)return [NSNull null];
+    @try { SEL sel=NSSelectorFromString(name); if([obj respondsToSelector:sel])return @(((NSInteger(*)(id,SEL))objc_msgSend)(obj,sel)); }
+    @catch(...) {}
+    return [NSNull null];
+}
+static NSDictionary *ADSkelKeyboardObjectState7542(id obj){
+    if(!obj)return @{};
+    NSMutableDictionary *d=[NSMutableDictionary dictionary];
+    @try {
+        d[@"ptr"]=[NSString stringWithFormat:@"%p",obj];
+        d[@"class"]=NSStringFromClass([obj class])?:@"";
+        d[@"keyboardAppearance"]=ADSkelKeyboardInteger7542(obj,@"keyboardAppearance");
+        d[@"keyboardType"]=ADSkelKeyboardInteger7542(obj,@"keyboardType");
+        d[@"returnKeyType"]=ADSkelKeyboardInteger7542(obj,@"returnKeyType");
+        if([obj isKindOfClass:UIView.class]){
+            UIView *v=(UIView *)obj;
+            d[@"firstResponder"]=@(v.isFirstResponder);
+            d[@"overrideStyle"]=@((NSInteger)v.overrideUserInterfaceStyle);
+            d[@"traitStyle"]=@((NSInteger)v.traitCollection.userInterfaceStyle);
+            d[@"windowClass"]=v.window?(NSStringFromClass(v.window.class)?:@""):@"";
+        } else if([obj respondsToSelector:@selector(traitCollection)]){
+            UITraitCollection *tc=ADSkelKeyboardObject7542(obj,@"traitCollection");
+            if([tc isKindOfClass:UITraitCollection.class])d[@"traitStyle"]=@((NSInteger)tc.userInterfaceStyle);
+        }
+        for(NSString *selName in @[@"textInputTraits",@"_textInputTraits",@"inputTraits",@"delegate",@"inputDelegate",@"privateInputDelegate",@"inputMode"]){
+            id child=ADSkelKeyboardObject7542(obj,selName); if(!child)continue;
+            d[[selName stringByAppendingString:@"Class"]]=NSStringFromClass([child class])?:@"";
+            d[[selName stringByAppendingString:@"Ptr"]]=[NSString stringWithFormat:@"%p",child];
+            id appearance=ADSkelKeyboardInteger7542(child,@"keyboardAppearance");
+            if(appearance!=[NSNull null])d[[selName stringByAppendingString:@"Appearance"]]=appearance;
+        }
+    } @catch(...) {}
+    return d;
+}
+static UIView *ADSkelFirstResponder7542(void){
+    @try {
+        NSMutableArray *stack=[NSMutableArray array];
+        for(UIWindow *w in UIApplication.sharedApplication.windows)if(w)[stack addObject:w];
+        NSUInteger visited=0;
+        while(stack.count&&visited++<768){
+            UIView *v=stack.lastObject;[stack removeLastObject];
+            if(v.isFirstResponder)return v;
+            for(UIView *child in v.subviews)if(child)[stack addObject:child];
+        }
+    } @catch(...) {}
+    return nil;
+}
+static NSArray *ADSkelKeyboardMethodHints7542(Class cls){
+    NSMutableArray *out=[NSMutableArray array]; if(!cls)return out;
+    @try {
+        unsigned count=0;Method *methods=class_copyMethodList(cls,&count);
+        for(unsigned i=0;methods&&i<count&&out.count<96;i++){
+            NSString *name=NSStringFromSelector(method_getName(methods[i]));
+            NSString *low=name.lowercaseString;
+            if([low containsString:@"appear"]||[low containsString:@"trait"]||[low containsString:@"style"]||[low containsString:@"delegate"]||[low containsString:@"inputmode"])
+                [out addObject:(name.length>180?[name substringToIndex:180]:name)];
+        }
+        if(methods)free(methods);
+    } @catch(...) {}
+    return out;
+}
+static void ADSkelKeyboardConsumerSnapshot7542(NSString *phase){
+    if(!ADSkelTransition7339||!ADSkelActive7339())return;
+    @try {
+        NSMutableDictionary *r=[ADSkelEvent7339(@"KEYBOARD_CONSUMER") mutableCopy];
+        r[@"phase"]=phase?:@"";
+        UIView *first=ADSkelFirstResponder7542();
+        r[@"firstResponder"]=ADSkelKeyboardObjectState7542(first);
+        Class implClass=NSClassFromString(@"UIKeyboardImpl");
+        r[@"implClassPresent"]=@(implClass!=Nil);
+        id impl=nil;NSString *factory=@"";
+        for(NSString *name in @[@"sharedInstance",@"activeInstance",@"sharedKeyboard",@"keyboardImpl"]){
+            id candidate=ADSkelKeyboardObject7542((id)implClass,name);
+            if(candidate){impl=candidate;factory=name;break;}
+        }
+        if(impl){r[@"implFactory"]=factory;r[@"impl"]=ADSkelKeyboardObjectState7542(impl);}
+        @try { UIKeyboard *active=[UIKeyboard activeKeyboard]; if(active)r[@"activeKeyboard"]=ADSkelKeyboardObjectState7542(active); } @catch(...) {}
+        NSMutableArray *special=[NSMutableArray array];
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if([NSStringFromClass(w.class) isEqualToString:@"UITextEffectsWindow"])[special addObject:ADSkelKeyboardObjectState7542(w)];
+            NSMutableArray *stack=[NSMutableArray arrayWithObject:w];NSUInteger seen=0;
+            while(stack.count&&seen++<512&&special.count<12){
+                UIView *v=stack.lastObject;[stack removeLastObject];
+                NSString *cn=NSStringFromClass(v.class)?:@"";
+                if([cn isEqualToString:@"UIInputSetHostView"]||[cn isEqualToString:@"_UIRemoteKeyboardPlaceholderView"]||[cn isEqualToString:@"UIKeyboardDockView"]||[cn isEqualToString:@"UIKeyboard"])
+                    [special addObject:ADSkelKeyboardObjectState7542(v)];
+                for(UIView *child in v.subviews)if(child)[stack addObject:child];
+            }
+        }
+        r[@"keyboardViews"]=special;
+        static NSString *methodSession=nil;
+        if(![methodSession isEqual:ADSkelSession7339]){
+            methodSession=[ADSkelSession7339 copy];
+            r[@"implMethodHints"]=ADSkelKeyboardMethodHints7542(implClass);
+        }
+        ADSkelWrite7339(r);
+    } @catch(...) {}
+}
+static void ADSkelKeyboardConsumerBurst7542(NSString *base){
+    if(!ADSkelTransition7339||!ADSkelActive7339())return;
+    ADSkelKeyboardConsumerSnapshot7542([base stringByAppendingString:@":0ms"]);
+    for(NSNumber *ms in @[@50,@200,@600,@1200,@2000]){
+        NSString *phase=[NSString stringWithFormat:@"%@:%@ms",base,ms];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(ms.doubleValue*NSEC_PER_MSEC)),dispatch_get_main_queue(),^{
+            if(ADSkelTransition7339&&ADSkelActive7339())ADSkelKeyboardConsumerSnapshot7542(phase);
+        });
+    }
+}
+
 static NSString *ADSkelName7339(NSString *s){
     // Technical identifiers/classes only. No labels, text, view descriptions or URLs.
     if(![s isKindOfClass:NSString.class])return @"";
@@ -152,7 +273,7 @@ static NSArray *ADSkelAnimations7339(CALayer *layer){
     return out;
 }
 
-// v7.541 transition expansion: capture the exact AMIWebViewController/root lifecycle
+// v7.542 transition expansion: capture the exact AMIWebViewController/root lifecycle
 // ordering needed to explain the Book Details See more presentation/dismissal flashes.
 // Probe-only: no color, alpha, geometry, timing, hierarchy, or transition state is written.
 static const void *kADSkelBookAMIRoot7489=&kADSkelBookAMIRoot7489;
@@ -380,8 +501,8 @@ static void ADSkelInstall7339(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(!docs.length)return;
-        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.541-probe.arm"];
-        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.541-probe-status.json"];
+        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.542-probe.arm"];
+        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.542-probe-status.json"];
         NSError *error=nil;
         NSString *arm=[NSString stringWithContentsOfFile:ADSkelArmPath7339 encoding:NSUTF8StringEncoding error:&error];
         if(!arm){
@@ -401,7 +522,7 @@ static void ADSkelInstall7339(void){
         ADSkelTransition7339=[label isEqualToString:@"transition"];
         ADSkelUntil7339=MIN(expiry,now+(ADSkelLaunchOnly7339?20:(ADSkelTransition7339?120:120)));
         ADSkelSession7339=[NSString stringWithFormat:@"%.0f-%d-%@",now*1000,getpid(),label];
-        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.541-skeleton-%@.jsonl",ADSkelSession7339]];
+        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.542-skeleton-%@.jsonl",ADSkelSession7339]];
         int fd=open(ADSkelPath7339.fileSystemRepresentation,O_WRONLY|O_CREAT|O_EXCL,0600);
         if(fd<0){ADSkelStatus7339(@"capture-create-failed",errno);ADSkelUntil7339=0;return;}
         close(fd);ADSkelStatus7339(@"capture-started",0);
@@ -444,6 +565,12 @@ static void ADSkelInstall7339(void){
                         r[@"foregroundCycle"]=@(ADSkelProbe7339.foregroundCycles);
                     }
                     ADSkelWrite7339(r);
+                    if([n.name hasPrefix:@"UIKeyboard"]&&ADSkelTransition7339){
+                        if([n.name isEqualToString:UIKeyboardWillShowNotification]||[n.name isEqualToString:UIKeyboardDidShowNotification])
+                            ADSkelKeyboardConsumerBurst7542(n.name);
+                        else
+                            ADSkelKeyboardConsumerSnapshot7542(n.name);
+                    }
                     // Launch capture is complete once the fresh process backgrounds.
                     // Transition capture deliberately remains armed so the same PID can
                     // record the app-switcher dwell and the subsequent warm return.

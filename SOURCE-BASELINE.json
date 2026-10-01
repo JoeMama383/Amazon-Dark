@@ -1,6 +1,6 @@
 {
-  "version": "7.541~keyboard-legacy-build-fix",
-  "baseline": "v7.540",
-  "focus": "Preserve the evidence-backed legacy UITextInputTraits dark clamp while repairing the Logos code-generation build failure caused by code following a bare %orig on the same line.",
-  "device_validation": "Same keyboard behavior target as v7.540; this release is a compile/build repair only."
+  "version": "7.542~keyboard-consumer-probe",
+  "baseline": "v7.541",
+  "focus": "Probe-only expansion at the UIKit keyboard consumer boundary after v7.541 failed to stop delayed light keycaps.",
+  "device_validation": "Pending v7.542 transition capture; no production keyboard/modal changes in this release."
 }
