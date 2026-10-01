@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.542-keyboard-consumer-probe"
+#define AD_VERSION "v7.543-keyboard-window-style-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -77,6 +77,7 @@ extern char *__progname;
 @interface AWLoadingIndicatorWidgets_LoadingText : UILabel @end
 @interface UIInputSetHostView : UIView @end
 @interface _UIRemoteKeyboardPlaceholderView : UIView @end
+@interface UITextEffectsWindow : UIWindow @end
 
 // OledKeyboard-derived UIKit owners. Kept local to the Amazon process by AmazonDark.plist.
 @interface UIKeyboard : UIView
@@ -4795,12 +4796,7 @@ static void ADOwnCartLoadingNativeLeaf7348(UIView *v){
 }
 %end
 
-// v7.130 — fill only the lower remote-keyboard host/placeholder exposed while
-// the real OLED UIKeyboardDockView is hidden during WebKit selection.  Unlike
-// v7.121/v7.122 this does NOT touch UIInputSetContainerView and applies NO
-// Core Animation color-matrix/compositor filter.  A black backing sublayer sits
-// behind the remote placeholder only while the real UIKeyboardDockView is hidden.
-// Normal keyboard presentation therefore remains on the v7.126 OledKeyboard path.
+// v7.130: OLED backing for the lower remote-keyboard host/placeholder only.
 static BOOL ADHiddenKeyboardDock7130(UIView *v){
     if(!v)return NO;
     @try {
@@ -4836,11 +4832,7 @@ static void ADOwnLowerKeyboardSurface7130(UIView *v){
     } @catch(...) {}
 }
 
-// v7.394 FULL r1 (17:38): WebKit's HTML form accessory is not the normal
-// navigation toolbar. The probe shows its _UIBarBackground model color is already black,
-// but a direct 430x44 stretchable UIImageView (3x132 source raster) paints the visible gray
-// strip and the toolbar tint drives purple Done/arrow controls. Own only a UIToolbar whose
-// ancestor chain contains UIWebFormAccessory; no navigation/toolbars elsewhere are touched.
+// v7.394: own only the WebKit form-accessory toolbar.
 static const void *kADWebFormBarImageHidden7394=&kADWebFormBarImageHidden7394;
 static BOOL ADInWebFormAccessory7394(UIView *v){
     @try {
@@ -4911,6 +4903,25 @@ static void ADOwnWebFormAccessory7394(UIToolbar *bar){
         return;
     }
     %orig(color);
+}
+%end
+
+// v7.543: v7.542 consumer trace shows the keyboard traits, UIKeyboardImpl,
+// remote host and active keyboard are dark while UITextEffectsWindow alone stays
+// explicitly Light. Clamp only that keyboard-effects window; no geometry changes.
+%hook UITextEffectsWindow
+- (void)setOverrideUserInterfaceStyle:(UIUserInterfaceStyle)style {
+    if(gP.enabled){
+        %orig(UIUserInterfaceStyleDark);
+        return;
+    }
+    %orig(style);
+}
+- (void)layoutSubviews {
+    %orig;
+    if(gP.enabled){
+        if(@available(iOS 13.0,*)) self.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;
+    }
 }
 %end
 

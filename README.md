@@ -1,7 +1,7 @@
-## v7.542 — keyboard consumer transition probe
+## v7.543 — keyboard effects-window style fix
 
-Direct parent: v7.541.
+Direct parent: v7.542.
 
-The v7.541 production clamp builds correctly but does not stop the Interests keyboard from changing from the correct OLED appearance to light keycaps after presentation. The v7.539 evidence isolated a legacy traits reset, but v7.541 proving ineffective means that reset was not the final keycap-selection boundary.
+The v7.542 consumer trace finally exposes a concrete appearance mismatch after the delayed Interests keyboard handoff: the first responder traits, UIKeyboardImpl traits, active UIKeyboard object, input host, remote placeholder and dock all remain Dark, but `UITextEffectsWindow` remains explicitly Light (`traitStyle=1`, `overrideStyle=1`) through every bounded post-show snapshot.
 
-v7.542 is diagnostic-only. Production keyboard and modal behavior remain unchanged. The transition probe now captures the effective UIKit keyboard-consumer state around WillShow/DidShow and for two seconds afterward: first responder, UIKeyboard/UITextEffectsWindow/input-host style state, any available UIKeyboardImpl singleton state, related input/delegate object classes and pointers, and a bounded filtered method inventory. This should tell us whether the switch is caused by UIKit's effective appearance/style, a different input delegate/traits owner, or a state change that occurs only in the remote keyboard process.
+v7.543 fixes only that mismatch. The private keyboard effects window is clamped to `UIUserInterfaceStyleDark` on later override writes and during layout. No Interests modal CSS, geometry, DOM work, timers, polling or hierarchy scans are added. The v7.542 transition consumer snapshots remain in place so a device retest can prove whether the window stays Dark after the previously failing handoff.

@@ -1,6 +1,6 @@
 {
-  "version": "7.542~keyboard-consumer-probe",
-  "baseline": "v7.541",
-  "focus": "Probe-only expansion at the UIKit keyboard consumer boundary after v7.541 failed to stop delayed light keycaps.",
-  "device_validation": "Pending v7.542 transition capture; no production keyboard/modal changes in this release."
+  "version": "7.543~keyboard-window-style-fix",
+  "baseline": "v7.542",
+  "focus": "Clamp the probe-proven Light UITextEffectsWindow to Dark while preserving all existing keyboard traits and modal geometry.",
+  "device_validation": "Pending device confirmation after v7.542 trace showed UITextEffectsWindow as the only light UIKit keyboard surface."
 }
