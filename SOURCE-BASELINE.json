@@ -1,10 +1,9 @@
 {
-  "version": "7.539~keyboard-handoff-evidence",
-  "baseline": "288f436c / v7.538",
-  "scope": "Armed transition diagnostics only; no new keyboard appearance policy",
+  "version": "7.540~keyboard-legacy-traits-clamp",
+  "baseline": "v7.539",
+  "scope": "Keyboard policy only; no Interests modal geometry or CSS changes",
   "evidence": [
-    "RPReplay_Final1790854676.mp4",
-    "v7.535 transition 1790786743168-43078",
-    "AmazonDark-v7.538-transition-probe-20261001-080616-62534.tar"
+    "AmazonDark-v7.539-transition-probe-20261001-082200-68385.tar",
+    "v7.539 KEYBOARD_TRAITS owner/read/write handoff evidence"
   ]
 }

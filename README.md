@@ -1,3 +1,7 @@
+## v7.540 — legacy keyboard traits clamp
+
+The expanded v7.539 transition finally captured the keyboard handoff on iOS 17.0: `WKExtendedTextInputTraits` is absent, while multiple live `UITextInputTraits` objects are read with `UIKeyboardAppearanceDefault` during the invisible-input -> textarea handoff and repeated keyboard-show cycle. v7.540 keeps the diagnostic trace but clamps the legacy traits getter and setter to `UIKeyboardAppearanceDark` while AmazonDark is enabled. No modal geometry/CSS, DOM traversal, polling, timers, or keyboard hierarchy scans are added. See REVIEW-v7.540.md and COMMANDS.md.
+
 ## v7.539 — keyboard handoff evidence
 
 Diagnostic update based on the v7.538 capture. Deduplicates unchanged native traits, uses a rolling bounded budget and observes legacy appearance reads. Expanded focused-input evidence. This is not a confirmed keyboard repair. See REVIEW-v7.539.md and COMMANDS.md.

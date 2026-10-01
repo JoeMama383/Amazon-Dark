@@ -8,9 +8,9 @@ assert h.index('if([seen[key] isEqual:state])')<h.index('if(!ADKeyboardBudgetTak
 assert 'seen.count>=256' in h and 'duplicatesSuppressed' in h and 'budgetDropped' in h
 assert 'count>=512)return' not in h
 block=t.split('%hook UITextInputTraits',1)[1].split('%end',1)[0]
-assert 'UIKeyboardAppearance a=%orig;' in block and 'return a;' in block and '@"legacy.read",a,a' in block
-assert '%orig;' in block and '@"legacy.write",a,a' in block
-assert 'UIKeyboardAppearanceDark' not in block
+assert 'UIKeyboardAppearance a=%orig' in block and '@"legacy.read",a,next' in block and 'return next;' in block
+assert '%orig(next);' in block and '@"legacy.write",a,next' in block
+assert 'UIKeyboardAppearanceDark' in block
 assert t.count('if(ADSkelTransition7339&&ADSkelActive7339())ADKeyboardTrace7538(traits,[NSString stringWithFormat:@"owner:%p",self],-1,-1);')==3
 with tempfile.TemporaryDirectory() as d:
  p=Path(d)/'budget.cpp';exe=Path(d)/'budget'
@@ -29,4 +29,4 @@ return 0;}
 ''')
  subprocess.run(['g++','-std=c++98','-Wall','-Wextra','-Werror','-I',str(R/'src'),str(p),'-o',str(exe)],check=True)
  subprocess.run([str(exe)],check=True)
-print('PASS: bounded keyboard budget recovers after burst/background; legacy getter preserves original value and diagnostic recursion is guarded')
+print('PASS: bounded keyboard budget recovers after burst/background; legacy read/write tracing survives the successor dark-clamp policy and diagnostic recursion is guarded')

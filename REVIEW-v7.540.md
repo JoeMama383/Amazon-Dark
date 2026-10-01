@@ -1,0 +1,7 @@
+# v7.540 — legacy keyboard traits clamp
+
+The expanded v7.539 transition finally captures the useful handoff evidence on the target iOS 17.0 device. `WKExtendedTextInputTraits` is never present (`extendedTraitsClassPresent=false`) while `UITextInputTraits` is present. The modal first focuses a hidden input, then Amazon moves focus to `_bW9ia_invisible-focus-input_3rA0M`, then to the real textarea. The keyboard issues repeated WillShow/DidShow cycles without an intervening hide.
+
+At those handoffs, the exact WKContentView owner repeatedly returns newly-created `UITextInputTraits` objects whose `keyboardAppearance` is 0 (Default) before AmazonDark writes 1 (Dark). At the same time, other live legacy trait objects are still read as 0 during the keyboard handoff. This is the missing path: the remote keyboard can serialize/read a fresh legacy traits object after the initial dark configuration. The v7.537 extended-traits fix cannot own this device path because that class is absent.
+
+v7.540 therefore keeps the existing evidence hooks but makes `UITextInputTraits` itself authoritative inside Amazon: `keyboardAppearance` returns Dark whenever AmazonDark is enabled, and `setKeyboardAppearance:` forwards Dark regardless of a later Default request. This catches fresh/copied legacy trait objects without polling, timers, observers, hierarchy scans or modal geometry/CSS changes. The WKExtended hook remains for newer WebKit versions but is no longer required for the target device.

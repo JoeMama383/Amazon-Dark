@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.539-keyboard-handoff-evidence"
+#define AD_VERSION "v7.540-keyboard-legacy-traits-clamp"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2742,13 +2742,14 @@ static id ADDarkWebInputTraits7512(id t){
 
 %hook UITextInputTraits
 - (UIKeyboardAppearance)keyboardAppearance {
-    UIKeyboardAppearance a=%orig;
-    ADKeyboardTrace7538(self,@"legacy.read",a,a);
-    return a;
+    UIKeyboardAppearance a=%orig,next=gP.enabled?UIKeyboardAppearanceDark:a;
+    ADKeyboardTrace7538(self,@"legacy.read",a,next);
+    return next;
 }
 - (void)setKeyboardAppearance:(UIKeyboardAppearance)a {
-    %orig;
-    ADKeyboardTrace7538(self,@"legacy.write",a,a);
+    UIKeyboardAppearance next=gP.enabled?UIKeyboardAppearanceDark:a;
+    %orig(next);
+    ADKeyboardTrace7538(self,@"legacy.write",a,next);
 }
 %end
 
