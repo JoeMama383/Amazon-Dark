@@ -122,8 +122,8 @@ static NSArray *ADSkelLifecycleWindows7379(void){
     } @catch(...) {}
     return out;
 }
-// v7.544 keyboard consumer trace.
-// v7.544 private-state expansion: the v7.543 device trace proves the effects-window
+// v7.545 keyboard consumer trace.
+// v7.545 private-state expansion: the v7.543 device trace proves the effects-window
 // clamp held Dark while the visible keycaps still flipped. The v7.539 trace proved that legacy
 // UITextInputTraits objects are recreated during the Interests focus handoff, but it
 // did not observe the UIKit consumer that chooses the remote keycap skin. This is
@@ -327,6 +327,34 @@ static NSArray *ADSkelKeyboardClassInventory7544(void){
     } @catch(...) {}
     return out;
 }
+static id ADSkelKeyboardIvarObject7545(id obj, NSString *wanted){
+    if(!obj||!wanted.length)return nil;
+    @try {
+        for(Class cls=[obj class];cls;cls=class_getSuperclass(cls)){
+            Ivar iv=class_getInstanceVariable(cls,wanted.UTF8String);
+            if(iv){const char *t=ivar_getTypeEncoding(iv);if(t&&t[0]=='@')return object_getIvar(obj,iv);}
+        }
+    } @catch(...) {}
+    return nil;
+}
+static NSArray *ADSkelKeyboardBridgeMethods7545(Class cls){
+    NSMutableArray *out=[NSMutableArray array]; if(!cls)return out;
+    @try {
+        for(Class c=cls;c&&out.count<72;c=class_getSuperclass(c)){
+            unsigned n=0; Method *ms=class_copyMethodList(c,&n);
+            for(unsigned i=0;ms&&i<n&&out.count<72;i++){
+                SEL sel=method_getName(ms[i]); NSString *name=NSStringFromSelector(sel)?:@""; NSString *low=name.lowercaseString;
+                if(!([low containsString:@"trait"]||[low containsString:@"style"]||[low containsString:@"appear"]||
+                     [low containsString:@"keyboard"]||[low containsString:@"scene"]||[low containsString:@"render"]||
+                     [low containsString:@"display"]||[low containsString:@"interface"]))continue;
+                const char *t=method_getTypeEncoding(ms[i]);
+                [out addObject:@{ @"owner":NSStringFromClass(c)?:@"", @"selector":name, @"types":t?[NSString stringWithUTF8String:t]:@"" }];
+            }
+            if(ms)free(ms);
+        }
+    } @catch(...) {}
+    return out;
+}
 static void ADSkelKeyboardPrivateState7544(NSString *phase){
     if(!ADSkelTransition7339||!ADSkelActive7339())return;
     @try {
@@ -339,7 +367,14 @@ static void ADSkelKeyboardPrivateState7544(NSString *phase){
         if(active){
             r[@"activeKeyboard"]=ADSkelKeyboardObjectState7542(active); r[@"activeKeyboardGetters"]=ADSkelKeyboardGetterState7544(active); r[@"activeKeyboardIvars"]=ADSkelKeyboardIvars7544(active);
             UIWindow *rw=active.window; if(rw){r[@"remoteWindow"]=ADSkelKeyboardObjectState7542(rw);r[@"remoteWindowGetters"]=ADSkelKeyboardGetterState7544(rw);r[@"remoteWindowIvars"]=ADSkelKeyboardIvars7544(rw);
-                if(rw.windowScene){r[@"remoteScene"]=ADSkelKeyboardObjectState7542(rw.windowScene);r[@"remoteSceneGetters"]=ADSkelKeyboardGetterState7544(rw.windowScene);id sd=rw.windowScene.delegate;if(sd){r[@"remoteSceneDelegate"]=ADSkelKeyboardObjectState7542(sd);r[@"remoteSceneDelegateGetters"]=ADSkelKeyboardGetterState7544(sd);r[@"remoteSceneDelegateIvars"]=ADSkelKeyboardIvars7544(sd);}}
+                if(rw.windowScene){
+                    id scene=rw.windowScene;
+                    r[@"remoteScene"]=ADSkelKeyboardObjectState7542(scene); r[@"remoteSceneGetters"]=ADSkelKeyboardGetterState7544(scene);
+                    r[@"remoteSceneIvars"]=ADSkelKeyboardIvars7544(scene); r[@"remoteSceneMethods"]=ADSkelKeyboardBridgeMethods7545([scene class]);
+                    id sd=[scene delegate]; if(sd){r[@"remoteSceneDelegate"]=ADSkelKeyboardObjectState7542(sd);r[@"remoteSceneDelegateGetters"]=ADSkelKeyboardGetterState7544(sd);r[@"remoteSceneDelegateIvars"]=ADSkelKeyboardIvars7544(sd);r[@"remoteSceneDelegateMethods"]=ADSkelKeyboardBridgeMethods7545([sd class]);}
+                }
+                id layer=ADSkelKeyboardIvarObject7545(rw,@"_keyboardSceneLayer");
+                if(layer){r[@"keyboardSceneLayer"]=ADSkelKeyboardObjectState7542(layer);r[@"keyboardSceneLayerGetters"]=ADSkelKeyboardGetterState7544(layer);r[@"keyboardSceneLayerIvars"]=ADSkelKeyboardIvars7544(layer);r[@"keyboardSceneLayerMethods"]=ADSkelKeyboardBridgeMethods7545([layer class]);}
             }
         }
         for(UIWindow *w in UIApplication.sharedApplication.windows){
@@ -393,7 +428,7 @@ static NSArray *ADSkelAnimations7339(CALayer *layer){
     return out;
 }
 
-// v7.544 transition expansion: capture the exact AMIWebViewController/root lifecycle
+// v7.545 transition expansion: capture the exact AMIWebViewController/root lifecycle
 // ordering needed to explain the Book Details See more presentation/dismissal flashes.
 // Probe-only: no color, alpha, geometry, timing, hierarchy, or transition state is written.
 static const void *kADSkelBookAMIRoot7489=&kADSkelBookAMIRoot7489;
@@ -621,8 +656,8 @@ static void ADSkelInstall7339(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(!docs.length)return;
-        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.544-probe.arm"];
-        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.544-probe-status.json"];
+        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.545-probe.arm"];
+        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.545-probe-status.json"];
         NSError *error=nil;
         NSString *arm=[NSString stringWithContentsOfFile:ADSkelArmPath7339 encoding:NSUTF8StringEncoding error:&error];
         if(!arm){
@@ -642,7 +677,7 @@ static void ADSkelInstall7339(void){
         ADSkelTransition7339=[label isEqualToString:@"transition"];
         ADSkelUntil7339=MIN(expiry,now+(ADSkelLaunchOnly7339?20:(ADSkelTransition7339?120:120)));
         ADSkelSession7339=[NSString stringWithFormat:@"%.0f-%d-%@",now*1000,getpid(),label];
-        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.544-skeleton-%@.jsonl",ADSkelSession7339]];
+        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.545-skeleton-%@.jsonl",ADSkelSession7339]];
         int fd=open(ADSkelPath7339.fileSystemRepresentation,O_WRONLY|O_CREAT|O_EXCL,0600);
         if(fd<0){ADSkelStatus7339(@"capture-create-failed",errno);ADSkelUntil7339=0;return;}
         close(fd);ADSkelStatus7339(@"capture-started",0);

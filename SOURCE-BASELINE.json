@@ -1,6 +1,6 @@
 {
-  "version": "7.544~keyboard-private-state-probe",
+  "version": "7.545~keyboard-scene-bridge-probe",
   "baseline": "v7.543",
   "focus": "Expand the transition probe past the app-side Dark owners into responder styling, UIKeyboardImpl private state, remote keyboard window/scene state, and delayed post-show state.",
-  "device_validation": "v7.543 still flips even though all previously instrumented keyboard consumers and UITextEffectsWindow remain Dark; v7.544 is diagnostic-only."
+  "device_validation": "v7.543 still flips even though all previously instrumented keyboard consumers and UITextEffectsWindow remain Dark; v7.545 is diagnostic-only."
 }

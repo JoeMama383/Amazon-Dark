@@ -4,9 +4,9 @@ H=(R/'src/ADSkeletonProbe7339.h').read_text()
 T=(R/'src/Tweak.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.544~keyboard-private-state-probe' in C
-assert '#define AD_VERSION "v7.544-keyboard-private-state-probe"' in T
-assert 'AmazonDark-v7.544-keyboard-private-state-probe-source*.zip' in CMD
+assert 'Version: 7.545~keyboard-scene-bridge-probe' in C
+assert '#define AD_VERSION "v7.545-keyboard-scene-bridge-probe"' in T
+assert 'AmazonDark-v7.545-keyboard-scene-bridge-probe-source*.zip' in CMD
 for token in ('KEYBOARD_PRIVATE_STATE','ADSkelKeyboardIvars7544','ADSkelKeyboardGetterState7544','ADSkelKeyboardMethodSignatures7544','ADSkelKeyboardClassInventory7544'):
     assert token in H, token
 for token in ('responderStylingTraits','stylingTraits','responderStylingTraitsForceEditingMask:','updateStylingTraitsIfNeeded','updateInputDelegateForRemoteTraitChange:forceSync:'):
@@ -29,4 +29,4 @@ for good in ('ui-probe.sh export full','ui-probe.sh arm','ui-probe.sh export vie
     assert good in CMD,good
 for bad in ('git init','git push -uf','rm -rf .git'):
     assert bad not in CMD,bad
-print('PASS: v7.544 expands the opt-in transition probe into responder styling, UIKeyboardImpl private state, and the remote keyboard window/scene boundary without changing production behavior')
+print('PASS: v7.545 expands the opt-in transition probe into responder styling, UIKeyboardImpl private state, and the remote keyboard window/scene boundary without changing production behavior')
