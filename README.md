@@ -1,5 +1,7 @@
-# AmazonDark v7.547 — App Settings OLED
+## v7.546 — FULL menu route arbitration repair
 
-Baseline: v7.546 (b0850071). User confirmed the keyboard flip is fixed; the keyboard implementation is retained unchanged.
+Direct parent: v7.545.
 
-The supplied viewport identifies a native RCT sheet, a text-rendered close glyph, dark text runs, white header/safe-area floors, navy backdrop and a one-point React bottom border. This release extends the existing native sheet ownership with the exact App Settings title, paints the sheet/backdrop OLED, makes neutral text and the close glyph white, and gives the divider/grabber the standard gray. Geometry and input behavior are unchanged. See COMMANDS.md.
+The keyboard transition diagnostics from v7.545 are retained unchanged. v7.546 repairs a separate FULL-probe routing defect: the dedicated Hamburger scanner existed, but the capture dispatcher checked the retained Person `RCTScrollView#me` surface first. `ADUIViewActuallyVisible7362` only proves screen intersection; it does not prove that a React surface is frontmost. Amazon can retain the previous Person screen under the open Hamburger overlay, causing FULL to choose PERSON and return before the menu scanner ever runs.
+
+The probe now identifies the foreground menu using hit-test ownership, recognizes both probe/theming-proven menu identities (`scrolled-hamburger` and `scrolled-hamburger-view`), resolves the actual `RCTCustomScrollView`, and arbitrates Menu vs Person using frontmost ownership before PDP detection. The dedicated scan remains finite, screenshot-triggered, non-animated, preserves `scrollEnabled`, and restores the authored offset. No production theming or keyboard behavior changes.

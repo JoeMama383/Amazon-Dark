@@ -11,8 +11,7 @@ block=t.split('%hook UITextInputTraits',1)[1].split('%end',1)[0]
 assert 'UIKeyboardAppearance a=%orig' in block and '@"legacy.read",a,next' in block and 'return next;' in block
 assert '%orig(next);' in block and '@"legacy.write",a,next' in block
 assert 'UIKeyboardAppearanceDark' in block
-assert t.count('ADKeyboardOwner7546(self,traits);')==3
-assert 'if(ADSkelTransition7339&&ADSkelActive7339())ADKeyboardTrace7538(traits' in h
+assert t.count('if(ADSkelTransition7339&&ADSkelActive7339())ADKeyboardTrace7538(traits,[NSString stringWithFormat:@"owner:%p",self],-1,-1);')==3
 with tempfile.TemporaryDirectory() as d:
  p=Path(d)/'budget.cpp';exe=Path(d)/'budget'
  p.write_text('''#include "ADKeyboardTraceBudget7539.h"

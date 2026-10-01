@@ -13,7 +13,6 @@ static void ADKeyboardTrace7538(id object,NSString *phase,NSInteger incoming,NSI
             budget.start=0;budget.count=0;budget.dropped=0;duplicates=0;
         }
         NSMutableDictionary *state=[NSMutableDictionary dictionary];
-        state[@"storedKeyboardAppearance"]=ADSkelStoredKeyboardAppearance7546(object);
         state[@"incoming"]=@(incoming);state[@"outgoing"]=@(outgoing);state[@"enabled"]=@(gP.enabled);
         for(NSString *name in @[@"keyboardAppearance",@"keyboardType",@"autocorrectionType",@"autocapitalizationType",@"spellCheckingType",@"returnKeyType",@"smartQuotesType",@"smartDashesType",@"smartInsertDeleteType"]){
             SEL s=NSSelectorFromString(name);
@@ -33,8 +32,4 @@ static void ADKeyboardTrace7538(id object,NSString *phase,NSInteger incoming,NSI
         r[@"limitReached"]=@(budget.count==512);duplicates=0;budget.dropped=0;
         ADSkelWrite7339(r);
     } @catch(...) {} @finally { reading=NO; }
-}
-
-static void ADKeyboardOwner7546(id owner,id traits){
-    if(ADSkelTransition7339&&ADSkelActive7339())ADKeyboardTrace7538(traits,[NSString stringWithFormat:@"owner:%p",owner],-1,-1);
 }

@@ -1,20 +1,7 @@
-# v7.546 — WebKit editing trait repair
+# v7.546 — FULL menu route arbitration repair
 
-Baseline: origin/main 63a8dff1, v7.545; GitHub Actions run 36892542908 succeeded.
+Source diffing shows v7.542 through v7.545 did not change the dedicated FULL menu scanner itself; those releases only bumped its version strings while expanding the separate transition probe. The runtime failure is a latent route-arbitration defect from the v7.519/v7.520 dedicated native routes.
 
-Independently reviewed the raw v7.543 and v7.544 transition archives. The v7.544 archive contains 54 private-state and 64 consumer snapshots. The actual WKContentView responder reports Light, while effective legacy keyboardAppearance, the keyboard effects window, remote window, active keyboard and UIKeyboardImpl report Dark. The remote scene is also Light, but that alone does not prove it selects the skin. Earlier claims that either legacy traits or the effects-window mismatch was the final cause were not confirmed by the device.
+The dispatcher checked Person before Hamburger. Its visibility predicate only tests hidden/alpha/ancestor state plus screen intersection, so a retained `RCTScrollView#me` under an open React Hamburger overlay can still qualify. Once Person matches, the dispatcher returns and never evaluates Hamburger. The Hamburger detector was also narrower than production theming: it recognized only `RCTScrollView#scrolled-hamburger`, while production menu ownership already accepts `scrolled-hamburger-view` during hydration.
 
-Repair candidate:
-- Set a native Dark appearance on WKContentView before the original becomeFirstResponder call, so the editing responder's environment agrees with the already-Dark keyboard policy.
-- Save its pre-editing override once, retain later external style requests while editing, and restore the requested style after successful resignation. Failed focus acquisition also releases the override unless the view is still first responder.
-- Restrict this lifetime to the focused WebKit view; no application/window/scene-wide new override, input replacement, geometry writes, responder cycling, or reloadInputViews.
-- Keep all existing keyboard clamps and v7.545 diagnostics to allow comparison.
-
-Evidence improvement:
-- Read exact _keyboardAppearance/keyboardAppearance scalar ivars when their encodings and object bounds support safe reads. Report null when unavailable. Never write the ivar or invoke an appearance getter for this stored value.
-- Add stored values to trait events and consumer trait-child snapshots. Existing effective values remain separately available. This avoids mistaking our own getter's Dark return for the stored state.
-- Extract three identical guarded owner-trace calls to one helper, preserving their behavior and the source-size gate.
-
-Apple documents overrideUserInterfaceStyle as the view/subview appearance override. This is a standard UIKit environment repair, not an invented private scene setter. Sources reviewed: https://developer.apple.com/documentation/uikit/uiview/overrideuserinterfacestyle and https://developer.apple.com/videos/play/wwdc2023/10057/ . Upstream OledKeyboard code paints backing surfaces but does not select remote keycap appearance; repainting that floor again would not address the observed mismatch.
-
-Not proven: whether native responder style is the final cause of the visible flip. We cannot run this jailbroken device here. The next capture must verify firstResponder.traitStyle=2 through the hidden-input/textarea handoff and compare stored/effective traits if keys still change. The probe remains app-local and cannot observe remote keycap pixels.
+v7.546 makes foreground hit-test ownership authoritative, recognizes both known Hamburger root identities, resolves the real `RCTCustomScrollView`, and checks Menu before Person/PDP. The scan remains finite and restores Amazon's original offset without changing `scrollEnabled` or geometry.
