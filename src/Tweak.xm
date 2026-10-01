@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.546-webkit-editing-trait-repair"
+#define AD_VERSION "v7.547-app-settings-oled"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -3852,12 +3852,8 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
     } @catch(...) {}
 }
 
-// v7.260: the corrected v7.258 Person probe finally captures the visible savings
-// sheet.  It is not the hidden AppCXBottomSheet tree: it is a foreground React
-// `sheet-view` / `sheet-inset-view` surface in AppCXWindow, uniquely identified
-// by the `cvm-metab-bottomsheet-titlettl` descendant.  Keep ownership exact to
-// that hydrated sheet.  Only neutral light floors and neutral dark text change;
-// authored orange/yellow/blue and other saturated Amazon semantics remain stock.
+// v7.260: exact native Person sheets; v7.547 adds the captured App Settings title.
+#include "ADAppSettingsSheet7547.h"
 static const void *kADPersonSavingsSheet7259=&kADPersonSavingsSheet7259;
 static const void *kADProfilePickerSheet7482=&kADProfilePickerSheet7482;
 static BOOL ADDarkNeutral7259(UIColor *color,BOOL nilIsDark){
@@ -3893,6 +3889,7 @@ static UIView *ADPersonSavingsSheetRoot7259(UIView *v){
             if([aid isEqualToString:@"sheet-inset-view"])inset=YES;
             if([aid isEqualToString:@"cvm-metab-bottomsheet-titlettl"])title=YES;
             if([aid isEqualToString:@"profile-picker-close-bottomsheet-button"])profile=YES;
+            if(ADAppSettingsTitle7547(x)){ title=YES; ADAppSettingsPrime7547(root); }
             if(inset&&(title||profile))break;
             if(x.subviews.count)[q addObjectsFromArray:x.subviews];
         }
@@ -3904,7 +3901,7 @@ static UIView *ADPersonSavingsSheetRoot7259(UIView *v){
     } @catch(...) {}
     return nil;
 }
-static BOOL ADInPersonSavingsSheet7259(UIView *v){ return ADPersonSavingsSheetRoot7259(v)!=nil; }
+static BOOL ADInPersonSavingsSheet7259(UIView *v){ return ADAppSettingsBackdrop7547(v)||ADPersonSavingsSheetRoot7259(v)!=nil; }
 static NSAttributedString *ADPersonSavingsLightString7259(NSAttributedString *in){
     return ADLightNeutralString7271(in,ADPersonSavingsDarkNeutral7259);
 }
@@ -3920,6 +3917,7 @@ static BOOL ADProfilePickerDivider7482(UIView *v,UIColor *color){
     CGRect r=v.bounds; return r.size.height>0.0&&r.size.height<=1.5&&r.size.width>=100.0;
 }
 static void ADOwnPersonSavingsFloor7259(UIView *v){
+    if(ADAppSettingsOwn7547(v))return;
     if(!gP.enabled||!v||!v.window||!ADInPersonSavingsSheet7259(v))return;
     @try {
         UIColor *bg=v.backgroundColor,*layerBG=nil;
@@ -4064,6 +4062,7 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
             %orig(black);
             return;
         }
+        if(ADAppSettingsBackdrop7547(self))color=ADOLED();
         if(ADProfilePickerDivider7482(self,color)){
             UIColor *gray=ADBorderGray706();
             %orig(gray);
@@ -9181,7 +9180,7 @@ static void ADOwnReactView7226(UIView *v){
     BOOL appWindow=ADClassNameIs7183(v.window,"AppCXWindow");
     BOOL appcx=appWindow&&ADInAppCXBottomSheet7255(v)&&ADNeutralNearWhite7255(color);
     BOOL profileDivider=appWindow&&ADProfilePickerDivider7482(v,color);
-    BOOL savings=appWindow&&ADInPersonSavingsSheet7259(v)&&ADNeutralNearWhite7255(color);
+    BOOL savings=appWindow&&(ADAppSettingsBackdrop7547(v)||(ADInPersonSavingsSheet7259(v)&&ADNeutralNearWhite7255(color)));
     int menuRole=gP.enabled?ADMenuLocalFooterRole7277(v):0;
     if(!menuRole&&surface==ADReactSurfaceMenu7255)menuRole=ADMenuViewRole7255(v);
     UIColor *menuColor=(menuRole==2)?ADMenuButtonFill7255():((menuRole==3||menuRole==6)?[UIColor clearColor]:ADOLED());
@@ -9291,6 +9290,7 @@ static void ADOwnReactView7226(UIView *v){
 }
 - (void)setBorderBottomColor:(UIColor *)value {
     UIView *v=(UIView *)self;
+    if(gP.enabled&&ADAppSettingsScope7547(v))value=ADBorderGray706();
     if(gP.enabled&&ADPersonReturnsCard7514(v))value=ADBorderGray706();
     if(gP.enabled&&ADInLocationCanonical7416(v)&&ADLocationNeutralColor7416(value)){
         UIColor *edge=ADMenuButtonBorder7255();

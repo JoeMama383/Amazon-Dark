@@ -1,6 +1,1 @@
-{
-  "version": "7.546~webkit-editing-trait-repair",
-  "baseline": "63a8dff1 / v7.545",
-  "focus": "Match focused native WKContentView appearance to existing Dark keyboard traits; record stored versus effective appearance",
-  "device_validation": "Repair candidate; visual result not yet verified"
-}
+{"version":"7.547~app-settings-oled","baseline":"b0850071 / v7.546","focus":"Probe-backed native App Settings sheet paint","keyboard":"v7.546 confirmed fixed by user; preserved unchanged"}
