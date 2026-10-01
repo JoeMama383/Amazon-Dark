@@ -1,6 +1,10 @@
-# v7.538 — Keyboard transition diagnostics
+## v7.539 — keyboard handoff evidence
 
-Diagnostic build based on v7.537. Adds bounded, opt-in input-trait and focus evidence for the observed dark-to-white keyboard transition; does not claim to fix its unproven cause. See REVIEW-v7.538.md and COMMANDS.md.
+Diagnostic update based on the v7.538 capture. Deduplicates unchanged native traits, uses a rolling bounded budget and observes legacy appearance reads. Expanded focused-input evidence. This is not a confirmed keyboard repair. See REVIEW-v7.539.md and COMMANDS.md.
+
+# v7.539 — Keyboard transition diagnostics
+
+Diagnostic build based on v7.537. Adds bounded, opt-in input-trait and focus evidence for the observed dark-to-white keyboard transition; does not claim to fix its unproven cause. See REVIEW-v7.539.md and COMMANDS.md.
 
 # v7.537 — Interests WebKit extended keyboard fix
 

@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.538-keyboard-transition-evidence"
+#define AD_VERSION "v7.539-keyboard-handoff-evidence"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2741,6 +2741,11 @@ static id ADDarkWebInputTraits7512(id t){
 }
 
 %hook UITextInputTraits
+- (UIKeyboardAppearance)keyboardAppearance {
+    UIKeyboardAppearance a=%orig;
+    ADKeyboardTrace7538(self,@"legacy.read",a,a);
+    return a;
+}
 - (void)setKeyboardAppearance:(UIKeyboardAppearance)a {
     %orig;
     ADKeyboardTrace7538(self,@"legacy.write",a,a);
@@ -2763,14 +2768,17 @@ static id ADDarkWebInputTraits7512(id t){
 %hook WKContentView
 - (id)textInputTraits {
     id traits=%orig;
+    if(ADSkelTransition7339&&ADSkelActive7339())ADKeyboardTrace7538(traits,[NSString stringWithFormat:@"owner:%p",self],-1,-1);
     return ADDarkWebInputTraits7512(traits);
 }
 - (id)textInputTraitsForWebView {
     id traits=%orig;
+    if(ADSkelTransition7339&&ADSkelActive7339())ADKeyboardTrace7538(traits,[NSString stringWithFormat:@"owner:%p",self],-1,-1);
     return ADDarkWebInputTraits7512(traits);
 }
 - (id)_textInputTraits {
     id traits=%orig;
+    if(ADSkelTransition7339&&ADSkelActive7339())ADKeyboardTrace7538(traits,[NSString stringWithFormat:@"owner:%p",self],-1,-1);
     return ADDarkWebInputTraits7512(traits);
 }
 - (UIKeyboardAppearance)keyboardAppearance {

@@ -1,9 +1,10 @@
 {
-  "version": "7.538~keyboard-transition-evidence",
-  "baseline": "92fe5be4 / v7.537",
+  "version": "7.539~keyboard-handoff-evidence",
+  "baseline": "288f436c / v7.538",
   "scope": "Armed transition diagnostics only; no new keyboard appearance policy",
   "evidence": [
     "RPReplay_Final1790854676.mp4",
-    "v7.535 transition 1790786743168-43078"
+    "v7.535 transition 1790786743168-43078",
+    "AmazonDark-v7.538-transition-probe-20261001-080616-62534.tar"
   ]
 }

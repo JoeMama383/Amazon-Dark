@@ -25,6 +25,6 @@ for key in ('focusin','focusout'):
 assert '.value' not in block and 'textContent' not in block
 h=(R/'src/ADKeyboardTrace7538.h').read_text()
 assert 'if(!ADSkelTransition7339||!ADSkelActive7339())return;' in h
-assert 'count>=512' in h and 'limitReached' in h
+assert 'ADKeyboardBudgetTake7539' in h and 'limitReached' in h
 assert 'setKeyboardAppearance:' not in h
 print('PASS: keyboard evidence catches same-focus trait changes and focus replacement, deduplicates, expires, caps records and avoids input text')
