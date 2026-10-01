@@ -1,7 +1,7 @@
 """Regression for v7.339's Actions compile failure, plus exact JS byte identity.
 
 Compile the actual shipped include, not an imitation, in C99 and C++98. Execute
-both outputs and require exactly the inherited v7.346 JavaScript probe bytes.
+both outputs and require exactly the v7.538 keyboard-diagnostic JavaScript probe bytes.
 """
 import hashlib
 import json
@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-PAYLOAD_SHA256 = "01b809ef43f3b970d8eda61468db6d8bad693dd1bc36d424fd0b01ebe48b270f"
+PAYLOAD_SHA256 = "fbcc4040a02951b3527fe382d16ce60dbf566cf24c800da76ad9cea7c20f6dc3"
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
                             '-Wall', '-Wextra', '-Werror', '-I', str(inc.parent),
                             str(bridge), '-o', str(output)], check=True)
             assert subprocess.check_output([str(output)]) == source, standard
-            print(f"PASS: shipped include compiles in {standard}; emitted JS bytes equal inherited v7.346 payload")
+            print(f"PASS: shipped include compiles in {standard}; emitted JS bytes equal v7.538 keyboard-diagnostic payload")
 
         # Reject the exact former representation in the old dialect. Without this
         # negative control, a default-modern compiler could conceal the regression.

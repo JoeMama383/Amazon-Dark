@@ -1,49 +1,55 @@
-# AmazonDark v7.537 commands
+# AmazonDark v7.538 commands
 
-Save `AmazonDark-v7.537-interests-webkit-extended-keyboard-fix-source.zip` on the phone first.
+Save `AmazonDark-v7.538-keyboard-transition-evidence-source.zip` on the phone first.
 
 ## Push
 
 ```sh
-cd /var/mobile/Amazon-Dark-phone &&
-ZIP=$(find /var/mobile -type f -name 'AmazonDark-v7.537-interests-webkit-extended-keyboard-fix-source*.zip' 2>/dev/null | head -n 1) &&
-[ -n "$ZIP" ] &&
-STAGE=$(mktemp -d /var/mobile/ad7537.XXXXXX) &&
-unzip -q "$ZIP" -d "$STAGE" &&
-grep -qx 'Version: 7.537~interests-webkit-extended-keyboard-fix' "$STAGE/layout/DEBIAN/control" &&
-cp -a "$STAGE/." . &&
-chmod 755 layout/DEBIAN/postinst &&
-AD_STRICT_VALIDATE=0 sh scripts/validate.sh &&
-git add -A &&
-git commit -m "v7.537: fix WebKit extended keyboard appearance path" &&
+sh <<'SH'
+set -eu
+cd /var/mobile/Amazon-Dark-phone
+ZIP=$(find /var/mobile -type d -name '.Trash*' -prune -o -type f -name 'AmazonDark-v7.538-keyboard-transition-evidence-source*.zip' -print 2>/dev/null |
+while IFS= read -r candidate; do
+  if unzip -tq "$candidate" >/dev/null 2>&1; then printf '%s\n' "$candidate"; break; fi
+done)
+[ -n "$ZIP" ] || { echo "Save the source ZIP to your phone first."; exit 1; }
+STAGE=$(mktemp -d /var/mobile/ad7538.XXXXXX)
+unzip -q "$ZIP" -d "$STAGE"
+grep -qx 'Version: 7.538~keyboard-transition-evidence' "$STAGE/layout/DEBIAN/control"
+cp -a "$STAGE/." .
+chmod 755 layout/DEBIAN/postinst
+AD_STRICT_VALIDATE=0 sh scripts/validate.sh
+git add -A
+if ! git diff --cached --quiet; then git commit -m "v7.538: capture keyboard trait and focus transitions"; fi
 git push origin main
+SH
 ```
 
-## FULL — v7.537
+## FULL — v7.538
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export full
 ```
 
-## VIEWPORT — v7.537 ARM
+## VIEWPORT — v7.538 ARM
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh arm
 ```
 
-## VIEWPORT — v7.537 EXPORT
+## VIEWPORT — v7.538 EXPORT
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export viewport
 ```
 
-## TRANSITION — v7.537 ARM
+## TRANSITION — v7.538 ARM
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh arm transition
 ```
 
-## TRANSITION — v7.537 EXPORT
+## TRANSITION — v7.538 EXPORT
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh export

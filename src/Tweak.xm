@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.537-interests-webkit-extended-keyboard-fix"
+#define AD_VERSION "v7.538-keyboard-transition-evidence"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -33,6 +33,7 @@ extern char *__progname;
 @interface TezBaseSplashScreenViewController : UIViewController @end
 @interface WKScrollView : UIScrollView @end
 @interface WKContentView : UIView @end
+@interface UITextInputTraits : NSObject @end
 @interface WKExtendedTextInputTraits : NSObject @end
 @interface RCTRootView : UIView @end
 @interface RCTRootContentView : UIView @end
@@ -2730,22 +2731,31 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 
 static void ADPrepareSearchKeyboard7120(UIView *v);
 
-// v7.537: WebKit has two text-input trait paths. The legacy cached UITextInputTraits
-// path is still forced dark here; the async/remote keyboard path uses
-// WKExtendedTextInputTraits, whose restoreDefaultValues writes Default again.
+// v7.537: WebKit has two text-input trait paths.
+#include "ADKeyboardTrace7538.h"
 static id ADDarkWebInputTraits7512(id t){
+    ADKeyboardTrace7538(t,@"traits.read",-1,-1);
     if(!gP.enabled||!t)return t;
     @try { SEL s=@selector(setKeyboardAppearance:); if([t respondsToSelector:s])((void(*)(id,SEL,NSInteger))objc_msgSend)(t,s,(NSInteger)UIKeyboardAppearanceDark); } @catch(...) {}
     return t;
 }
 
+%hook UITextInputTraits
+- (void)setKeyboardAppearance:(UIKeyboardAppearance)a {
+    %orig;
+    ADKeyboardTrace7538(self,@"legacy.write",a,a);
+}
+%end
+
 %hook WKExtendedTextInputTraits
 - (void)setKeyboardAppearance:(UIKeyboardAppearance)a {
     UIKeyboardAppearance next=gP.enabled?UIKeyboardAppearanceDark:a;
     %orig(next);
+    ADKeyboardTrace7538(self,@"extended.write",a,next);
 }
 - (void)restoreDefaultValues {
     %orig;
+    ADKeyboardTrace7538(self,@"extended.reset",-1,-1);
     if(gP.enabled)ADDarkWebInputTraits7512(self);
 }
 %end

@@ -1,6 +1,9 @@
 {
-  "version": "7.537~interests-webkit-extended-keyboard-fix",
-  "baseline": "v7.536",
-  "focus": "Fix the modern WebKit/BrowserEngineKit extended text-input-traits path that resets keyboardAppearance to Default after the initially dark presentation, without changing Interests modal geometry or paint.",
-  "evidence": ["AmazonDark-v7.535-transition-probe-20260930-124635-43094.tar", "WebKit WKExtendedTextInputTraits restoreDefaultValues"]
+  "version": "7.538~keyboard-transition-evidence",
+  "baseline": "92fe5be4 / v7.537",
+  "scope": "Armed transition diagnostics only; no new keyboard appearance policy",
+  "evidence": [
+    "RPReplay_Final1790854676.mp4",
+    "v7.535 transition 1790786743168-43078"
+  ]
 }
