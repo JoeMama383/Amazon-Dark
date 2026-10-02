@@ -1,6 +1,6 @@
 {
-  "version": "7.551~ui-restoration-no-tweak-size-gate",
-  "baseline": "v7.546",
-  "focus": "Restore the WebKit editing-trait production contract that the v7.546 overlay accidentally erased while retaining the v7.546 FULL Hamburger route-arbitration repair.",
-  "device_validation": "Pending v7.551 device verification; CI must prove the retained keyboard/FULL-probe contracts plus the search-filter, App Settings, and About You restorations. The obsolete Tweak.xm byte ceiling is intentionally retired."
+  "version": "7.553~filters-sheet-exact-owners-no-tweak-size-gate",
+  "baseline": "v7.550",
+  "focus": "Use v7.548 FULL-probe exact Filters owners for medium-gray option containers, the left-rail right divider, divider-free footer, and OLED Show-results control; retire the obsolete monolithic Tweak.xm byte ceiling.",
+  "device_validation": "Pending v7.553 device verification after CI/package install."
 }

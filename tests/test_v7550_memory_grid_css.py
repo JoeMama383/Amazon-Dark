@@ -11,4 +11,4 @@ for token in [
     '.search-input::placeholder{color:#b1b5b5!important;-webkit-text-fill-color:#b1b5b5!important;opacity:1!important;}'
 ]:
     assert token in f, token
-print('PASS: current build themes the About You memory grid cards, pills, banner, and search controls while preserving dynamic link/selection accents')
+print('PASS: v7.553 themes the About You memory grid cards, pills, banner, and search controls while preserving dynamic link/selection accents')

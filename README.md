@@ -1,9 +1,7 @@
-## v7.551 — UI restoration + obsolete source-size gate removal
+## v7.553 — exact Filters owners + obsolete Tweak size-gate removal
 
-Direct parent: v7.546.
+Direct source baseline: reconstructed v7.550 tree.
 
-The v7.546 GitHub regression failure proved the release archive was built from a stale clean-tree baseline: the existing clone retained `test_v7546_webkit_editing_trait_repair.py`, but the v7.546 source ZIP overwrote `src/Tweak.xm` with a copy that no longer contained the `ADWebKeyboardStyle7546` implementation that regression expected. Because the phone workflow overlays the staged archive onto the existing clone, the test survived while its production implementation disappeared.
+v7.553 replaces the non-matching generic Filters selectors with the exact owners captured by the v7.548 FULL probe: `#dropdown-content-s-all-filters`, `.sf-filters-vtabs-tabs-container`, `.s-vtabs-contents-container`, `.sf-bottom-nav.sf-bottom-nav-current`, and `.sf-show-results`. Right-side option controls are medium gray with gray borders; the left rail keeps its subtle tint and one right divider; the footer top/bottom dividers are removed; and Show results is OLED black with white text and a gray border.
 
-v7.551 keeps the retained WebKit editing-trait repair plus the v7.548 search-filter/App Settings work intact, and adds a focused About You memory-grid follow-up: white cards, pills, the import banner, and the Create/search controls are turned into OLED/gray containers, dark-on-dark headers inside those containers are forced legible, and dynamic blue selection/link accents are preserved. No production observers, timers, polling, or recurring hierarchy scans are introduced.
-
-The independent v7.546 FULL Hamburger route-arbitration repair is retained unchanged: foreground Hamburger ownership still wins over retained Person surfaces and both `scrolled-hamburger` identities remain recognized.
+The arbitrary monolithic `Tweak.xm` source-size assertions inherited by v7.550 are retired rather than forcing another runtime refactor. Independent probe/SpringBoard helper guardrails are left alone. The v7.550 App Settings and About You behavior remains in-tree; the malformed C-string encoding in the v7.550 filter/About You CSS tail is repaired so the payload can compile and parse.

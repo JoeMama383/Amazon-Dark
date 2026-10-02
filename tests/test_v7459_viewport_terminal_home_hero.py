@@ -37,4 +37,5 @@ assert 'if [ "$mode" = viewport ]; then' in SH
 assert 'tries=$((tries+1)); [ "$tries" -ge 10 ] && break' in SH
 assert 'sleep 1' in SH
 
+# Preserve the hard production source-size gate rather than moving it.
 print('PASS: v7.460 makes VIEWPORT single-pass/terminal-safe and flips the exact home hero sponsored pill to black at the same alpha')

@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,re
 ROOT=Path(__file__).resolve().parents[1]
-s=(ROOT/'src/Tweak.xm').read_text().replace('#include \"ADReviewMenu7430.inc\"',(ROOT/'src/ADReviewMenu7430.inc').read_text())
+s=(ROOT/'src/Tweak.xm').read_text()
 ns=json.loads((ROOT/'tests/fixtures/v7430_native_review_menu.json').read_text())
 by={n['id']:n for n in ns};children={i:[] for i in by}
 for n in ns:
