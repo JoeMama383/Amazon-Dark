@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.547-webkit-editing-trait-merge-repair"
+#define AD_VERSION "v7.548-home-hero-loading-oled"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2211,22 +2211,10 @@ static NSString *ADFullRasterHostBridgeJS7266(void){
 }
 
 static NSString *ADHomeAdShellFloorJS7381(void){
-    return @"(function(){try{var d=document;if(d.getElementById('ad7461-home-hero-pill'))return;var s=d.createElement('style');s.id='ad7461-home-hero-pill';s.textContent=\"#gwm-dashboard>li.gwm-tile{background:#000!important;background-color:#000!important;}[class*='_single-video-card_style_sponsored-label-pill__']{background:rgba(0,0,0,.6)!important;background-color:rgba(0,0,0,.6)!important;}[class*='_single-creative-card_style_sponsored-label-pill__']{background:rgba(0,0,0,.6)!important;background-color:rgba(0,0,0,.6)!important;}\";(d.head||d.documentElement).appendChild(s)}catch(_){}})();";
+    return @"(function(){try{var d=document;if(d.getElementById('ad7461-home-hero-pill'))return;var s=d.createElement('style');s.id='ad7461-home-hero-pill';s.textContent=\"#gwm-dashboard>li.gwm-tile{background:#000!important;background-color:#000!important;}.a-cardui[class*='_dv-mobile-live-events-streaming-widget_style_lswCard__']{background-color:#000!important;}[class*='_single-video-card_style_sponsored-label-pill__']{background:rgba(0,0,0,.6)!important;background-color:rgba(0,0,0,.6)!important;}[class*='_single-creative-card_style_sponsored-label-pill__']{background:rgba(0,0,0,.6)!important;background-color:rgba(0,0,0,.6)!important;}\";(d.head||d.documentElement).appendChild(s)}catch(_){}})();";
 }
 
-// v7.388: Sponsored-content filtering follows AmznKiller's selector-level
-// ownership model instead of promoting any nested Sponsored marker to its
-// carousel/mosaic parent. Every selector is emitted as its own CSS rule: an
-// unsupported or malformed family cannot invalidate the rest of the blocker.
-// The only AmazonDark-specific outer owners are the probe-confirmed Home
-// dashboard shells whose immediate widget root is itself an explicit ad.
-// No MutationObserver, timers, RAF, scrolling hook or recurring DOM scan.
-// v7.388 build boundary: the large sponsored CSS payload is compiled as plain
-// Objective-C in ADSponsored.m. Keeping this payload out of the Logos input
-// avoids the Logos parser failure seen at the closing brace of v7.383.
-// Declaration lives in ADSponsored.h so this Objective-C++ translation unit
-// uses C linkage matching ADSponsored.m.
-
+// v7.388: Sponsored-content filtering follows AmznKiller; payload is C-linkage-safe.
 static NSString *ADPriceHistoryJS7380(void){
     return @"(function(){try{function run(){try{var d=document;if(d.getElementById('ad7380-price-history'))return;"
     @"var asin='';var a=d.getElementById('ASIN')||d.querySelector('input[name=ASIN]')||d.getElementById('twister-plus-asin')||d.getElementById('a');"

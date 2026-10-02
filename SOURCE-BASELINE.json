@@ -1,6 +1,6 @@
 {
-  "version": "7.547~webkit-editing-trait-merge-repair",
-  "baseline": "v7.546",
-  "focus": "Restore the WebKit editing-trait production contract that the v7.546 overlay accidentally erased while retaining the v7.546 FULL Hamburger route-arbitration repair.",
-  "device_validation": "Pending v7.547 device verification; CI must first prove the retained v7.546 editing-trait regression and current v7.547 merge regression both pass."
+  "version": "7.548~home-hero-loading-oled",
+  "baseline": "3aa862b2",
+  "focus": "Retain keyboard merge and FULL routing repair; OLED loading background for probe-confirmed Home live-events hero card.",
+  "device_validation": "Pending CI native build and device verification."
 }

@@ -1,0 +1,1 @@
+Validation: 202 normalized regressions passed. Two native checks could not run: missing clang and clang++. Logos lint and git diff --check passed. Native iOS build and device first-paint verification remain pending CI/device. The previously failing v7.546 editing-trait test and v7.547 merge test pass on this baseline.
