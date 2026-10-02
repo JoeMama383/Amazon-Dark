@@ -1,6 +1,7 @@
 {
-  "version": "7.553~filters-sheet-exact-owners-no-tweak-size-gate",
-  "baseline": "v7.550",
-  "focus": "Use v7.548 FULL-probe exact Filters owners for medium-gray option containers, the left-rail right divider, divider-free footer, and OLED Show-results control; retire the obsolete monolithic Tweak.xm byte ceiling.",
-  "device_validation": "Pending v7.553 device verification after CI/package install."
+  "version": "7.554~settings-interests-restoration",
+  "baseline": "7.551~ui-restoration-no-tweak-size-gate",
+  "focus": "Restore exact App Settings owner and hydration-resilient accepted Interests theme.",
+  "device_validation": "Pending; no live device or native toolchain available.",
+  "remote_validation": "GitHub fetch unavailable; baseline is saved v7.551 source handoff."
 }

@@ -55,8 +55,7 @@ for pat in (r'background:([^;]+)!important;background-color:\1!important',
             r'background:([^;]+)!important;background-image:none!important'):
     assert not re.search(pat,post),pat
 
-# Size gates are deliberately looser than exact values so comments/identity maintenance can change,
-# but future feature work cannot silently restore the pre-pass source footprint.
-assert len((R/'src/ADUniversalUIProbe7362.inc').read_bytes()) < 95000  # v7.460 adds PDP-only manual diagnostic control; production Tweak size gate remains unchanged
+# Probe/SpringBoard helper ceilings remain independent performance guards; the historical Tweak.xm byte ceiling was retired in v7.551.
+assert len((R/'src/ADUniversalUIProbe7362.inc').read_bytes()) < 95000
 assert len(SB.encode()) < 19200
-print('PASS: v7.460 preserves performance-consolidation recurring-work invariants, PDP frame caching, linear probe queues, and production source-size gates')
+print('PASS: current build preserves performance-consolidation recurring-work invariants, PDP frame caching, and linear probe queues')

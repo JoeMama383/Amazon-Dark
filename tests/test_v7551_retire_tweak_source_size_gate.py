@@ -18,7 +18,8 @@ A=(R/'src/ADAppSettings7550.inc').read_text()
 assert 'search filter sheet follow-up' in N
 assert 'About You memory grid follow-up' in N
 assert 'ADAppSettingsRoot7548' in A and 'ADAppSettingsOwnText7548' in A
-assert 'kADAppSettingsWitness7548' in A and 'objc_getAssociatedObject(root,kADAppSettingsWitness7548)' in A and 'objc_setAssociatedObject(root,kADAppSettingsWitness7548' in A
+assert 'ADAppSettingsScope7547' in A and 'ADPersonSavingsSheetRoot7259' in A
+assert 'kADAppSettingsWitness7548' not in A
 # Frozen handoff API remains unchanged.
 for token in ('ui-probe.sh export full','ui-probe.sh arm','ui-probe.sh export viewport','skeleton-probe.sh arm transition','skeleton-probe.sh export','git push origin main'):
     assert token in CMD, token

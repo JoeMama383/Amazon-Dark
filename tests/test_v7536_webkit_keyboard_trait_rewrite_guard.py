@@ -8,7 +8,7 @@ assert 'kADWebTraitsAppearance7536' not in S
 helper=S[S.index('// v7.537: WebKit has two text-input trait paths.'):S.index('%hook WKContentView')]
 assert 'setInterval(' not in helper and 'MutationObserver(' not in helper and 'requestAnimationFrame(' not in helper
 m0=CSS.index('modal: paint only')
-m1=CSS.index('exact-owner search Filters sheet follow-up',m0)
+m1=CSS.index('search filter sheet follow-up',m0)
 modal=CSS[m0:m1]
 for bad in ('width:','height:','padding:','margin:','position:','border-radius:','border-width:'):
     assert bad not in modal,bad

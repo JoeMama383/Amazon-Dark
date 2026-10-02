@@ -1,7 +1,8 @@
-## v7.553 — exact Filters owners + obsolete Tweak size-gate removal
+## v7.554 — App Settings and Interests restoration
 
-Direct source baseline: reconstructed v7.550 tree.
+Restores the v7.547 exact native App Settings sheet owner, including OLED sheet/backdrop, white neutral text and the text-rendered close X, and gray dividers. Removes the replacement classifier that permanently cached incomplete, pre-hydration matches. Stock geometry is retained.
 
-v7.553 replaces the non-matching generic Filters selectors with the exact owners captured by the v7.548 FULL probe: `#dropdown-content-s-all-filters`, `.sf-filters-vtabs-tabs-container`, `.s-vtabs-contents-container`, `.sf-bottom-nav.sf-bottom-nav-current`, and `.sf-show-results`. Right-side option controls are medium gray with gray borders; the left rail keeps its subtle tint and one right divider; the footer top/bottom dividers are removed; and Show results is OLED black with white text and a gray border.
+Retains the accepted Interests CSS and installs its rules in a document-owned stylesheet so head replacement does not remove the theme. The exact Interests header no longer waits for product-grid hydration. Modal OLED floors, Update control, single authored focus border, white plus/heart/text treatment, image treatment, and the existing keyboard repair remain present.
 
-The arbitrary monolithic `Tweak.xm` source-size assertions inherited by v7.550 are retired rather than forcing another runtime refactor. Independent probe/SpringBoard helper guardrails are left alone. The v7.550 App Settings and About You behavior remains in-tree; the malformed C-string encoding in the v7.550 filter/About You CSS tail is repaired so the payload can compile and parse.
+Source baseline: v7.551 source handoff. GitHub could not be fetched in this environment; no newer remote baseline is claimed. The removed source-size gate remains removed. Device verification and native compilation remain pending; see VALIDATION-v7.554.md.
+

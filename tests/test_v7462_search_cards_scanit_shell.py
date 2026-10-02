@@ -22,4 +22,4 @@ assert 'AD_PROBE_VERSION=7.482' in K and 'AD_PROBE_NAME=AmazonDark-v7.482' in K
 assert 'AmazonDark-v7.482-pdp-immersive-review-profile-theme-source.zip' in CMD
 for h in ['## FULL — v7.482','## VIEWPORT — v7.482','## TRANSITION — v7.482']:
     assert h in CMD
-print('PASS: v7.473 handoff stays regenerates all probes')
+print('PASS: v7.473 handoff stays and regenerates all probes')

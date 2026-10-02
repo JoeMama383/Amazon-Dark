@@ -1,5 +1,5 @@
 from pathlib import Path
-f=Path('src/Tweak.xm').read_text()
+f=Path('src/Tweak.xm').read_text()+Path('src/ADAppSettings7550.inc').read_text()
 for token in [
     'static UIView *ADAppSettingsRoot7548(UIView *v){',
     'static void ADAppSettingsOwn7548(UIView *v){',
