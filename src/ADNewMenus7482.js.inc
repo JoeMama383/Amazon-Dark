@@ -2,16 +2,6 @@
 "var d=document,s=d.getElementById('ad7482-new-menus');\n"
 "if(!s){s=d.createElement('style');s.id='ad7482-new-menus';(d.head||d.documentElement||d).appendChild(s);}\n"
 "s.textContent=`\n"
-"/* v7.549: FULL r3 Filters sheet paint owners. */\n"
-".a-sheet-web-container:has(#dropdown-content-s-all-filters),.a-sheet-web:has(#dropdown-content-s-all-filters),.a-sheet-content-container:has(#dropdown-content-s-all-filters),#dropdown-content-s-all-filters,#dropdown-content-s-all-filters :is(.sf-top-nav,.sf-refinements-section,.s-vtabs-container,.s-vtabs-tabs-container,.s-vtabs-tab,.s-vtabs-toggletab,.s-vtabs-contents-container,.s-vtabs-content),.sf-bottom-nav.sf-bottom-nav-current{background-color:#000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}\n"
-"#dropdown-content-s-all-filters :is(.sf-top-nav,.s-vtabs-tab,.s-vtabs-toggletab),.sf-bottom-nav.sf-bottom-nav-current{border-top-color:#494d4d!important;border-bottom-color:#494d4d!important;}\n"
-"#dropdown-content-s-all-filters :is(.a-color-base,.a-color-secondary,[role=heading]){color:#fff!important;-webkit-text-fill-color:#fff!important;}\n"
-"#dropdown-content-s-all-filters .sf-top-nav .a-icon-close{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}\n"
-"#dropdown-content-s-all-filters hr{border-color:#494d4d!important;background-color:#494d4d!important;}\n"
-"#dropdown-content-s-all-filters .a-button{background-color:#000!important;border-color:#747a7c!important;box-shadow:none!important;}\n"
-"#dropdown-content-s-all-filters .a-button :is(.a-button-inner,.a-button-text){background-color:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;box-shadow:none!important;}\n"
-".sf-bottom-nav.sf-bottom-nav-current .sf-show-results{background-color:#000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;box-shadow:inset 0 0 0 1px #747a7c!important;}\n"
-".sf-bottom-nav.sf-bottom-nav-current .sf-show-results span{color:#fff!important;-webkit-text-fill-color:#fff!important;}\n"
 "/* v7.483 VIEWPORT r1/r2: exact PUTB immersive secondary-view family + book-card text/fade follow-up. */\n"
 ".a-popover.putb-immersive-view-gallery,.a-popover.putb-immersive-view-gallery>.a-popover-wrapper,.a-popover.putb-immersive-view-gallery>.a-popover-wrapper>.a-popover-inner,.a-popover.putb-immersive-view-gallery .a-secondary-view-inner.putb-immersive-view-inner,.a-popover.putb-immersive-view-gallery #a-popover-content-1{background:#000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#494d4d!important;box-shadow:none!important;color-scheme:dark!important;}\n"
 ".a-popover.putb-immersive-view-gallery .a-popover-header-secondary{background:#000!important;border:0!important;border-bottom:1px solid #494d4d!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}\n"
@@ -320,7 +310,7 @@
 "#a-page:has(#interests-ai-sticky-div):has(#product-grid) #product-grid .s-price-instructions-style .a-price,#a-page:has(#interests-ai-sticky-div):has(#product-grid) #product-grid .s-price-instructions-style .a-price :is(.a-price-symbol,.a-price-whole,.a-price-fraction,.a-offscreen,span){color:#fff!important;-webkit-text-fill-color:#fff!important;}\n"
 "#a-page:has(#interests-ai-sticky-div):has(#product-grid) #product-grid :is(.lists-framework-filled-heart-icon,.lists-framework-filled-heart-icon *,[class*=filled-heart],[class*=filled-heart] *,[aria-label*=\"Shopping List\"] i,[aria-label*=\"shopping list\"] i){color:#fff!important;-webkit-text-fill-color:#fff!important;fill:#fff!important;stroke:#fff!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}\n"
 "#a-page:has(#interests-ai-sticky-div):has(#product-grid) #product-grid :is(.a-row,.a-section,span,div,a):has(.a-icon-star-mini) :is(span,div,a,.a-size-small,.a-size-base,.a-size-mini,.a-link-normal,.a-color-secondary,.a-color-base):not(.a-icon-alt):not([class*=star]):not([class*=Stars]){color:#fff!important;-webkit-text-fill-color:#fff!important;}\n"
-"/* v7.549 modal: paint only; preserve Amazon-authored geometry and controls. */\n"
+"/* v7.547 modal: paint only; preserve Amazon-authored geometry and controls. */\n"
 "body:has(._bW9ia_prompt-bottom-sheet_1NiWU) :is(.a-sheet-web,.a-sheet-content-container){background:#000!important;background-color:#000!important;}\n"
 "body:has(._bW9ia_prompt-bottom-sheet_1NiWU) ._bW9ia_prompt-bottom-sheet_1NiWU #textareaLabel{color:#fff!important;-webkit-text-fill-color:#fff!important;}\n"
 "body:has(._bW9ia_prompt-bottom-sheet_1NiWU) ._bW9ia_prompt-bottom-sheet_1NiWU i.a-icon-close._bW9ia_close-icon_3w-DL{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}\n"
@@ -332,5 +322,67 @@
 "body:has(._bW9ia_prompt-bottom-sheet_1NiWU) ._bW9ia_prompt-bottom-sheet_1NiWU .a-input-text-wrapper._bW9ia_prompt_22rKh{background:#181a1b!important;outline:none!important;box-shadow:none!important;}\n"
 "body:has(._bW9ia_prompt-bottom-sheet_1NiWU) ._bW9ia_prompt-bottom-sheet_1NiWU #intp-submit-btn{background:#000!important;background-color:#000!important;border-color:#747a7c!important;box-shadow:none!important;}\n"
 "body:has(._bW9ia_prompt-bottom-sheet_1NiWU) ._bW9ia_prompt-bottom-sheet_1NiWU #intp-submit-btn :is(.a-button-inner,.a-button-text){background:transparent!important;background-image:none!important;box-shadow:none!important;}\n"
+"/* v7.548 FULL/VIEWPORT: search filter sheet follow-up. Keep the sheet OLED, tint the left rail, restore the missing vertical divider, make option containers medium gray, remove the extra footer dividers, and turn the Show results button into an OLED control. */
+"
+"body:has(#search) :is([class*=filter-sheet],[class*=FilterSheet],[class*=search-filter],[class*=refinement-sheet],[class*=facet-sheet],[class*=filter-view],[class*=filterView],[id*=filter-sheet],[id*=search-filter],[id*=refinement-sheet],[id*=facet-sheet]){background:#000!important;background-color:#000!important;color-scheme:dark!important;box-shadow:none!important;}
+"
+"body:has(#search) :is([class*=filter-sheet],[class*=FilterSheet],[class*=search-filter],[class*=refinement-sheet],[class*=facet-sheet],[class*=filter-view],[class*=filterView],[id*=filter-sheet],[id*=search-filter],[id*=refinement-sheet],[id*=facet-sheet]) :is(h1,h2,h3,h4,h5,h6,p,span,div,label,strong,b){color:#fff!important;-webkit-text-fill-color:#fff!important;}
+"
+"body:has(#search) :is([class*=filter-sheet],[class*=FilterSheet],[class*=search-filter],[class*=refinement-sheet],[class*=facet-sheet],[class*=filter-view],[class*=filterView],[id*=filter-sheet],[id*=search-filter],[id*=refinement-sheet],[id*=facet-sheet]) :is([class*=option],[class*=Option],[class*=pill],[class*=Pill],[class*=chip],[class*=Chip],[class*=toggle],[class*=Toggle],[class*=seg],[class*=radio],[role=radio],[role=checkbox],button:not(.a-button-primary),.a-button:not(.a-button-primary),.a-box){background:#303335!important;background-color:#303335!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;}
+"
+"body:has(#search) :is([class*=filter-sheet],[class*=FilterSheet],[class*=search-filter],[class*=refinement-sheet],[class*=facet-sheet],[class*=filter-view],[class*=filterView],[id*=filter-sheet],[id*=search-filter],[id*=refinement-sheet],[id*=facet-sheet]) :is([class*=left],[class*=Left],[class*=nav],[class*=Nav],[class*=rail],[class*=Rail],[class*=sidebar],[class*=Sidebar],[class*=facet-column],[class*=category-column]){background:rgba(255,255,255,.045)!important;background-color:rgba(255,255,255,.045)!important;border-right:1px solid #494d4d!important;box-shadow:none!important;}
+"
+"body:has(#search) :is([class*=filter-sheet],[class*=FilterSheet],[class*=search-filter],[class*=refinement-sheet],[class*=facet-sheet],[class*=filter-view],[class*=filterView],[id*=filter-sheet],[id*=search-filter],[id*=refinement-sheet],[id*=facet-sheet]) :is([class*=left],[class*=Left],[class*=nav],[class*=Nav],[class*=rail],[class*=Rail],[class*=sidebar],[class*=Sidebar],[class*=facet-column],[class*=category-column]) > :is(div,button,a,.a-box,.a-section){background:rgba(255,255,255,.045)!important;background-color:rgba(255,255,255,.045)!important;border-right:1px solid #494d4d!important;box-shadow:none!important;}
+"
+"body:has(#search) :is([class*=filter-sheet],[class*=FilterSheet],[class*=search-filter],[class*=refinement-sheet],[class*=facet-sheet],[class*=filter-view],[class*=filterView],[id*=filter-sheet],[id*=search-filter],[id*=refinement-sheet],[id*=facet-sheet]) :is([class*=footer],[class*=Footer],[class*=sticky],[class*=Sticky],[class*=bottom],[class*=Bottom],[class*=button-container],[class*=buttonContainer],[class*=results-bar],[class*=ResultsBar]){background:#000!important;background-color:#000!important;border:0!important;border-top:0!important;border-bottom:0!important;box-shadow:none!important;}
+"
+"body:has(#search) :is([class*=filter-sheet],[class*=FilterSheet],[class*=search-filter],[class*=refinement-sheet],[class*=facet-sheet],[class*=filter-view],[class*=filterView],[id*=filter-sheet],[id*=search-filter],[id*=refinement-sheet],[id*=facet-sheet]) :is([class*=footer],[class*=Footer],[class*=sticky],[class*=Sticky],[class*=bottom],[class*=Bottom],[class*=button-container],[class*=buttonContainer],[class*=results-bar],[class*=ResultsBar])::before,body:has(#search) :is([class*=filter-sheet],[class*=FilterSheet],[class*=search-filter],[class*=refinement-sheet],[class*=facet-sheet],[class*=filter-view],[class*=filterView],[id*=filter-sheet],[id*=search-filter],[id*=refinement-sheet],[id*=facet-sheet]) :is([class*=footer],[class*=Footer],[class*=sticky],[class*=Sticky],[class*=bottom],[class*=Bottom],[class*=button-container],[class*=buttonContainer],[class*=results-bar],[class*=ResultsBar])::after{content:none!important;display:none!important;background:none!important;border:0!important;box-shadow:none!important;}
+"
+"body:has(#search) :is([class*=filter-sheet],[class*=FilterSheet],[class*=search-filter],[class*=refinement-sheet],[class*=facet-sheet],[class*=filter-view],[class*=filterView],[id*=filter-sheet],[id*=search-filter],[id*=refinement-sheet],[id*=facet-sheet]) :is(.a-button.a-button-primary,button.a-button-primary,.a-button-primary,[class*=primaryButton],[class*=PrimaryButton],[class*=apply],[class*=Apply],[class*=show-results],[class*=ShowResults],[class*=results-button],[class*=ResultsButton]){background:#000!important;background-color:#000!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}
+"
+"body:has(#search) :is([class*=filter-sheet],[class*=FilterSheet],[class*=search-filter],[class*=refinement-sheet],[class*=facet-sheet],[class*=filter-view],[class*=filterView],[id*=filter-sheet],[id*=search-filter],[id*=refinement-sheet],[id*=facet-sheet]) :is(.a-button.a-button-primary,button.a-button-primary,.a-button-primary,[class*=primaryButton],[class*=PrimaryButton],[class*=apply],[class*=Apply],[class*=show-results],[class*=ShowResults],[class*=results-button],[class*=ResultsButton]) :is(.a-button-inner,.a-button-text,span,div){background:transparent!important;background-color:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;box-shadow:none!important;}
+"
+"/* v7.550 FULL/VIEWPORT: About You memory grid follow-up. Turn white cards, pills, and banner into OLED/gray controls, preserve dynamic blue selection/link accents, and restore legible text inside dark containers. */
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile{background:#000!important;background-color:#000!important;color-scheme:dark!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile :is(.memory-header,.memory-subtitle,.memory-header-links,.memory-header-links span,.memory-item-text,.memory-item-text .header,.memory-item-text .value,.import-banner-title,.import-banner-description,.ai-mode-popover-container .popover-description,.search-result-header,.results-header,.beta-tag){color:#fff!important;-webkit-text-fill-color:#fff!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile :is(.memory-header-links .learn-more-link,.memory-header-links a,.memory-header-links button,.import-banner-actions a,.import-banner-actions button,.learn-more-link){-webkit-text-fill-color:inherit!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile :is(.import-memory-banner,.memory-item-container,.memory-create-button,.search-input-wrapper,.category-filter-button,.ai-mode-popover-container){background:#000!important;background-color:#000!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#fff!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .memory-item-container{border-radius:18px!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile :is(.memory-item-container,.import-memory-banner,.search-input-wrapper,.memory-create-button,.category-filter-button) :is(h1,h2,h3,h4,h5,h6,p,span,div,label,strong,b,button){color:#fff!important;-webkit-text-fill-color:#fff!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .import-memory-banner{background:#000!important;background-color:#000!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .import-memory-banner :is(.import-action-button,.a-link-normal,a,button){color:#5da8ff!important;-webkit-text-fill-color:#5da8ff!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .memory-create-button{background:#000!important;background-color:#000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .search-input-wrapper{background:#000!important;background-color:#000!important;border-color:#747a7c!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile :is(.search-input,.search-input::placeholder){color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .category-filter-button{background:#000!important;background-color:#000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border:2px solid #747a7c!important;border-color:#747a7c!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .category-filter-button.selected,body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .category-filter-button[aria-pressed=\"true\"]{border-color:#1c89e3!important;color:#fff!important;-webkit-text-fill-color:#fff!important;background:#000!important;background-color:#000!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .category-filter-button.selected :is(*),body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .category-filter-button[aria-pressed=\"true\"] :is(*){color:#fff!important;-webkit-text-fill-color:#fff!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile :is(.memory-item-container,.import-memory-banner,.search-input-wrapper,.memory-create-button,.category-filter-button) svg :is(path,circle,rect,line,polyline,polygon){stroke:#fff!important;fill:currentColor!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .category-filter-button.selected svg :is(path,circle,rect,line,polyline,polygon),body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .category-filter-button[aria-pressed=\"true\"] svg :is(path,circle,rect,line,polyline,polygon){stroke:#1c89e3!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .memory-item-container :is(.header,.value){color:#fff!important;-webkit-text-fill-color:#fff!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .memory-item-container :is([class*=chevron],[class*=Chevron],svg,[role=img]){color:#fff!important;stroke:#fff!important;fill:currentColor!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .category-filter-container.mobile,body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .category-filter-scroll.mobile,body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .ai-mode-memory-search-container{background:#000!important;background-color:#000!important;}
+"
+"body:has(.memory-grid-container.mobile) .memory-grid-container.mobile .memory-grid-container.mobile :is(hr){border-color:#494d4d!important;background:#494d4d!important;color:#494d4d!important;}
+"
 "`;\n"
 "}catch(_){}})();\n"

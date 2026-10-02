@@ -49,8 +49,6 @@ S_golden=S_golden.replace("[class*='_single-video-card_style_sponsored-label-pil
 S_golden=S_golden.replace("[class*='_single-creative-card_style_sponsored-label-pill__']{background:rgba(0,0,0,.6)!important;background-color:rgba(0,0,0,.6)!important;}","")
 S_golden=S_golden.replace('ad7461-home-hero-pill','ad7381-home-ad-shell-floor')
 S_golden=S_golden.replace('.cards_carousel_widget-sug-container-top [class$=widget-sug-text],','')
-# v7.548 probe-confirmed live-events loading floor; preserve all older golden rules.
-S_golden=S_golden.replace(".a-cardui[class*='_dv-mobile-live-events-streaming-widget_style_lswCard__']{background-color:#000!important;}", "")
 for name,expected in golden['programs'].items():
     assert digest(payload(S_golden,name))==expected, name+' changed beyond the approved CSS shorthand compaction / v7.389-v7.390 scoped append'
 # Expand comma lists without splitting inside quotes, attributes or pseudo-classes.

@@ -1,5 +1,6 @@
 {
-  "version": "7.549~filters-sheet-oled",
-  "baseline": "8d87258c",
-  "focus": "Probe-backed Filters sheet OLED paint"
+  "version": "7.550~about-you-memory-grid-followup",
+  "baseline": "v7.546",
+  "focus": "Restore the WebKit editing-trait production contract that the v7.546 overlay accidentally erased while retaining the v7.546 FULL Hamburger route-arbitration repair.",
+  "device_validation": "Pending v7.550 device verification; CI must first prove the retained WebKit editing-trait contract plus the search-filter/App Settings restorations and the new About You memory-grid follow-up."
 }
