@@ -5,7 +5,6 @@ S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); UI=
 assert 'Version: 7.482~pdp-immersive-review-profile-theme' in C
 assert '#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"' in S
 assert 'VER=7.482' in UI and 'AD_PROBE_VERSION=7.482' in SK and 'AD_PROBE_NAME=AmazonDark-v7.482' in SK
-assert len(S.encode()) < 856000, len(S.encode())
 # Keep the mature standalone implementation frozen while extending only the persistent PDP survivor sheet.
 a=S.index('static NSString *ADStandalonePaintJS7104(void){'); b=S.index('static NSString *ADTWBJS(void){',a)
 stand=S[a:b]

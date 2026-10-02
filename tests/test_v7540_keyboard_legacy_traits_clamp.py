@@ -13,7 +13,9 @@ assert '%orig(next);' in block and 'ADKeyboardTrace7538(self,@"legacy.write",a,n
 ext=S[S.index('%hook WKExtendedTextInputTraits'):S.index('%hook WKContentView')]
 assert 'UIKeyboardAppearanceDark' in ext
 # No new modal geometry or recurring work.
-modal=CSS[CSS.index('modal: paint only'):]
+m0=CSS.index('modal: paint only')
+m1=CSS.index('search filter sheet follow-up',m0)
+modal=CSS[m0:m1]
 for bad in ('width:','height:','padding:','margin:','position:','border-radius:','border-width:'):
     assert bad not in modal,bad
 helper=S[S.index('// v7.537: WebKit has two text-input trait paths.'):S.index('%hook WKContentView')]

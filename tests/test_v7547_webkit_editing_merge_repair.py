@@ -1,8 +1,8 @@
 from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 T=(R/'src/Tweak.xm').read_text(); U=(R/'src/ADUniversalUIProbe7362.inc').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.550~about-you-memory-grid-followup' in C
-assert '#define AD_VERSION "v7.550-about-you-memory-grid-followup"' in T
+assert 'Version: 7.551~ui-restoration-no-tweak-size-gate' in C
+assert '#define AD_VERSION "v7.551-ui-restoration-no-tweak-size-gate"' in T
 assert (R/'tests/test_v7546_webkit_editing_trait_repair.py').is_file()
 f=T[T.index('%hook WKContentView'):T.index('%end',T.index('%hook WKContentView'))]
 assert f.index('ADWebKeyboardStyle7546((UIView *)self,YES);') < f.index('BOOL became=%orig;')
@@ -16,4 +16,4 @@ for good in ('ui-probe.sh export full','ui-probe.sh arm','ui-probe.sh export vie
     assert good in CMD,good
 for bad in ('git init','git push -uf','rm -rf .git'):
     assert bad not in CMD,bad
-print('PASS: v7.550 preserves the retained WebKit editing-trait contract without regressing the FULL-menu route repair')
+print('PASS: v7.551 preserves the retained WebKit editing-trait contract without regressing the FULL-menu route repair')

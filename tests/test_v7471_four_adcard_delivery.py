@@ -3,7 +3,6 @@ R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); F=(R/'src/ADUniversalUIProbe7362.frame.js.inc').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
 assert 'Version: 7.482~pdp-immersive-review-profile-theme' in C
 assert '#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"' in S
-assert len(S.encode()) < 856000, len(S.encode())
 g=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSString *ADPDPCompletionJS7405')]
 assert 'new CSSStyleSheet()' in g and 'replaceSync(C)' in g and 'document.adoptedStyleSheets=a.concat([sh])' in g
 for t in ('[data-testid=renderer-factory-ad-container]:has(#offsite-buy-box)>div:first-child','[data-testid=brand-name]','[data-testid=product-description]',

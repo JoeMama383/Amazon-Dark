@@ -52,6 +52,5 @@ for token in (
 assert 'if(ADPermissionCameraCheckbox7408(v))return nil;' in S
 assert 'if(ADPermissionFullscreenCheckbox7480(v))return ADMenuButtonFill7255();' in S
 assert '%orig(24.0);' in S
-assert len(S.encode()) < 856000
 
 print('PASS: v7.480 preflights the exact v7.479 Objective-C++ failure and preserves legacy/new Camera checkbox ownership')

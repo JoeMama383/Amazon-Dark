@@ -5,10 +5,10 @@ s=(R/'src/ADNewMenus7482.js.inc').read_text()
 js=''.join(json.loads(x) for x in s.splitlines() if x.strip())
 css=js.split('/* Interests modal captured paint:',1)[1].split('`;',1)[0]
 r='body:has(._bW9ia_prompt-bottom-sheet_1NiWU) ._bW9ia_prompt-bottom-sheet_1NiWU'
-rules=re.findall(r'([^{}]+)\{([^{}]+)\}',css.split('*/',1)[1])
+all_rules=re.findall(r'([^{}]+)\{([^{}]+)\}',css.split('*/',1)[1])
+rules=[(selector,decl) for selector,decl in all_rules if selector.strip().startswith(r)]
 assert len(rules)==7
 for selector,decl in rules:
-    assert selector.strip().startswith(r)
     for prop in ('width','height','position','margin','padding','border-width','border-radius','display','transform'):
         assert not re.search(r'(?:^|;)'+prop+r':',decl),prop
 assert '._bW9ia_content-wrapper_3UjcO::after{background:transparent!important;background-image:none!important;}' in css

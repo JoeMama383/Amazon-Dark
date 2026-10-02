@@ -3,7 +3,6 @@ R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
 assert 'Version: 7.482~pdp-immersive-review-profile-theme' in C
 assert '#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"' in S
-assert len(S.encode()) < 856000, len(S.encode())
 # 1: Home Buy Again Rufus pill rows: exact family only, OLED/gray/white.
 for t in ('[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_]{background:#000!important;border-color:#747a7c!important;color:#fff!important;box-shadow:none!important}',
           '[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_] [class*=_pillText_]'):

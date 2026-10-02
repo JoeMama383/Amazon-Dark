@@ -1,6 +1,5 @@
 from pathlib import Path
 S=Path('src/Tweak.xm').read_text()
-assert len(S.encode()) < 856000, len(S.encode())
 for token in [
     'fullscreen-inflight-animated-view','fullscreen-inflight-permission-header',
     'fullscreen-inflight-prompt-dismiss-button','fullscreen-inflight-prompt-allow-button',

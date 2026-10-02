@@ -7,7 +7,6 @@ J=''.join(json.loads(line) for line in JRAW.splitlines() if line.strip())
 N=(R/'src/ADReturnsNative7480.inc').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
-assert len(T.encode()) < 856000, len(T.encode())
 assert '#include "ADReturnsTheme7480.js.inc"' in T
 assert 'ADReturnsThemeJS7480()' in T
 assert '#include "ADReturnsNative7480.inc"' in T

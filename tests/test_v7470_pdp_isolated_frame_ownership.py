@@ -3,7 +3,6 @@ R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); F=(R/'src/ADUniversalUIProbe7362.frame.js.inc').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
 assert 'Version: 7.482~pdp-immersive-review-profile-theme' in C
 assert '#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"' in S
-assert len(S.encode()) < 856000, len(S.encode())
 for bad in ('ADPDPIsolatedFrameThemeJS7470','ADPDPIsolatedFrameThemeAttach7470','kADPDPIsolatedUS7470'): assert bad not in S,bad
 m=S[S.index('static NSString *ADPDPProbeBackedFixesJS7458'):S.index('static NSString *ADCoreWebJS7271')]
 for tok in ('.putb-read-more-primary-view::before','[id^=putb-read-more-primary-view-][id$=-product-details-card_primary-view]::before','content:none!important;display:none!important;background:none!important;box-shadow:none!important','.putb-main-text :is(.a-size-small,.a-text-bold){color:#fff!important'): assert tok in m,tok

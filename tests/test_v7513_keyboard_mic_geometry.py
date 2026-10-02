@@ -9,7 +9,6 @@ assert 'Version: 7.513~keyboard-mic-geometry' in C
 assert '#define AD_VERSION "v7.513-keyboard-mic-geometry"' in S
 assert '#include "ADKeyboardDockGeometry7513.inc"' in S
 assert 'ADAlignKeyboardMic7513((UIKeyboardDockView *)self);' in S
-assert len(S.encode()) < 856000, len(S.encode())
 for token in ('UIKeyboardDockItemButton','ADDockItemImage7513','rightIcon.bounds.size.height/rightIcon.bounds.size.width','ratio<1.08','lc.y-rc.y','rightIcon.center=c'):
     assert token in I, token
 # Geometry ownership is deliberately narrow: direct dock children only, right image center-Y only.

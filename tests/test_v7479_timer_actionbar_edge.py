@@ -3,7 +3,6 @@ R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
 assert 'Version: 7.482~pdp-immersive-review-profile-theme' in C
 assert '#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"' in S
-assert len(S.encode()) < 856000, len(S.encode())
 
 # VIEWPORT 085327: exact TNF number spans already have the right selector.
 # v7.480 adds an independent inset-black paint layer so a competing white

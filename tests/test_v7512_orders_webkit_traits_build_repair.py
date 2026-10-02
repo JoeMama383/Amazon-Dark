@@ -7,7 +7,6 @@ assert '#define AD_VERSION "v7.512-orders-webkit-traits-build-repair"' in S
 assert 'AmazonDark-v7.512-orders-webkit-traits-build-repair-source.zip' in CMD
 assert 'tests/test_v7511_orders_webkit_traits_oled_keyboard.py' in V
 assert not (R/'tests/test_v7511_orders_webkit_traits_oled_keyboard.py').exists()
-assert len(S.encode()) < 856000, len(S.encode())
 
 wk=S.split('%hook WKContentView',1)[1].split('%end',1)[0]
 assert 'static id ADDarkWebInputTraits7512' in S

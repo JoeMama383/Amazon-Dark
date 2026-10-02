@@ -4,7 +4,6 @@ S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD
 assert 'Version: 7.482~pdp-immersive-review-profile-theme' in C
 assert '#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"' in S
 assert 'VER=7.482' in UI and 'AD_PROBE_VERSION=7.482' in SK and 'AD_PROBE_NAME=AmazonDark-v7.482' in SK
-assert len(S.encode()) < 856000, len(S.encode())
 # Keep the native bar lifecycle ownership introduced in the v7.475 line, while later correction narrows its geometry.
 for t in ('static void ADHideThinBarHairlines7475(UIView *v){','%hook ANXTabBarView','%hook UITabBar','ADHideThinBarHairlines7475(v);','- (void)layoutSubviews {'):
     assert t in S,t

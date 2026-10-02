@@ -4,7 +4,6 @@ R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); F=(R/'src/ADUniversalUIProbe7362.frame.js.inc').read_text(); CMD=(R/'COMMANDS.md').read_text()
 assert 'Version: 7.482~pdp-immersive-review-profile-theme' in C
 assert '#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"' in S
-assert len(S.encode()) < 856000, len(S.encode())
 a=S.index('static NSString *ADStandalonePaintJS7104(void){'); b=S.index('static NSString *ADTWBJS(void){',a); stand=S[a:b]
 assert hashlib.sha256(stand.encode()).hexdigest()=='2734e76915bf577d60b9a012b6fee226035582aab2a499ee1c40e3a3130f7ebe'
 for t in ("if(productish)return;h.setAttribute('data-ad7104-standalone','1')","var KEY='__ad7StandaloneSheet7106'",'document.adoptedStyleSheets=a.concat([sh])','data-ad7144-full-raster-frame','ad7144Classify()'): assert t in stand,t

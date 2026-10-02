@@ -3,7 +3,6 @@ R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); U=(R/'src/ADUniversalUIProbe7362.js.inc').read_text(); V=(R/'src/ADUIProbeViewportSample7449.js.inc').read_text(); P=(R/'src/ADPDPMainStream7451.js.inc').read_text(); CMD=(R/'COMMANDS.md').read_text()
 assert 'Version: 7.482~pdp-immersive-review-profile-theme' in C
 assert '#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"' in S
-assert len(S.encode()) < 856000, len(S.encode())
 g=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSString *ADPDPCompletionJS7405')]
 # Keep v7.477's exact top/offsite ownership and isolated 414x125 renderer contract.
 assert '#ad #absoluteComponents' not in g

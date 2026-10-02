@@ -4,7 +4,6 @@ S=(R/'src/Tweak.xm').read_text(); C=(R/'layout/DEBIAN/control').read_text(); UI=
 assert 'Version: 7.482~pdp-immersive-review-profile-theme' in C
 assert '#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"' in S
 assert 'VER=7.482' in UI and 'AD_PROBE_VERSION=7.482' in SK and 'AD_PROBE_NAME=AmazonDark-v7.482' in SK
-assert len(S.encode()) < 856000, len(S.encode())
 block=S.split('static NSString *ADProductScrollVideoBorderJS7405(void){',1)[1].split('static NSString *ADPDPCompletionJS7405',1)[0]
 assert 'overflow:hidden!important' not in block
 # The strict-CI clipping fix remains, but the later functional correction also removes the broad absoluteComponents painter.

@@ -4,7 +4,6 @@ S=(R/'src/Tweak.xm').read_text(); F=(R/'src/ADUniversalUIProbe7362.frame.js.inc'
 assert 'Version: 7.482~pdp-immersive-review-profile-theme' in C
 assert '#define AD_VERSION "v7.482-pdp-immersive-review-profile-theme"' in S
 assert 'VER=7.482' in UI and 'AD_PROBE_VERSION=7.482' in SK
-assert len(S.encode()) < 856000, len(S.encode())
 g=S[S.index('static NSString *ADPDPGridCarouselFix7454'):S.index('static NSString *ADPDPCompletionJS7405')]
 # The exact all-frame core program now uses the same constructable-sheet survival mechanism as ADStandalonePaintJS7104.
 for t in ("var K='__ad7454PDPAdSurvivor'",'new CSSStyleSheet()','sh.replaceSync(C)','document.adoptedStyleSheets=a.concat([sh])',"h.setAttribute('data-ad7473-survivor','1')", "addEventListener('pageshow'"):

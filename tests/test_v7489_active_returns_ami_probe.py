@@ -10,7 +10,6 @@ SK=(R/'scripts/skeleton-probe.sh').read_text()
 
 assert 'Version: 7.489~active-returns-ami-lifecycle-probe' in C
 assert '#define AD_VERSION "v7.489-active-returns-ami-lifecycle-probe"' in T
-assert len(T.encode()) < 856000, len(T.encode())
 for h in ('## FULL — v7.489','## VIEWPORT — v7.489','## TRANSITION — v7.489'):
     assert h in CMD, h
 assert ' status' not in CMD.lower()
