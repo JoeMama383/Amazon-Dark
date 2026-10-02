@@ -1,0 +1,1 @@
+Filters sheet OLED paint, based on 8d87258c. FULL r3 captured seven steps, then cancelled-or-web-error and partial coverage. Exact sheet/root/header/tab/footer owners identified. Preserve geometry, selected blue rail, Prime art and stars; close sprite white; result button OLED with inset gray border to preserve dimensions. No probe or keyboard runtime changes.

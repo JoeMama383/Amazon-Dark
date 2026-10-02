@@ -1,6 +1,5 @@
 {
-  "version": "7.548~home-hero-loading-oled",
-  "baseline": "3aa862b2",
-  "focus": "Retain keyboard merge and FULL routing repair; OLED loading background for probe-confirmed Home live-events hero card.",
-  "device_validation": "Pending CI native build and device verification."
+  "version": "7.549~filters-sheet-oled",
+  "baseline": "8d87258c",
+  "focus": "Probe-backed Filters sheet OLED paint"
 }

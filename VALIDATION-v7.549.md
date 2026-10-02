@@ -1,0 +1,1 @@
+202 normalized regression tests passed. Two native checks unavailable: clang and clang++ missing. Logos lint, emitted JavaScript syntax, and git diff --check passed. Native CI build and device visual verification pending. FULL capture contained seven steps but ended partial after a web error; menu paint owners were captured.
