@@ -15,7 +15,7 @@ for p in (R/'tests').glob('test_*.py'):
 # Preserve the three UI repairs requested in this handoff.
 N=(R/'src/ADNewMenus7482.js.inc').read_text()
 A=(R/'src/ADAppSettings7550.inc').read_text()
-assert 'search filter sheet follow-up' in N
+assert '#dropdown-content-s-all-filters' in N and '.sf-show-results' in N
 assert 'About You memory grid follow-up' in N
 assert 'ADAppSettingsRoot7548' in A and 'ADAppSettingsOwnText7548' in A
 assert 'ADAppSettingsScope7547' in A and 'ADPersonSavingsSheetRoot7259' in A

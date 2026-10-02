@@ -3,7 +3,7 @@ import json,re,subprocess,tempfile
 R=Path(__file__).resolve().parents[1]
 s=(R/'src/ADNewMenus7482.js.inc').read_text()
 js=''.join(json.loads(x) for x in s.splitlines() if x.strip())
-css=js.split('/* Interests modal captured paint:',1)[1].split('`;',1)[0]
+css=js.split('/* Interests modal captured paint:',1)[1].split('/* v7.553 FULL r3 exact-owner search Filters sheet follow-up.',1)[0]
 r='body:has(._bW9ia_prompt-bottom-sheet_1NiWU) ._bW9ia_prompt-bottom-sheet_1NiWU'
 all_rules=re.findall(r'([^{}]+)\{([^{}]+)\}',css.split('*/',1)[1])
 rules=[(selector,decl) for selector,decl in all_rules if selector.strip().startswith(r)]
