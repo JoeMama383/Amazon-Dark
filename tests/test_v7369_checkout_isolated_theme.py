@@ -12,6 +12,9 @@ from video7425_delta import strip_video7425
 from search7435_delta import strip_search7435
 S=strip_search7435(strip_video7425(strip_cart7423(S)))
 
+# v7.556 adds only two captured Search budget-card media owners; retain all other golden checks.
+S=S.replace(',#search .scx-pt-price-budget,#search .scx-pt-price-indulgent','')
+
 def func(name):
     st=S.index(f'static NSString *{name}')
     b=S.index('{',st); d=0

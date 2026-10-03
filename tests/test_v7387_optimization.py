@@ -15,6 +15,9 @@ from cart7423_delta import strip_cart7423, strip_byg7423
 from video7425_delta import strip_video7425
 from search7435_delta import strip_search7435
 S_golden=strip_search7435(strip_video7425(strip_byg7423(strip_cart7423(S))))
+
+# v7.556 adds only two captured Search budget-card media owners; retain all other golden checks.
+S_golden=S_golden.replace(',#search .scx-pt-price-budget,#search .scx-pt-price-indulgent','')
 # v7.424 broadens only the BYG renderer ownership. Normalize those exact approved
 # checkout-floor deltas back to v7.420 before comparing the v7.386 semantic golden.
 S_golden=S_golden.replace(

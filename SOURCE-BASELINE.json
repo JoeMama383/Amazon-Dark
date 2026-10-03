@@ -1,7 +1,6 @@
 {
-  "version": "7.555~filters-settings-interests-merge",
-  "baseline": "9a0a45ce (origin/main, v7.554)",
-  "restored_commit": "634ac270 (v7.553 exact Filters CSS and regression contract)",
-  "focus": "Restore complete exact Filters owner block alongside v7.554 App Settings/Interests fixes.",
-  "device_validation": "Pending"
+  "version": "7.556~filters-search-paint-repair",
+  "baseline": "f9b6a35b (origin/main v7.555)",
+  "focus": "Captured Filters floatboxes/detached footer and Search budget/category/video-copy owners",
+  "device_validation": "Pending; loading overlay not captured visibly"
 }

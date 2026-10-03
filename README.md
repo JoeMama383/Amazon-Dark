@@ -1,9 +1,11 @@
-## v7.555 — Merge exact Filters, App Settings, and Interests fixes
+## v7.556 — Filters and Search paint repair
 
-Built from current GitHub commit 9a0a45ce (v7.554), restoring the complete Filters stylesheet block from commit 634ac270 (v7.553). This corrects the omitted merge that caused the v7.553 regression test to fail after the v7.554 overlay.
+Based on GitHub f9b6a35b (v7.555), retaining App Settings, Interests, keyboard, and probe repairs.
 
-Filters: medium-gray option containers, white text, gray borders, one continuous vertical rail divider, no footer top/bottom dividers, OLED Show-results button with white text and a gray border. Existing star/Prime artwork and selected blue rail accent are retained.
+The v7.555 FULL capture identifies actual filter options as `a.sf-filter-floatbox` and the results footer as a body-level sibling outside the sheet. These owners now receive medium-gray option floors, white text, an OLED results button with gray border, and a gray divider above the footer. The bottom divider remains absent. Prime and rating sprites are preserved.
 
-App Settings and Interests restoration from v7.554 remains present, including document-owned Interests styles during hydration. The source-size ceiling remains removed. All probe identities are regenerated as v7.555.
+The VIEWPORT capture identifies white Search category-card gradients and video-ad product-copy padding. Their exact owners now receive OLED backgrounds, with white category captions. Pig and diamond price-card artwork and colored floors use the existing preference-controlled TWB factor once at their shared paint parent.
 
-See COMMANDS.md for existing-clone push and separate FULL, VIEWPORT and TRANSITION commands. Device verification and native build remain pending.
+The transient white loading overlay was not captured visibly. Its identity/alpha cannot be confirmed from these captures; no broad lightbox/spinner recoloring is included.
+
+See COMMANDS.md for the existing-clone push and separate FULL, VIEWPORT and TRANSITION commands. Native build and device verification remain pending; see VALIDATION-v7.556.md.
