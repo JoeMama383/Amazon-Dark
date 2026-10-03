@@ -1,11 +1,9 @@
-## v7.556 — Filters and Search paint repair
+# AmazonDark v7.562~seller-messaging-oled-twb
 
-Based on GitHub f9b6a35b (v7.555), retaining App Settings, Interests, keyboard, and probe repairs.
+## v7.562 Seller Messaging Assistant dark-mode completion
 
-The v7.555 FULL capture identifies actual filter options as `a.sf-filter-floatbox` and the results footer as a body-level sibling outside the sheet. These owners now receive medium-gray option floors, white text, an OLED results button with gray border, and a gray divider above the footer. The bottom divider remains absent. Prime and rating sprites are preserved.
+Builds on v7.561. The supplied v7.556 VIEWPORT archive is the earlier Refunds help-article capture rather than the Seller Messaging Assistant screen shown in the screenshot, so v7.562 does not pretend that archive exposed Seller Messaging DOM owners. Instead the new production owner is strictly route-gated to Amazon's Seller Messaging Assistant contact-seller family (`/gp/help/contact-seller/contact-seller.html`) and child frames whose referrer is that route.
 
-The VIEWPORT capture identifies white Search category-card gradients and video-ad product-copy padding. Their exact owners now receive OLED backgrounds, with white category captions. Pig and diamond price-card artwork and colored floors use the existing preference-controlled TWB factor once at their shared paint parent.
+Within that route only, structural page/card/container floors are OLED black, chat bubbles and controls use neutral dark gray, neutral dark copy is lightened, authored interactive/dynamic colors remain currentColor, borders are standardized gray, and product-sized non-logo images receive the existing configured TWB brightness. The image pass is finite and route-local: it inspects only `document.images` immediately/once at page load and adds no MutationObserver, timer, RAF, scroll listener, polling loop, or recurring hierarchy scan.
 
-The transient white loading overlay was not captured visibly. Its identity/alpha cannot be confirmed from these captures; no broad lightbox/spinner recoloring is included.
-
-See COMMANDS.md for the existing-clone push and separate FULL, VIEWPORT and TRANSITION commands. Native build and device verification remain pending; see VALIDATION-v7.556.md.
+v7.561 Refunds help-note OLED, v7.560 Returns-success alert ownership, v7.559 order-item theming/count geometry, and v7.558 Filters/probe-routing work are retained.

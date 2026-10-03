@@ -1,11 +1,11 @@
 #!/bin/sh
-# AmazonDark v7.556 universal UI probe helper.
+# AmazonDark v7.562 universal UI probe helper.
 # FULL: screenshot-triggered while Amazon stays foregrounded.
 # VIEWPORT: arm once, show the target in Amazon, then background Amazon once.
 # The app captures the last foreground scene at WillResignActive; export runs afterward.
 # FULL, VIEWPORT, and TRANSITION all export one current capture as plain .tar.
 set -eu
-VER=7.556
+VER=7.562
 CUR=${VER#7.}
 NAME=AmazonDark-v$VER
 ROOT=${AD_UI_ROOT:-/var/mobile}
@@ -117,7 +117,7 @@ case "${1:-}" in
         if [ "$mode" = full ]; then
           printf 'The current v%s FULL capture is still running or incomplete. Leave Amazon visible while the automatic walk runs, then return to the terminal to export. Status reports partial captures separately.\n' "$VER" >&2
         else
-          printf 'The current v%s VIEWPORT background capture did not reach a terminal state. Re-arm it and background Amazon again.\n' "$VER" >&2
+          printf 'The current v%s VIEWPORT capture is queued or still running. Wait a few seconds and export viewport again; re-arm only if it never reaches a terminal state.\n' "$VER" >&2
         fi
         exit 1;;
       *) printf 'The current v%s %s capture file is missing. Trigger a fresh capture.\n' "$VER" "$mode" >&2; exit 1;;

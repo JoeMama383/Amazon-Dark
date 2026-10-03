@@ -23,7 +23,7 @@ assert 'PDP_READONLY_NATIVE_SCROLL policy=skipped reason=DOM-walker-owns-product
 assert 'ADUIRendererExposed7518' not in u
 assert 'ADUIViewportBusyBoundary7518' not in u
 handler=u[u.index('static void ADUIHandleWillResignActive7447'):u.index('static void ADCaptureThreeTabProbe7254')]
-assert handler.index('gADUIProbeBusy7362') < handler.index('ADUIConsumeViewportArm7362()')
+assert handler.index('ADUIConsumeViewportArm7362()') < handler.index('gADUIProbeBusy7362')
 
 # Returns ownership must preserve React/Amazon geometry and change paint only.
 body=p[p.index('static void ADPersonOwnReturnsCard7514'):p.index('static void ADPersonPrimeReturns7514')]
