@@ -2,7 +2,7 @@
 "var d=document,s=d.getElementById('ad7482-new-menus');\n"
 "if(!s){s=d.createElement('style');s.id='ad7482-new-menus';(d.head||d.documentElement||d).appendChild(s);}\n"
 "s.textContent=`\n"
-"/* v7.563 Pharmacy FULL r1: exact PUI/LEGO paint families. */\n"
+"/* v7.564 Pharmacy FULL r1: exact PUI/LEGO paint families. */\n"
 "#a-page:has([data-csa-c-painter=pharmacy-lego-painter]){background:#000!important;color-scheme:dark!important;}\n"
 "#a-page:has([data-csa-c-painter=pharmacy-lego-painter]) :is(.pui-sub-nav-container,#links-bottomsheet-button,.pui-bottom-sheet-container,.pui-list-link-item-container){background:#000!important;color:#fff!important;box-shadow:none!important;}\n"
 "#a-page:has([data-csa-c-painter=pharmacy-lego-painter]) pui-sub-nav :is(.pui-text,.pui-link){color:#fff!important;-webkit-text-fill-color:#fff!important;}\n"

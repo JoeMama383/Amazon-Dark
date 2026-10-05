@@ -1,3 +1,9 @@
+# AmazonDark v7.564~compiler-fixture-repair
+
+Based on origin/main e9ca91db (v7.563). This release repairs the isolated Returns/PDP Objective-C++ preflight: it now extracts the complete Pharmacy, Seller, Returns and New Menus helper definitions in their production order. The previous fixture included calls without their declarations and failed before the native build. Compiler errors now appear in assertion output.
+
+The Refunds help-note regression also uses a stable block marker instead of an outdated version comment. Strict validation passes all 217 tests, including isolated compiler checks. All v7.563 Pharmacy styling, image taming, and prior UI/probe behavior remain unchanged. Native Theos build and device verification remain pending.
+
 # AmazonDark v7.563~pharmacy-oled-media
 
 Built from origin/main d021464c (v7.562), retaining its Seller Messaging, keyboard, Filters, Settings, Interests and probe changes.

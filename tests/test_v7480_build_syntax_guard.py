@@ -1,16 +1,22 @@
 from pathlib import Path
 import shutil, subprocess, tempfile
+from payload_source import block as function_block
 
 ROOT = Path(__file__).resolve().parents[1]
 S = (ROOT / 'src/Tweak.xm').read_text()
 
 # v7.479 failed in Theos because this was a chained Objective-C message send
 # without the outer '['. Keep the exact production block syntax-checked before CI build.
-r0 = S.index('static NSString *ADReturnsThemeJS7480')
-r1 = S.index('static long gADCoreWebJSStrength7271', r0)
-p0 = S.index('static NSString *ADPDPProbeBackedFixesJS7458', r1)
-p1 = S.index('static NSString *ADCoreWebJS7271', p0)
-block = S[r0:r1] + '\n' + S[p0:p1]
+# Extract complete function definitions and their real dependencies. The old
+# contiguous slice included ADNewMenus but omitted Seller/Pharmacy definitions,
+# producing undeclared-function errors in this standalone fixture only.
+returns = function_block(S, 'ADReturnsThemeJS7480')
+pdp = function_block(S, 'ADPDPProbeBackedFixesJS7458')
+block = returns + '\n' + pdp
+names = ('ADPharmacyMediaJS7563', 'ADSellerMessagingThemeJS7562',
+         'ADReturnsThemeJS7480', 'ADNewMenusJS7482', 'ADPDPProbeBackedFixesJS7458')
+functions = [function_block(S, name) for name in names]
+compile_block = '\n'.join(sorted(functions, key=S.index))
 assert 'return [[NSString stringWithFormat:' in block
 assert '] stringByAppendingString:ADReturnsThemeJS7480()];' in block
 assert 'return [NSString stringWithFormat:' not in block
@@ -31,11 +37,12 @@ static ADPrefs gP;
 '''
 with tempfile.TemporaryDirectory() as td:
     mm = Path(td) / 'returns_pdp_preflight.mm'
-    mm.write_text(prelude + block + '\n')
-    subprocess.run([
+    mm.write_text(prelude + compile_block + '\n')
+    result = subprocess.run([
         clangxx, '-x', 'objective-c++', '-std=gnu++98', '-fsyntax-only',
         '-I', str(ROOT / 'src'), str(mm)
-    ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
 
 # Camera repair must extend the new full-screen family without repainting the
 # historical allow-all-CAMERA checkbox that v7.409 intentionally preserved.

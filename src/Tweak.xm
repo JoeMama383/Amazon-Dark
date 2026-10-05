@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.563-pharmacy-oled-media"
+#define AD_VERSION "v7.564-compiler-fixture-repair"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2475,7 +2475,7 @@ static NSString *ADAddressManagementJS7412(void){
 
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
-// v7.563: declarative Pharmacy artwork taming also covers lazy-loaded images.
+// v7.564: declarative Pharmacy artwork taming also covers lazy-loaded images.
 static NSString *ADPharmacyMediaJS7563(void){
     CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7563-pharmacy-media');if(!s){s=d.createElement('style');s.id='ad7563-pharmacy-media';(d.head||d.documentElement).appendChild(s);}s.textContent='[data-csa-c-painter=pharmacy-lego-painter] .image>img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}';}catch(_){}})();",factor,factor];

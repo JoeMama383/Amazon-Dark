@@ -14,7 +14,8 @@ assert sel in T
 assert '.cs-help-v4 .cs-help-content article.help-content :is(a,.a-color-link) *{-webkit-text-fill-color:currentColor!important;}' in T
 
 # Do not flatten the captured stock border/geometry or recolor all note descendants.
-block = T[T.index('// v7.561 VIEWPORT r2'):T.index('// Returns landing cards:', T.index('// v7.561 VIEWPORT r2'))]
+start = T.index('Refunds help article action note owns')
+block = T[start:T.index('// Returns landing cards:', start)]
 assert 'border:' not in block
 assert 'border-color:' not in block
 assert 'border-radius:' not in block
