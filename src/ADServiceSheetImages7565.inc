@@ -39,7 +39,8 @@ static void ADServiceImage7565(UIImageView *iv){
         }
         if(iv.image!=paint){gADMenuImageWrite7255=YES;@try{iv.image=paint;}@finally{gADMenuImageWrite7255=NO;}}
         if(glyph)iv.tintColor=ADLightText706();
-        if(banner&&gP.whiteTame)ADEnsureNativeTWBOverlay7270(iv);else ADMenuRemoveTWB7255(iv);
+        // Ask Health AI is lettering/glyph artwork, not a photograph.
+        ADMenuRemoveTWB7255(iv);
     }else if(w>=52&&h>=52){
         // Use the existing single preference-controlled overlay, not a second dimming layer.
         if(gP.whiteTame)ADEnsureNativeTWBOverlay7270(iv);else ADMenuRemoveTWB7255(iv);

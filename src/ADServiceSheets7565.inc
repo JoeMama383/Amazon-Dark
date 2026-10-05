@@ -1,4 +1,4 @@
-// v7.565: captured Health/Grocery React sheets. Discovery is an exact leaf event;
+// v7.566: captured Health/Grocery React sheets. Discovery is an exact leaf event;
 // only the first positive identification primes earlier-mounted descendants.
 static const void *kADServiceSheet7565=&kADServiceSheet7565;
 static void ADServiceImage7565(UIImageView *iv);

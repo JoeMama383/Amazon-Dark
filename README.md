@@ -1,3 +1,11 @@
+# AmazonDark v7.566~store-locator-health-art
+
+Based on origin/main 1737a658 (v7.565). The captured APLF store locator now uses OLED floors and action buttons, white neutral text/symbols, gray filter pills and gray existing divider/button borders. Green status copy, blue links and teal selection/pin colors are preserved. The entire map receives the configured brightness factor once; its child canvas/images are exempted from duplicate dimming. The exact map-marker inset shadow is cleared without changing the pin artwork or geometry.
+
+Ask Health AI is lettering and glyph artwork, so its native taming overlay is now removed on image/mount/layout commits. Its OLED raster-floor correction and neutral lettering repair remain; other large service images still use the configured taming policy.
+
+CI now installs the CSS matcher dependencies so cascade regressions run instead of being skipped. See COMMANDS.md for the existing-clone push and separate probe commands. Native package compilation and on-device verification remain pending.
+
 # AmazonDark v7.565~service-sheets-countdown
 
 Based on origin/main 7dd4ad9e (v7.564), preserving the compiler fixture repair and prior UI/probe changes.

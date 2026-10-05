@@ -22,6 +22,9 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install CSS regression dependencies
+        run: python3 -m pip install tinycss2 cssselect2 lxml
+
       - name: Normalize package script permissions
         run: chmod 755 layout/DEBIAN/postinst
 
