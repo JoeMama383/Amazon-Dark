@@ -1,3 +1,11 @@
+# AmazonDark v7.565~service-sheets-countdown
+
+Based on origin/main 7dd4ad9e (v7.564), preserving the compiler fixture repair and prior UI/probe changes.
+
+The three supplied v7.564 VIEWPORT captures identify the new Home stripe countdown digits and the native Health/Grocery React sheets. Countdown boxes now use OLED black and white digits while retaining the blue banner and stock geometry. The two sheets receive OLED floors, white neutral text and close/chevron glyphs, gray existing borders and gray health action pills. Semantic links and colored logo pixels are preserved. Neutral dark lettering baked into the captured logo/banner rasters is lightened; the large Health banner and Grocery map use the existing preference-controlled image taming.
+
+Sheet discovery uses exact captured leaf witnesses and a single bounded pass after positive identification; mount, layout, text and image commits maintain the styling without recurring scans. No frame, bounds, padding or radius changes are introduced. See VALIDATION-v7.565.md and COMMANDS.md for validation and the existing-clone build/probe handoff. Native Theos compilation and device verification remain required.
+
 # AmazonDark v7.564~compiler-fixture-repair
 
 Based on origin/main e9ca91db (v7.563). This release repairs the isolated Returns/PDP Objective-C++ preflight: it now extracts the complete Pharmacy, Seller, Returns and New Menus helper definitions in their production order. The previous fixture included calls without their declarations and failed before the native build. Compiler errors now appear in assertion output.

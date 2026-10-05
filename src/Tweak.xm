@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.564-compiler-fixture-repair"
+#define AD_VERSION "v7.565-service-sheets-countdown"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2475,7 +2475,7 @@ static NSString *ADAddressManagementJS7412(void){
 
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
-// v7.564: declarative Pharmacy artwork taming also covers lazy-loaded images.
+// v7.565: declarative Pharmacy artwork taming also covers lazy-loaded images.
 static NSString *ADPharmacyMediaJS7563(void){
     CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7563-pharmacy-media');if(!s){s=d.createElement('style');s.id='ad7563-pharmacy-media';(d.head||d.documentElement).appendChild(s);}s.textContent='[data-csa-c-painter=pharmacy-lego-painter] .image>img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}';}catch(_){}})();",factor,factor];
@@ -9002,9 +9002,13 @@ static void ADPDPActionBarOwn7426(UIView *v){
 }
 %end
 
+#include "ADServiceSheets7565.inc"
+
 static void ADOwnReactView7226(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
+        ADServiceDiscover7565(v,nil);
+        if(ADServiceScope7565(v)){ ADServicePaint7565(v); return; }
         if(ADReviewMenuRoot7430(v)){ ADReviewMenuOwn7430(v); return; }
         if(ADAppSettingsRoot7548(v)){ ADAppSettingsOwn7548(v); return; }
         if(ADAlexaResultsRoot7427(v)){ ADAlexaResultsOwnView7427(v); return; }
@@ -9075,6 +9079,11 @@ static void ADOwnReactView7226(UIView *v){
         return;
     }
     UIView *v=(UIView *)self;
+    if(ADServiceScope7565(v)){
+        UIColor *paint=ADServiceFill7565(v,color);
+        %orig(paint);
+        return;
+    }
     if(gP.enabled&&ADReviewMenuRoot7430(v)){
         UIColor *paint=ADReviewMenuFill7430(v,color);
         %orig(paint);
@@ -9440,6 +9449,8 @@ static void ADAlexaOwnVector7285(UIView *svg){
 
 static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOOL includeBuyAgain){
     if(!gP.enabled)return NO;
+    ADServiceDiscover7565(v,textStorage);
+    if(ADServiceScope7565(v)){ ADMenuLightStorage7255(textStorage); return YES; }
     if(ADReviewMenuRoot7430(v)){ ADMenuLightStorage7255(textStorage); return YES; }
     if(ADAppSettingsRoot7548(v)){ ADMenuLightStorage7255(textStorage); return YES; }
     if(ADAlexaResultsRoot7427(v)){ ADMenuLightStorage7255(textStorage); return YES; }
@@ -9469,6 +9480,8 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
 }
 static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(!gP.enabled||!v.window)return;
+    ADServiceDiscover7565(v,nil);
+    if(ADServiceScope7565(v)){ ADServicePaint7565(v); return; }
     if(ADReviewMenuRoot7430(v)){ ADMenuLightStorage7255(ADPersonTextStorage7206(v)); return; }
     if(ADAppSettingsRoot7548(v)){ ADAppSettingsOwnText7548(v); return; }
     if(ADAlexaResultsRoot7427(v)){ ADAlexaResultsOwnText7427(v); return; }
@@ -9550,6 +9563,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 // Own both React text commit APIs.
 - (void)setTextStorage:(NSTextStorage *)textStorage contentFrame:(CGRect)contentFrame descendantViews:(NSArray *)descendantViews {
     UIView *v=(UIView *)self;
+    ADServiceDiscover7565(v,textStorage);
+    if(ADServiceScope7565(v))ADMenuLightStorage7255(textStorage);
     BOOL reviewMenu=gP.enabled&&ADReviewMenuRoot7430(v);
     if(reviewMenu)ADMenuLightStorage7255(textStorage);
     BOOL appSettings=gP.enabled&&ADAppSettingsRoot7548(v);
@@ -11552,6 +11567,8 @@ static void ADMenuOwnImageWrapper7255(UIView *v){
     } @catch(...) {}
 }
 
+#include "ADServiceSheetImages7565.inc"
+
 static void ADOwnImageView7226(UIImageView *iv,BOOL resetCache){
     if(!iv)return;
     if(resetCache){
@@ -11579,6 +11596,7 @@ static void ADOwnImageView7226(UIImageView *iv,BOOL resetCache){
         if(old){ [old removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
     } else if(iv.window)ADApplyNativeTWBCached7183(iv,authored);
     if(gP.enabled&&iv.window)ADMenuFinalizeImage7255(iv,YES);
+    ADServiceImage7565(iv);
 }
 static void ADLayoutImageOverlays7226(UIImageView *iv){
     if(!iv)return;
@@ -11649,6 +11667,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     ADOwnImageView7226(self,YES);
     ADSchedulePersonImageSettle7227(self);
     ADApplyCNMExactDogTWB7309(self);
+    ADServiceImage7565(self);
 }
 - (void)didMoveToWindow {
     %orig;
@@ -11661,6 +11680,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     ADOwnImageView7226(self,YES);
     ADSchedulePersonImageSettle7227(self);
     ADApplyCNMExactDogTWB7309(self);
+    ADServiceImage7565(self);
 }
 - (void)didMoveToSuperview {
     %orig;
@@ -11674,6 +11694,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
         ADSchedulePersonImageSettle7227(self);
     }
     ADApplyCNMExactDogTWB7309(self);
+    ADServiceImage7565(self);
 }
 - (void)setTintColor:(UIColor *)color {
     if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
@@ -11736,6 +11757,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     ADMenuFinalizeImage7255(self,objc_getAssociatedObject(self,kADMenuFinalRasterKind7255)==nil);
     ADLayoutImageOverlays7226(self);
     ADApplyCNMExactDogTWB7309(self);
+    ADServiceImage7565(self);
 }
 %end
 
