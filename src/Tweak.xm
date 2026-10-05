@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.562-seller-messaging-oled-twb"
+#define AD_VERSION "v7.563-pharmacy-oled-media"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2475,6 +2475,12 @@ static NSString *ADAddressManagementJS7412(void){
 
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
+// v7.563: declarative Pharmacy artwork taming also covers lazy-loaded images.
+static NSString *ADPharmacyMediaJS7563(void){
+    CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7563-pharmacy-media');if(!s){s=d.createElement('style');s.id='ad7563-pharmacy-media';(d.head||d.documentElement).appendChild(s);}s.textContent='[data-csa-c-painter=pharmacy-lego-painter] .image>img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}';}catch(_){}})();",factor,factor];
+}
+
 // v7.562: Seller Messaging Assistant route family. The user-supplied viewport archive was
 // captured on the preceding Refunds help article, not this chat screen, so production ownership
 // is intentionally gated by Amazon's stable contact-seller route (or a child frame whose referrer
@@ -2517,11 +2523,11 @@ static NSString *ADReturnsThemeJS7480(void){
     ];
 }
 
-static NSString *ADSellerMessagingThemeJS7562(void);
 static NSString *ADNewMenusJS7482(void){
     NSString *base=[NSString stringWithUTF8String:
 #include "ADNewMenus7482.js.inc"
     ];
+    base=[base stringByAppendingString:ADPharmacyMediaJS7563()];
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
 
@@ -3974,6 +3980,14 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
 #include "ADBookTransitionSignOut7487.inc"
 
 
+// Probe-proven Pharmacy teal on three native chrome controllers; no artwork or geometry ownership.
+static BOOL ADPharmacyChrome7563(UIView *v,UIColor *c){
+    if(!gP.enabled||!v||!c)return NO;
+    CGFloat r=0,g=0,b=0,a=0;if(![c getRed:&r green:&g blue:&b alpha:&a]||a<.95||fabs(r-12.0/255.0)>.01||fabs(g-130.0/255.0)>.01||fabs(b-129.0/255.0)>.01)return NO;
+    NSString *owner=NSStringFromClass(v.nextResponder.class);
+    return [owner isEqualToString:@"CXIStatusBarInsetBarComponentViewController"]||[owner isEqualToString:@"CXIModeNavBarComponentViewController"]||[owner isEqualToString:@"CXISearchBarComponentViewController"];
+}
+
 %hook UIView
 - (void)didMoveToWindow {
     ADSkelBookAMIViewEvent7489(self,@"move.pre",nil,nil);
@@ -3984,6 +3998,7 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     // class mounted. No production paint or state change occurs here.
     if(ADSkelActive7339()&&ADClassNameIs7183(self,"AWLoadingIndicatorBarView"))ADCartStripGlobalMountDiag7347(self);
     if(!gP.enabled||!self.window)return;
+    if(ADPharmacyChrome7563(self,self.backgroundColor))ADSetViewBackground7226(self,ADOLED(),YES);
     UIVisualEffectView *inactiveShield=ADInactiveSnapshotEffectForTint7408(self,self.backgroundColor);
     if(inactiveShield){ ADOwnInactiveSnapshotShield7408(inactiveShield); return; }
     UIVisualEffectView *checkoutShield=ADCheckoutBackgroundEffectForTeal7389(self,self.backgroundColor);
@@ -4038,6 +4053,7 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
 }
 - (void)setBackgroundColor:(UIColor *)color {
     ADSkelBookAMIViewEvent7489(self,@"bg.in",color,nil);
+    if(ADPharmacyChrome7563(self,color))color=ADOLED();
     if(ADInternalPaintWrite7226()){
         %orig(color);
         return;
