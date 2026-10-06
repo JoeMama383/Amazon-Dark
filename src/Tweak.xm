@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.568-grocery-oled-capture-boundaries"
+#define AD_VERSION "v7.569-prime-deals-address-oled"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2475,7 +2475,12 @@ static NSString *ADAddressManagementJS7412(void){
 
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
-// v7.568: declarative Pharmacy artwork taming also covers lazy-loaded images.
+// v7.569: declarative Pharmacy artwork taming also covers lazy-loaded images.
+static NSString *ADPrimeMediaJS7569(void){
+    CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7569-prime-media');if(!s){s=d.createElement('style');s.id='ad7569-prime-media';(d.head||d.documentElement).appendChild(s);}s.textContent='body:has(.discounts-react-app) :is([class*=ProductCardImage-module__container_],.dps-asin,.dcl-product) img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}';}catch(_){}})();",factor,factor];
+}
+
 static NSString *ADGroceryMediaJS7568(void){
     CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7568-grocery-media');if(!s){s=d.createElement('style');s.id='ad7568-grocery-media';(d.head||d.documentElement).appendChild(s);}s.textContent=':is(.deals-page-container-mobile,.alm-storefront-container-mobile-zones) :is(.a-image-container,[class*=_Y29ud_bxcGridImage_],.sl-sobe-dynamic-image-link) img,:is(.deals-page-container-mobile,.alm-storefront-container-mobile-zones) img[class*=_YWxtL_almVendorSponsoredImage],:is(.deals-page-container-mobile,.alm-storefront-container-mobile-zones) .qs-widget-bottom-sheet-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}[class*=_store-upsell-modal_style_single-image-background_]{background-color:rgb(%.0f,%.0f,%.0f)!important;background-blend-mode:multiply!important;}';}catch(_){}})();",factor,factor,factor*255,factor*255,factor*255];
@@ -2540,6 +2545,7 @@ static NSString *ADNewMenusJS7482(void){
     base=[base stringByAppendingString:ADPharmacyMediaJS7563()];
     base=[base stringByAppendingString:ADStoreMapMediaJS7566()];
     base=[base stringByAppendingString:ADGroceryMediaJS7568()];
+    base=[base stringByAppendingString:ADPrimeMediaJS7569()];
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
 
@@ -4003,6 +4009,25 @@ static BOOL ADPharmacyChrome7563(UIView *v,UIColor *c){
     return [owner isEqualToString:@"CXIStatusBarInsetBarComponentViewController"]||[owner isEqualToString:@"CXIModeNavBarComponentViewController"]||[owner isEqualToString:@"CXISearchBarComponentViewController"];
 }
 
+// Exact native witness from v7.569 VIEWPORT: both toaster buttons share this class.
+static const void *kADGlowFloor7569=&kADGlowFloor7569;
+static void ADGlowToaster7569(UIButton *button){
+    if(!gP.enabled||!button.window||!ADClassNameIs7183(button,"GlowToasterActionTransparentNavButton"))return;
+    UIView *nav=button.superview;NSUInteger depth=0;
+    while(nav&&depth++<5&&![nav.accessibilityIdentifier isEqualToString:@"nav_packard_bar"])nav=nav.superview;
+    if(!nav||![nav.accessibilityIdentifier isEqualToString:@"nav_packard_bar"])return;
+    // Only the three captured toaster ancestors, never the nav bar or artwork.
+    for(UIView *v=button.superview;v&&v!=nav;v=v.superview){
+        objc_setAssociatedObject(v,kADGlowFloor7569,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADSetViewBackground7226(v,ADOLED(),YES);
+    }
+    ADSetViewBackground7226(button,ADOLED(),YES);
+    button.layer.borderColor=ADBorderGray706().CGColor;button.layer.borderWidth=1.0;
+    [button setTitleColor:ADLightText706() forState:UIControlStateNormal];
+    [button setTitleColor:ADLightText706() forState:UIControlStateHighlighted];
+    [button setTitleColor:ADLightText706() forState:UIControlStateSelected];
+}
+
 %hook UIView
 - (void)didMoveToWindow {
     ADSkelBookAMIViewEvent7489(self,@"move.pre",nil,nil);
@@ -4067,6 +4092,11 @@ static BOOL ADPharmacyChrome7563(UIView *v,UIColor *c){
     }
 }
 - (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled&&(objc_getAssociatedObject(self,kADGlowFloor7569)||ADClassNameIs7183(self,"GlowToasterActionTransparentNavButton"))){
+        UIColor *floor=ADOLED();
+        %orig(floor);
+        return;
+    }
     ADSkelBookAMIViewEvent7489(self,@"bg.in",color,nil);
     if(ADPharmacyChrome7563(self,color))color=ADOLED();
     if(ADInternalPaintWrite7226()){
@@ -9957,10 +9987,12 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 %hook UIButton
 - (void)didMoveToWindow {
     %orig;
+    ADGlowToaster7569(self);
     if(gP.enabled&&self.window)ADPaintSignOutDialogButton7487(self);
 }
 - (void)layoutSubviews {
     %orig;
+    ADGlowToaster7569(self);
     if(gP.enabled&&self.window)ADPaintSignOutDialogButton7487(self);
 }
 - (void)setTitleColor:(UIColor *)color forState:(UIControlState)state {
