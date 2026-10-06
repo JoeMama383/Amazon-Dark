@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.571-search-see-all-interests-welcome"
+#define AD_VERSION "v7.574-capture-ui-completion"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2476,6 +2476,11 @@ static NSString *ADAddressManagementJS7412(void){
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
 // v7.570: declarative Pharmacy artwork taming also covers lazy-loaded images.
+static NSString *ADCapturedMediaJS7574(void){
+    CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7574-captured-media');if(!s){s=d.createElement('style');s.id='ad7574-captured-media';(d.head||d.documentElement).appendChild(s);}s.textContent='#dp#dp#dp :is([id^=sims-multiProductBundle_feature_div],#multi-bundle-container-t3_feature_div,[class*=_p13n-mobile-sims-multi-bundle_],[class*=_p13n-mobile-sims-fbt_]) img.p13n-product-image,#dp#dp #ad7380-price-history img,#dp#dp [class*=_single-video-ads-card_style_productImage__] img,[data-csa-c-painter=pcpo-offer-cards] img[class*=_pcpo-offer_style_imageclass__],img[class*=_hve-rankable-banner_style_bannerImage__]{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;opacity:1!important;}';}catch(_){}})();",factor,factor];
+}
+
 static NSString *ADHomeCanvasMediaJS7570(void){
     CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7570-home-canvas-media');if(!s){s=d.createElement('style');s.id='ad7570-home-canvas-media';(d.head||d.documentElement).appendChild(s);}s.textContent='#gwm-window [data-csa-c-painter=canvas-card-cards] .canvas-image-link hp-background-image img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}';}catch(_){}})();",factor,factor];
@@ -2552,6 +2557,7 @@ static NSString *ADNewMenusJS7482(void){
     base=[base stringByAppendingString:ADGroceryMediaJS7568()];
     base=[base stringByAppendingString:ADPrimeMediaJS7569()];
     base=[base stringByAppendingString:ADHomeCanvasMediaJS7570()];
+    base=[base stringByAppendingString:ADCapturedMediaJS7574()];
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
 
