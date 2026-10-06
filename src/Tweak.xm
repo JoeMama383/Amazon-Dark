@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.583-prime-refinement-divider-recolor"
+#define AD_VERSION "v7.584-medical-health-ai-theme"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2513,7 +2513,7 @@ static NSString *ADStoreMapMediaJS7566(void){
 
 static NSString *ADPharmacyMediaJS7563(void){
     CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
-    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7563-pharmacy-media');if(!s){s=d.createElement('style');s.id='ad7563-pharmacy-media';(d.head||d.documentElement).appendChild(s);}s.textContent='[data-csa-c-painter=pharmacy-lego-painter] .image>img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}';}catch(_){}})();",factor,factor];
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7563-pharmacy-media');if(!s){s=d.createElement('style');s.id='ad7563-pharmacy-media';(d.head||d.documentElement).appendChild(s);}s.textContent='[data-csa-c-painter=pharmacy-lego-painter] .image>img,#main-content.ap-lego:has(#nav-link-health-ai-mobile) :is(.image.image-size-fit>img,.healthai-storefront-carousel-card img,video){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}';}catch(_){}})();",factor,factor];
 }
 
 // v7.562: Seller Messaging Assistant route family. The user-supplied viewport archive was
@@ -4028,7 +4028,8 @@ static BOOL ADPharmacyChrome7563(UIView *v,UIColor *c){
     CGFloat r=0,g=0,b=0,a=0;if(![c getRed:&r green:&g blue:&b alpha:&a]||a<.95)return NO;
     BOOL pharmacy=fabs(r-12.0/255.0)<.01&&fabs(g-130.0/255.0)<.01&&fabs(b-129.0/255.0)<.01;
     BOOL grocery=fabs(r)<.01&&fabs(g-78.0/255.0)<.01&&fabs(b-54.0/255.0)<.01;
-    if(!pharmacy&&!grocery)return NO;
+    BOOL medical=fabs(r)<.01&&fabs(g-40.0/255.0)<.01&&fabs(b-52.0/255.0)<.01;
+    if(!pharmacy&&!grocery&&!medical)return NO;
     NSString *owner=NSStringFromClass(v.nextResponder.class);
     return [owner isEqualToString:@"CXIStatusBarInsetBarComponentViewController"]||[owner isEqualToString:@"CXIModeNavBarComponentViewController"]||[owner isEqualToString:@"CXISearchBarComponentViewController"];
 }
