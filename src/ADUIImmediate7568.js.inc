@@ -13,6 +13,6 @@
 "  var q=[document.documentElement],qi=0,deadline=Date.now()+80;\n"
 "  while(qi<q.length&&qi<8000&&nodes.length<1800&&Date.now()<deadline){var el=q[qi++];add(el);var children=el&&el.children||[];for(var ci=0;ci<children.length&&q.length<8000;ci++)q.push(children[ci]);if(el&&el.shadowRoot){var sc=el.shadowRoot.children||[];for(var si=0;si<sc.length&&q.length<8000;si++)q.push(sc[si]);}}\n"
 "  var root=document.scrollingElement||document.documentElement;\n"
-"  return JSON.stringify({probe:'AmazonDark immediate visible inventory',version:'7.574',viewport:{w:vw,h:vh,scrollY:root?root.scrollTop:(window.scrollY||0),docH:Math.max(document.documentElement.scrollHeight,document.body?document.body.scrollHeight:0)},counts:{sampled:nodes.length,visited:qi,truncated:qi<q.length||q.length>=8000||nodes.length>=1800},btfNav7477:btfNav7477,nodes:nodes});\n"
-"}catch(e){return JSON.stringify({probe:'AmazonDark immediate visible inventory',version:'7.574',error:String(e&&e.stack||e)});}\n"
+"  return JSON.stringify({probe:'AmazonDark immediate visible inventory',version:'7.576',viewport:{w:vw,h:vh,scrollY:root?root.scrollTop:(window.scrollY||0),docH:Math.max(document.documentElement.scrollHeight,document.body?document.body.scrollHeight:0)},counts:{sampled:nodes.length,visited:qi,truncated:qi<q.length||q.length>=8000||nodes.length>=1800},btfNav7477:btfNav7477,nodes:nodes});\n"
+"}catch(e){return JSON.stringify({probe:'AmazonDark immediate visible inventory',version:'7.576',error:String(e&&e.stack||e)});}\n"
 "})();\n"

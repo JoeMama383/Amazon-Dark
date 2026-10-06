@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.574-capture-ui-completion"
+#define AD_VERSION "v7.576-prime-deals-refinements-menus"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2476,14 +2476,19 @@ static NSString *ADAddressManagementJS7412(void){
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
 // v7.570: declarative Pharmacy artwork taming also covers lazy-loaded images.
-static NSString *ADCapturedMediaJS7574(void){
-    CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
-    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7574-captured-media');if(!s){s=d.createElement('style');s.id='ad7574-captured-media';(d.head||d.documentElement).appendChild(s);}s.textContent='#dp#dp#dp :is([id^=sims-multiProductBundle_feature_div],#multi-bundle-container-t3_feature_div,[class*=_p13n-mobile-sims-multi-bundle_],[class*=_p13n-mobile-sims-fbt_]) img.p13n-product-image,#dp#dp #ad7380-price-history img,#dp#dp [class*=_single-video-ads-card_style_productImage__] img,[data-csa-c-painter=pcpo-offer-cards] img[class*=_pcpo-offer_style_imageclass__],img[class*=_hve-rankable-banner_style_bannerImage__]{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;opacity:1!important;}';}catch(_){}})();",factor,factor];
-}
-
 static NSString *ADHomeCanvasMediaJS7570(void){
     CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7570-home-canvas-media');if(!s){s=d.createElement('style');s.id='ad7570-home-canvas-media';(d.head||d.documentElement).appendChild(s);}s.textContent='#gwm-window [data-csa-c-painter=canvas-card-cards] .canvas-image-link hp-background-image img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}';}catch(_){}})();",factor,factor];
+}
+
+static NSString *ADPDPFollowupMediaJS7573(void){
+    CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7573-pdp-followup');if(!s){s=d.createElement('style');s.id='ad7573-pdp-followup';(d.head||d.documentElement).appendChild(s);}s.textContent=`#dp#dp :is([class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display__],[class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]) img.p13n-product-image,#dp#dp :is([class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display__],[class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]) img:not(.a-icon){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;visibility:visible!important;mix-blend-mode:normal!important;}#dp#dp #aw-udpv3-customer-reviews_feature_div button.dpx-reviews-pill{background:#303335!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#dp#dp #aw-udpv3-customer-reviews_feature_div button.dpx-reviews-pill *{color:#fff!important;-webkit-text-fill-color:#fff!important;}#dp#dp #ape_detail_btf_mshop_placement [class*=_single-video-ads-card_style_sponsoredBadge__]{background:rgba(0,0,0,.9)!important;}`;}catch(_){}})();",factor,factor];
+}
+
+
+static NSString *ADDealsPriceHistoryFollowupJS7574(void){
+    return @"(function(){try{var d=document,s=d.getElementById('ad7574-deals-pricehistory');if(!s){s=d.createElement('style');s.id='ad7574-deals-pricehistory';(d.head||d.documentElement).appendChild(s);}s.textContent='#ad7380-price-history img{filter:invert(1) hue-rotate(180deg) brightness(.88)!important;-webkit-filter:invert(1) hue-rotate(180deg) brightness(.88)!important;background:#000!important;border-radius:6px!important;}body:has(.discounts-react-app) :is(hr,.a-divider,.a-divider-inner,.a-divider-normal,[class*=divider],[class*=Divider],[class*=separator],[class*=Separator]),:is(.deals-page-container-mobile,.alm-storefront-container-mobile-zones) :is(hr,.a-divider,.a-divider-inner,.a-divider-normal,[class*=divider],[class*=Divider],[class*=separator],[class*=Separator]){background:#494d4d!important;border-color:#494d4d!important;background-image:none!important;box-shadow:none!important;}:is(body:has(.discounts-react-app) .dps-slot-adapter,body:has(.discounts-react-app) .dps-slot-adapter-themed,body:has(.discounts-react-app) .dps-asin,body:has(.discounts-react-app) .ape-placement,body:has(.discounts-react-app) [id^=ape_][id$=_placement]){border-color:#494d4d!important;box-shadow:none!important;}';function rgba(x){if(!x)return null;var m=String(x).match(/rgba?\\(([^)]+)\\)/i);if(!m)return null;var p=m[1].split(',');if(p.length<3)return null;var r=parseFloat(p[0]),g=parseFloat(p[1]),b=parseFloat(p[2]),a=p.length>3?parseFloat(p[3]):1;if(!(r>=0&&g>=0&&b>=0))return null;return{r:r,g:g,b:b,a:isNaN(a)?1:a};}function isBlue(c){return !!c&&c.a>.14&&c.b>=150&&c.b>=c.r+40&&c.b>=c.g+12;}function isGold(c){return !!c&&c.a>.14&&c.r>=165&&c.g>=120&&c.b<=115;}function darken(el,color,bg){if(!el||el.nodeType!==1)return;el.style.setProperty('border-color','#494d4d','important');if(color&&color.r<90&&color.g<90&&color.b<90){el.style.setProperty('color','#fff','important');el.style.setProperty('-webkit-text-fill-color','#fff','important');}if(bg&&bg!=='none'){el.style.setProperty('background-blend-mode','multiply','important');}el.setAttribute('data-ad7574-tamed','1');}function tone(el,c){if(isBlue(c)){el.style.setProperty('background-color','#123a73','important');darken(el,rgba(getComputedStyle(el).color),getComputedStyle(el).backgroundImage);return true;}if(isGold(c)){el.style.setProperty('background-color','#5f5331','important');darken(el,rgba(getComputedStyle(el).color),getComputedStyle(el).backgroundImage);return true;}return false;}function tameMedia(root){var media=root.querySelectorAll('img,svg');for(var i=0;i<media.length&&i<160;i++){var el=media[i],r=el.getBoundingClientRect();if((r.width<=0||r.height<=0)||r.width>110||r.height>110)continue;var p=el.parentElement,hit=false;for(var depth=0;depth<3&&p;depth++,p=p.parentElement){var pc=rgba(getComputedStyle(p).backgroundColor);if(isBlue(pc)||isGold(pc)){hit=true;break;}}if(hit){el.style.setProperty('filter','brightness(0.68)','important');el.style.setProperty('-webkit-filter','brightness(0.68)','important');el.style.setProperty('opacity','1','important');el.style.setProperty('mix-blend-mode','normal','important');}}}function walk(root){if(!root)return;var nodes=root.querySelectorAll('*');for(var i=0;i<nodes.length&&i<900;i++){var el=nodes[i];if(el.hasAttribute('data-ad7574-tamed'))continue;var cs=getComputedStyle(el);if(!cs)continue;var bg=rgba(cs.backgroundColor);tone(el,bg);if((/dps-slot-adapter|dps-asin|ape-placement/i).test(String(el.className||''))||/^ape_.*_placement$/.test(String(el.id||''))){el.style.setProperty('border-color','#494d4d','important');el.style.setProperty('box-shadow','none','important');}if((/divider|separator/i).test(String(el.className||''))||el.tagName==='HR'){el.style.setProperty('background','#494d4d','important');el.style.setProperty('border-color','#494d4d','important');el.style.setProperty('background-image','none','important');el.style.setProperty('box-shadow','none','important');}}tameMedia(root);}var roots=d.querySelectorAll('.discounts-react-app,.deals-page-container-mobile,.alm-storefront-container-mobile-zones');for(var i=0;i<roots.length&&i<4;i++)walk(roots[i]);}catch(_){}})();";
 }
 
 static NSString *ADPrimeMediaJS7569(void){
@@ -2557,7 +2562,8 @@ static NSString *ADNewMenusJS7482(void){
     base=[base stringByAppendingString:ADGroceryMediaJS7568()];
     base=[base stringByAppendingString:ADPrimeMediaJS7569()];
     base=[base stringByAppendingString:ADHomeCanvasMediaJS7570()];
-    base=[base stringByAppendingString:ADCapturedMediaJS7574()];
+    base=[base stringByAppendingString:ADPDPFollowupMediaJS7573()];
+    base=[base stringByAppendingString:ADDealsPriceHistoryFollowupJS7574()];
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
 
