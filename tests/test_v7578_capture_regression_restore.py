@@ -2,9 +2,9 @@ from pathlib import Path
 from payload_source import block
 R=Path(__file__).resolve().parents[1]
 T=(R/'src/Tweak.xm').read_text(); M=(R/'src/ADNewMenus7482.js.inc').read_text(); C=(R/'layout/DEBIAN/control').read_text(); CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.579~prime-refinement-paint-only' in C
-assert '#define AD_VERSION "v7.579-prime-refinement-paint-only"' in T
-assert 'AmazonDark-v7.579-prime-refinement-paint-only-source.zip' in CMD
+assert 'Version: 7.580~prime-refinement-border-cleanup' in C
+assert '#define AD_VERSION "v7.580-prime-refinement-border-cleanup"' in T
+assert 'AmazonDark-v7.580-prime-refinement-border-cleanup-source.zip' in CMD
 assert (R/'tests/test_v7574_capture_ui_completion.py').is_file()
 assert '/* v7.574: probe-confirmed capture UI completion' in M
 for token in ('button.dpx-reviews-pill','background-color:rgba(0,0,0,.9)','events-pcpo-placeholder-widget'):

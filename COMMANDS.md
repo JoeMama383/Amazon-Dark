@@ -1,50 +1,50 @@
-# AmazonDark v7.579 commands
+# AmazonDark v7.580 commands
 
-Save `AmazonDark-v7.579-prime-refinement-paint-only-source.zip` on the phone first.
+Save `AmazonDark-v7.580-prime-refinement-border-cleanup-source.zip` on the phone first.
 
-## Push — v7.579
+## Push — v7.580
 ```sh
 sh <<'SH'
 set -eu
 cd /var/mobile/Amazon-Dark-phone
-ZIP=$(find /var/mobile -type d -name '.Trash*' -prune -o -type f -name 'AmazonDark-v7.579-prime-refinement-paint-only-source*.zip' -print 2>/dev/null |
+ZIP=$(find /var/mobile -type d -name '.Trash*' -prune -o -type f -name 'AmazonDark-v7.580-prime-refinement-border-cleanup-source*.zip' -print 2>/dev/null |
 while IFS= read -r candidate; do
   if unzip -tq "$candidate" >/dev/null 2>&1; then printf '%s\n' "$candidate"; break; fi
 done)
 [ -n "$ZIP" ] || { echo "Save the source ZIP to your phone first."; exit 1; }
-STAGE=$(mktemp -d /var/mobile/ad7579.XXXXXX)
+STAGE=$(mktemp -d /var/mobile/ad7580.XXXXXX)
 unzip -q "$ZIP" -d "$STAGE"
-grep -qx 'Version: 7.579~prime-refinement-paint-only' "$STAGE/layout/DEBIAN/control"
+grep -qx 'Version: 7.580~prime-refinement-border-cleanup' "$STAGE/layout/DEBIAN/control"
 cp -a "$STAGE/." .
 chmod 755 layout/DEBIAN/postinst
 AD_STRICT_VALIDATE=0 sh scripts/validate.sh
 git add -A
-if ! git diff --cached --quiet; then git commit -m "v7.579: make Prime refinement menus paint-only"; fi
+if ! git diff --cached --quiet; then git commit -m "v7.580: remove Prime refinement border promotion"; fi
 git push origin main
 SH
 ```
 
-## FULL — v7.579
+## FULL — v7.580
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export full
 ```
 
-## VIEWPORT — v7.579 ARM
+## VIEWPORT — v7.580 ARM
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh arm
 ```
 
-## VIEWPORT — v7.579 EXPORT
+## VIEWPORT — v7.580 EXPORT
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export viewport
 ```
 
-## TRANSITION — v7.579 ARM
+## TRANSITION — v7.580 ARM
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh arm transition
 ```
 
-## TRANSITION — v7.579 EXPORT
+## TRANSITION — v7.580 EXPORT
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh export
 ```

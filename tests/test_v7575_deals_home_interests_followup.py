@@ -9,7 +9,7 @@ for tok in (
     'background:#123a73!important;background-color:#123a73!important',
     '[class*=PrioritizedInformationBar-module__container_],[class*=RefinementBar-module__refinementBarContainer_]',
     '[class*=_hve-rankable-banner_style_bannerImage_]',
-    'v7.579 VIEWPORT: Prime Deals refinement sheets are paint-only',
+    'v7.580 VIEWPORT: Prime Deals refinement sheets are paint-only and border-promotion-free',
     'body:has(.discounts-react-app-bottom-sheet)',
     '[class*=Footer-module__clearFilters_],[class*=Footer-module__showResults_]',
     '[class*=RangeSlider-module__innerRail_]{background:#2162a1!important;background-color:#2162a1!important;}',
@@ -23,7 +23,7 @@ with tempfile.NamedTemporaryFile(suffix='.js',mode='w') as f:
     f.flush()
     subprocess.run(['node','--check',f.name],check=True,capture_output=True)
 for tok in (
-    '#define AD_VERSION "v7.579-prime-refinement-paint-only"',
+    '#define AD_VERSION "v7.580-prime-refinement-border-cleanup"',
     '#include "ADNewMenus7482.js.inc"',
 ):
     assert tok in tweak, tok
