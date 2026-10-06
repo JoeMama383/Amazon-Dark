@@ -1,0 +1,36 @@
+AmazonDark v7.571 final validation
+Package: 7.571~search-see-all-interests-welcome
+
+Probe-backed fixes
+1. Search Prime Big Deals carousel See all button:
+   - exact owner: .s-breeze-see-all-container .a-button
+   - OLED #000 floor
+   - #747a7c gray border
+   - white label
+   - white .a-icon-arrow chevron
+   - unrelated AUI buttons excluded
+
+2. Interests welcome popup:
+   - exact owner: ._bW9ia_auto-creation-new-customers-bottom-sheet_2d0vA
+   - AUI sheet stack (.a-sheet-web-container/.a-sheet-web/.a-sheet-content-container) forced OLED
+   - authored light background-image/shadow fade removed
+   - popup title/body copy white
+   - title image and close X whitened
+   - orange sparkle artwork explicitly unfiltered
+   - dynamic semantic-color families excluded from generic whitening
+   - stock geometry untouched
+
+Regression validation
+- 224/224 normalized Python regression files PASS in three bounded batches (70 + 70 + 84).
+- New v7.571 captured-contract regression PASS.
+- Existing v7.570 hero/Search paint regression PASS.
+- Logos lint PASS.
+- ui-probe.sh shell syntax PASS.
+- skeleton-probe.sh shell syntax PASS.
+- validate.sh shell syntax PASS.
+- Package/probe/version identity checks PASS.
+- Production source contains no obsolete 856000-byte tweak size gate.
+- No observer, timer, RAF, recurring DOM walk, or generic route-wide button ownership added.
+
+Build environment
+- Theos/Logos compiler toolchain is not installed in this execution environment, so final arm64/arm64e package compilation remains GitHub Actions/on-device Theos verification after push.
