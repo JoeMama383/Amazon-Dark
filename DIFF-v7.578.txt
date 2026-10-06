@@ -1,0 +1,9 @@
+AmazonDark v7.578 short diff
+
+- Restored tests/test_v7574_capture_ui_completion.py to the shipped source archive.
+- Restored the probe-backed v7.574 capture-completion CSS contract in ADNewMenus7482.js.inc.
+- Added ADCapturedMediaJS7574 with one preference-controlled high-specificity media leaf rule.
+- Delivers ADCapturedMediaJS7574 through ADNewMenusJS7482, preserving the historical ADCoreWebJS7271 source/hash contract.
+- Updated test_v7480_build_syntax_guard.py with the restored function dependency.
+- Added test_v7578_capture_regression_restore.py to lock the restored source/test contract and recurring-work/performance invariant.
+- Bumped active package/probe/export identities to v7.578.
