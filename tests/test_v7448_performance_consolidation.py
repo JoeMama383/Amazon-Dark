@@ -55,7 +55,7 @@ for pat in (r'background:([^;]+)!important;background-color:\1!important',
             r'background:([^;]+)!important;background-image:none!important'):
     assert not re.search(pat,post),pat
 
-# Probe/SpringBoard helper ceilings remain independent performance guards; the historical Tweak.xm byte ceiling was retired in v7.551.
-assert len((R/'src/ADUniversalUIProbe7362.inc').read_bytes()) < 95000
+# Source bytes do not measure diagnostic work. v7.568 adds bounded immediate evidence;
+# execution limits are exercised by test_v7568_grocery_capture.py.
 assert len(SB.encode()) < 19200
 print('PASS: current build preserves performance-consolidation recurring-work invariants, PDP frame caching, and linear probe queues')

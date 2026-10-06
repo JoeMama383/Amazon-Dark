@@ -32,11 +32,11 @@ assert 'static BOOL ADUIOwnsMajority7557' in u or 'static BOOL ADUIOwnsMajority7
 assert 'ADUIViewActuallyVisible7362(v)&&ADUIOwnsMajority' in u
 capture=u[u.index('static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger){'):u.index('static NSString *ADUIViewportArmPath7362')]
 assert capture.index('UIView *menuWrap=ADUIMenuWrapper7520();') < capture.index('UIView *personWrap=ADUIPersonWrapper7519();') < capture.index('ADUIDetectPDPSession7451(webs,^')
-# VIEWPORT arm is consumed before busy check and queues instead of disappearing behind FULL.
+# VIEWPORT arm is consumed before busy check and captures immediately instead of disappearing behind FULL.
 handler=u[u.index('static void ADUIHandleWillResignActive7447'):u.index('static void ADCaptureThreeTabProbe7254')]
 assert handler.index('ADUIConsumeViewportArm7362()') < handler.index('gADUIProbeBusy7362')
-for token in ('gADUIViewportQueued7557=YES','ADUIWriteState7445(YES,@"queued",@"no-capture")','+2.5','VIEWPORT_QUEUED'):
-    assert token in handler, token
+assert 'ADUIImmediateEvidence7568(YES,@"armed-background-during-full")' in handler
+assert 'gADUIViewportQueued7557=YES' not in handler
 assert 'VIEWPORT capture is queued or still running' in script
 # Optional real cascade proof.
 try:

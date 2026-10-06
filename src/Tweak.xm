@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.567-health-raster-map-details"
+#define AD_VERSION "v7.568-grocery-oled-capture-boundaries"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2475,7 +2475,12 @@ static NSString *ADAddressManagementJS7412(void){
 
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
-// v7.567: declarative Pharmacy artwork taming also covers lazy-loaded images.
+// v7.568: declarative Pharmacy artwork taming also covers lazy-loaded images.
+static NSString *ADGroceryMediaJS7568(void){
+    CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7568-grocery-media');if(!s){s=d.createElement('style');s.id='ad7568-grocery-media';(d.head||d.documentElement).appendChild(s);}s.textContent=':is(.deals-page-container-mobile,.alm-storefront-container-mobile-zones) :is(.a-image-container,[class*=_Y29ud_bxcGridImage_],.sl-sobe-dynamic-image-link) img,:is(.deals-page-container-mobile,.alm-storefront-container-mobile-zones) img[class*=_YWxtL_almVendorSponsoredImage],:is(.deals-page-container-mobile,.alm-storefront-container-mobile-zones) .qs-widget-bottom-sheet-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}[class*=_store-upsell-modal_style_single-image-background_]{background-color:rgb(%.0f,%.0f,%.0f)!important;background-blend-mode:multiply!important;}';}catch(_){}})();",factor,factor,factor*255,factor*255,factor*255];
+}
+
 static NSString *ADStoreMapMediaJS7566(void){
     CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7566-store-map');if(!s){s=d.createElement('style');s.id='ad7566-store-map';(d.head||d.documentElement).appendChild(s);}s.textContent='#aplf-map-container-mobile{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}#aplf-map-container-mobile .mapboxgl-canvas,#aplf-map-container-mobile img{filter:none!important;-webkit-filter:none!important;box-shadow:none!important;}';}catch(_){}})();",factor,factor];
@@ -2534,6 +2539,7 @@ static NSString *ADNewMenusJS7482(void){
     ];
     base=[base stringByAppendingString:ADPharmacyMediaJS7563()];
     base=[base stringByAppendingString:ADStoreMapMediaJS7566()];
+    base=[base stringByAppendingString:ADGroceryMediaJS7568()];
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
 
@@ -3989,7 +3995,10 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
 // Probe-proven Pharmacy teal on three native chrome controllers; no artwork or geometry ownership.
 static BOOL ADPharmacyChrome7563(UIView *v,UIColor *c){
     if(!gP.enabled||!v||!c)return NO;
-    CGFloat r=0,g=0,b=0,a=0;if(![c getRed:&r green:&g blue:&b alpha:&a]||a<.95||fabs(r-12.0/255.0)>.01||fabs(g-130.0/255.0)>.01||fabs(b-129.0/255.0)>.01)return NO;
+    CGFloat r=0,g=0,b=0,a=0;if(![c getRed:&r green:&g blue:&b alpha:&a]||a<.95)return NO;
+    BOOL pharmacy=fabs(r-12.0/255.0)<.01&&fabs(g-130.0/255.0)<.01&&fabs(b-129.0/255.0)<.01;
+    BOOL grocery=fabs(r)<.01&&fabs(g-78.0/255.0)<.01&&fabs(b-54.0/255.0)<.01;
+    if(!pharmacy&&!grocery)return NO;
     NSString *owner=NSStringFromClass(v.nextResponder.class);
     return [owner isEqualToString:@"CXIStatusBarInsetBarComponentViewController"]||[owner isEqualToString:@"CXIModeNavBarComponentViewController"]||[owner isEqualToString:@"CXISearchBarComponentViewController"];
 }

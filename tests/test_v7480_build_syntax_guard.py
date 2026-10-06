@@ -13,7 +13,7 @@ S = (ROOT / 'src/Tweak.xm').read_text()
 returns = function_block(S, 'ADReturnsThemeJS7480')
 pdp = function_block(S, 'ADPDPProbeBackedFixesJS7458')
 block = returns + '\n' + pdp
-names = ('ADStoreMapMediaJS7566', 'ADPharmacyMediaJS7563', 'ADSellerMessagingThemeJS7562',
+names = ('ADGroceryMediaJS7568', 'ADStoreMapMediaJS7566', 'ADPharmacyMediaJS7563', 'ADSellerMessagingThemeJS7562',
          'ADReturnsThemeJS7480', 'ADNewMenusJS7482', 'ADPDPProbeBackedFixesJS7458')
 functions = [function_block(S, name) for name in names]
 compile_block = '\n'.join(sorted(functions, key=S.index))
