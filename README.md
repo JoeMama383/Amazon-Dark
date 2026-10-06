@@ -1,3 +1,11 @@
+# AmazonDark v7.567~health-raster-map-details
+
+Based on origin/main 16df804e (v7.566). The Health AI banner remains exempt from the taming overlay. Its raster conversion now removes pale translucent edge pixels that previously escaped the alpha threshold, and raises dark cyan title pixels to readable cyan while preserving channel ratios and already-bright glyph colors. This is a raster contrast correction, not another dimming overlay.
+
+The postal-code pin inner SVG Shape now has a white stroke. The map attribution wrapper and button have transparent background colors with the existing black information artwork retained. No geometry changes or recurring scans are introduced.
+
+See COMMANDS.md for the existing-clone push and separate probe handoff. Native compilation and phone rendering verification remain pending.
+
 # AmazonDark v7.566~store-locator-health-art
 
 Based on origin/main 1737a658 (v7.565). The captured APLF store locator now uses OLED floors and action buttons, white neutral text/symbols, gray filter pills and gray existing divider/button borders. Green status copy, blue links and teal selection/pin colors are preserved. The entire map receives the configured brightness factor once; its child canvas/images are exempted from duplicate dimming. The exact map-marker inset shadow is cleared without changing the pin artwork or geometry.

@@ -1,6 +1,6 @@
 Package: com.joemama383.amazondark
 Name: AmazonDark
-Version: 7.566~store-locator-health-art
+Version: 7.567~health-raster-map-details
 Architecture: iphoneos-arm64
 Description: Amazon Dark Mode for rootless jailbreaks, iOS 15+
 Maintainer: JoeMama383

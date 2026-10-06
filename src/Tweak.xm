@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.566-store-locator-health-art"
+#define AD_VERSION "v7.567-health-raster-map-details"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2475,7 +2475,7 @@ static NSString *ADAddressManagementJS7412(void){
 
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
-// v7.566: declarative Pharmacy artwork taming also covers lazy-loaded images.
+// v7.567: declarative Pharmacy artwork taming also covers lazy-loaded images.
 static NSString *ADStoreMapMediaJS7566(void){
     CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7566-store-map');if(!s){s=d.createElement('style');s.id='ad7566-store-map';(d.head||d.documentElement).appendChild(s);}s.textContent='#aplf-map-container-mobile{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}#aplf-map-container-mobile .mapboxgl-canvas,#aplf-map-container-mobile img{filter:none!important;-webkit-filter:none!important;box-shadow:none!important;}';}catch(_){}})();",factor,factor];
