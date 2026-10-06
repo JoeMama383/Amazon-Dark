@@ -9,7 +9,7 @@ for tok in (
     'background:#123a73!important;background-color:#123a73!important',
     '[class*=PrioritizedInformationBar-module__container_],[class*=RefinementBar-module__refinementBarContainer_]',
     '[class*=_hve-rankable-banner_style_bannerImage_]',
-    'v7.576 VIEWPORT: Prime Deals temporary-tab refinement submenus are a bottom-sheet React surface',
+    'v7.579 VIEWPORT: Prime Deals refinement sheets are paint-only',
     'body:has(.discounts-react-app-bottom-sheet)',
     '[class*=Footer-module__clearFilters_],[class*=Footer-module__showResults_]',
     '[class*=RangeSlider-module__innerRail_]{background:#2162a1!important;background-color:#2162a1!important;}',
@@ -23,8 +23,8 @@ with tempfile.NamedTemporaryFile(suffix='.js',mode='w') as f:
     f.flush()
     subprocess.run(['node','--check',f.name],check=True,capture_output=True)
 for tok in (
-    '#define AD_VERSION "v7.577-ci-regression-source-repair"',
+    '#define AD_VERSION "v7.579-prime-refinement-paint-only"',
     '#include "ADNewMenus7482.js.inc"',
 ):
     assert tok in tweak, tok
-print('PASS: v7.577 retains the v7.576 Prime Deals refinement sheets and v7.575 deals/interests follow-up rules')
+print('PASS: current build preserves the v7.575 deals/interests family while the Prime Deals refinement sheets remain paint-only')
