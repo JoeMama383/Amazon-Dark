@@ -23,8 +23,8 @@ with tempfile.NamedTemporaryFile(suffix='.js',mode='w') as f:
     f.flush()
     subprocess.run(['node','--check',f.name],check=True,capture_output=True)
 for tok in (
-    '#define AD_VERSION "v7.576-prime-deals-refinements-menus"',
+    '#define AD_VERSION "v7.577-ci-regression-source-repair"',
     '#include "ADNewMenus7482.js.inc"',
 ):
     assert tok in tweak, tok
-print('PASS: v7.576 themes the Prime Deals refinement bottom sheets while retaining the v7.575 deals/interests follow-up rules')
+print('PASS: v7.577 retains the v7.576 Prime Deals refinement sheets and v7.575 deals/interests follow-up rules')
