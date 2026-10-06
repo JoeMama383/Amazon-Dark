@@ -5,9 +5,9 @@ M=(R/'src/ADNewMenus7482.js.inc').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
 T=(R/'src/Tweak.xm').read_text()
 CMD=(R/'COMMANDS.md').read_text()
-assert 'Version: 7.580~prime-refinement-border-cleanup' in C
-assert '#define AD_VERSION "v7.580-prime-refinement-border-cleanup"' in T
-assert 'AmazonDark-v7.580-prime-refinement-border-cleanup-source.zip' in CMD
+assert 'Version: 7.581~prime-authored-divider-recolor' in C
+assert '#define AD_VERSION "v7.581-prime-authored-divider-recolor"' in T
+assert 'AmazonDark-v7.581-prime-authored-divider-recolor-source.zip' in CMD
 start=M.index('/* v7.580 VIEWPORT: Prime Deals refinement sheets are paint-only and border-promotion-free.')
 end=M.index('/* v7.570: captured grocery paint owners',start)
 frag=M[start:end]

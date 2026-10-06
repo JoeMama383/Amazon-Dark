@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.580-prime-refinement-border-cleanup"
+#define AD_VERSION "v7.581-prime-authored-divider-recolor"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
