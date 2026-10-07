@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.585-medical-auth-probe-followup"
+#define AD_VERSION "v7.590-cumulative-ui-universal-full-shop-show"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2578,7 +2578,7 @@ static long gADCoreWebJSStrength7271=-1;
 static NSString *gADCoreWebJSCached7271=nil;
 static NSString *ADPDPProbeBackedFixesJS7458(void){
     CGFloat f=1.0;if(gP.whiteTame){CGFloat t=((CGFloat)MAX(0,MIN(100,gP.whiteTameStrength)))/100.0;f=1.0-(0.10+(0.48*t));}
-    return [[NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav .mshop-subnav-bar{box-shadow:0 1px 0 #494d4d!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#dp #relatedProductZone4_feature_div .a-carousel-container,#dp #heimdallShoppingCxFeedback_feature_div fieldset{background:#000!important}#dp #cm_cr_top_reviews_to_arp_button>.a-box-inner{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #va-related-videos-widget_feature_div [class*=_dnNlL_vseUploadButton_] i.a-icon-supplemental{filter:brightness(0) invert(1)!important}#dp #product-details-card_primary-view .putb-read-more-primary-view::before,#dp [id^=putb-read-more-primary-view-][id$=-product-details-card_primary-view]::before{content:none!important;display:none!important;background:none!important;box-shadow:none!important}#dp #product-details-card_primary-view .putb-main-text :is(.a-size-small,.a-text-bold){color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #description-summary-card_primary-view .putb-main-text,#dp #description-summary-card_primary-view .putb-main-text>span{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #inline-twister-scroller .a-button-selected .swatch-title-text-container{background:#303335!important;color:#fff!important;-webkit-text-fill-color:#fff!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]),[class*=_billboard-card_regularStyle_gwm-BillboardCard] img{filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');s.textContent+=`[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_]{background:#000!important;border-color:#747a7c!important;color:#fff!important;box-shadow:none!important}[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_] [class*=_pillText_],[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{color:#fff!important;-webkit-text-fill-color:#fff!important}[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{background:#000!important;box-shadow:inset 0 0 0 64px #000!important}[class*=_billboard-card_regularStyle_gwm-BillboardCard--cropped__]{background:#000!important;box-shadow:none!important}#btfSubNavTopTab .top-tab-content,#btfSubNavTopTab .top-tab-content>div{display:contents!important;font:inherit!important}#btfSubNavTopTab .a-icon-section-collapse{display:none!important}#btfSubNavTopTab .a-size-mini{font:inherit!important}`;s.textContent+=`section#pop.layout__background:has(.item-view__qty-large){background:#000!important;color:#e8e6e3!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card{background:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-box,.a-box-inner,.a-box-group){box-shadow:none!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(h1,h2,h3,h4,h5,h6,p,span,strong,b,em,label,a,div):not(.a-color-link):not(.a-link-normal):not(.a-color-price):not(.a-color-secondary):not(.a-color-tertiary):not(.a-color-success):not(.a-color-attainable):not(.a-color-error):not(.a-color-state):not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=saving]):not([class*=discount]):not([class*=promotion]):not([class*=promo]):not(:where(.a-color-link *)):not(:where(.a-link-normal *)):not(:where(.a-color-price *)):not(:where(.a-color-secondary *)):not(:where(.a-color-tertiary *)):not(:where(.a-color-success *)):not(:where(.a-color-attainable *)):not(:where(.a-color-error *)):not(:where(.a-color-state *)):not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=saving] *)):not(:where([class*=discount] *)):not(:where([class*=promotion] *)):not(:where([class*=promo] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-color-secondary,.a-color-tertiary),section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-color-secondary,.a-color-tertiary) *{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-color-link,.a-link-normal,.a-color-price,.a-color-success,.a-color-attainable,.a-color-error,.a-color-state,[class*=prime],[class*=star],[class*=rating],[class*=badge],[class*=deal],[class*=coupon],[class*=saving],[class*=discount],[class*=promotion],[class*=promo]),section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-color-link,.a-link-normal,.a-color-price,.a-color-success,.a-color-attainable,.a-color-error,.a-color-state,[class*=prime],[class*=star],[class*=rating],[class*=badge],[class*=deal],[class*=coupon],[class*=saving],[class*=discount],[class*=promotion],[class*=promo]) *{-webkit-text-fill-color:currentColor!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card a.a-touch-link.a-box{background:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;-webkit-tap-highlight-color:transparent!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card a.a-touch-link.a-box>.a-box-inner{background:transparent!important;box-shadow:none!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card a.a-touch-link.a-box :is(span,div,strong,b){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card a.a-touch-link.a-box:is(:active,:focus,:focus-visible){background:#202324!important;border-color:#747a7c!important;box-shadow:none!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card i.a-icon.a-icon-touch-link{border-color:#e8e6e3!important;}section#pop.layout__background:has(.item-view__qty-large) .item-view__qty-large{background:#303335!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#747a7c!important;box-shadow:none!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important;padding:0!important;box-sizing:border-box!important;}`+(%d?`section#pop.layout__background:has(.item-view__qty-large) .item-view__inner-col>a.a-link-normal>img:not(.connection-share-icon){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;opacity:1!important;}`:'');}catch(_){}})();",gP.whiteTame,f,gP.whiteTame,f] stringByAppendingString:ADReturnsThemeJS7480()];
+    return [[NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav .mshop-subnav-bar{box-shadow:0 1px 0 #494d4d!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#dp #relatedProductZone4_feature_div .a-carousel-container,#dp #heimdallShoppingCxFeedback_feature_div fieldset{background:#000!important}#dp #cm_cr_top_reviews_to_arp_button>.a-box-inner{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #va-related-videos-widget_feature_div [class*=_dnNlL_vseUploadButton_] i.a-icon-supplemental{filter:brightness(0) invert(1)!important}#dp #product-details-card_primary-view .putb-read-more-primary-view::before,#dp [id^=putb-read-more-primary-view-][id$=-product-details-card_primary-view]::before{content:none!important;display:none!important;background:none!important;box-shadow:none!important}#dp #product-details-card_primary-view .putb-main-text :is(.a-size-small,.a-text-bold){color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #description-summary-card_primary-view .putb-main-text,#dp #description-summary-card_primary-view .putb-main-text>span{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #inline-twister-scroller .a-button-selected .swatch-title-text-container{background:#303335!important;color:#fff!important;-webkit-text-fill-color:#fff!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]),[class*=_billboard-card_regularStyle_gwm-BillboardCard] img{filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');s.textContent+=`[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_]{background:#000!important;border-color:#747a7c!important;color:#fff!important;box-shadow:none!important}[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_] [class*=_pillText_],[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{color:#fff!important;-webkit-text-fill-color:#fff!important}[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{background:#000!important;box-shadow:inset 0 0 0 64px #000!important}[class*=_billboard-card_regularStyle_gwm-BillboardCard--cropped__]{background:#000!important;box-shadow:none!important}#btfSubNavTopTab .top-tab-content,#btfSubNavTopTab .top-tab-content>div{display:contents!important;font:inherit!important}#btfSubNavTopTab .a-icon-section-collapse{display:none!important}#btfSubNavTopTab .a-size-mini{font:inherit!important}#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile,#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile-claimed{background:#008000!important;border-color:#008000!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#dp#dp #promoPriceBlockMessage_feature_div :is(.ct-coupon-tile-copy,.ct-coupon-tile-badge-copy,.ct-coupon-tile-value-copy,.ct-coupon-tile-value-copy-discount,.ct-coupon-tile-checkbox-label,.ct-coupon-success-copy,.ct-coupon-success-copy-bold,.a-size-small.a-color-base.a-text-normal,.a-size-base,.a-size-small,span,div,strong,b){color:#fff!important;-webkit-text-fill-color:#fff!important;}#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile svg.ct-coupon-success path.ct-coupon-success-icon-background,#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile-claimed svg.ct-coupon-success path.ct-coupon-success-icon-background{fill:#000!important;stroke:none!important;}#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile svg.ct-coupon-success path:not(.ct-coupon-success-icon-background),#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile-claimed svg.ct-coupon-success path:not(.ct-coupon-success-icon-background){fill:#fff!important;stroke:none!important;}#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile svg.ct-coupon-success,#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile-claimed svg.ct-coupon-success{filter:none!important;-webkit-filter:none!important;}#dp#dp #dynamicPackageInfoFeature_feature_div .offer-display-feature-text-link,#dp#dp #dynamicPackageInfoFeature_feature_div .offer-display-feature-text-message{color:#6cb6ff!important;-webkit-text-fill-color:#6cb6ff!important;}`;s.textContent+=`section#pop.layout__background:has(.item-view__qty-large){background:#000!important;color:#e8e6e3!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card{background:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-box,.a-box-inner,.a-box-group){box-shadow:none!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(h1,h2,h3,h4,h5,h6,p,span,strong,b,em,label,a,div):not(.a-color-link):not(.a-link-normal):not(.a-color-price):not(.a-color-secondary):not(.a-color-tertiary):not(.a-color-success):not(.a-color-attainable):not(.a-color-error):not(.a-color-state):not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=saving]):not([class*=discount]):not([class*=promotion]):not([class*=promo]):not(:where(.a-color-link *)):not(:where(.a-link-normal *)):not(:where(.a-color-price *)):not(:where(.a-color-secondary *)):not(:where(.a-color-tertiary *)):not(:where(.a-color-success *)):not(:where(.a-color-attainable *)):not(:where(.a-color-error *)):not(:where(.a-color-state *)):not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=saving] *)):not(:where([class*=discount] *)):not(:where([class*=promotion] *)):not(:where([class*=promo] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-color-secondary,.a-color-tertiary),section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-color-secondary,.a-color-tertiary) *{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-color-link,.a-link-normal,.a-color-price,.a-color-success,.a-color-attainable,.a-color-error,.a-color-state,[class*=prime],[class*=star],[class*=rating],[class*=badge],[class*=deal],[class*=coupon],[class*=saving],[class*=discount],[class*=promotion],[class*=promo]),section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-color-link,.a-link-normal,.a-color-price,.a-color-success,.a-color-attainable,.a-color-error,.a-color-state,[class*=prime],[class*=star],[class*=rating],[class*=badge],[class*=deal],[class*=coupon],[class*=saving],[class*=discount],[class*=promotion],[class*=promo]) *{-webkit-text-fill-color:currentColor!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card a.a-touch-link.a-box{background:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;-webkit-tap-highlight-color:transparent!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card a.a-touch-link.a-box>.a-box-inner{background:transparent!important;box-shadow:none!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card a.a-touch-link.a-box :is(span,div,strong,b){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card a.a-touch-link.a-box:is(:active,:focus,:focus-visible){background:#202324!important;border-color:#747a7c!important;box-shadow:none!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card i.a-icon.a-icon-touch-link{border-color:#e8e6e3!important;}section#pop.layout__background:has(.item-view__qty-large) .item-view__qty-large{background:#303335!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#747a7c!important;box-shadow:none!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important;padding:0!important;box-sizing:border-box!important;}`+(%d?`section#pop.layout__background:has(.item-view__qty-large) .item-view__inner-col>a.a-link-normal>img:not(.connection-share-icon){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;opacity:1!important;}`:'');}catch(_){}})();",gP.whiteTame,f,gP.whiteTame,f] stringByAppendingString:ADReturnsThemeJS7480()];
 }
 
 static NSString *ADCoreWebJS7271(void){
@@ -4053,6 +4053,12 @@ static void ADGlowToaster7569(UIButton *button){
     [button setTitleColor:ADLightText706() forState:UIControlStateSelected];
 }
 
+
+static BOOL ADPDPThumbnailStripFloor7588(UIView *v,UIColor *color);
+static BOOL ADShopShowProductFloor7590(UIView *v,UIColor *candidate);
+static void ADShopShowOwnView7590(UIView *v);
+static void ADShopShowApplyImage7590(UIImageView *iv);
+
 %hook UIView
 - (void)didMoveToWindow {
     ADSkelBookAMIViewEvent7489(self,@"move.pre",nil,nil);
@@ -4098,6 +4104,11 @@ static void ADGlowToaster7569(UIButton *button){
         return;
     }
     BOOL react=ADReactNativeView7226(self);
+    if(ADShopShowProductFloor7590(self,self.backgroundColor)){ ADSetViewBackground7226(self,ADOLED(),YES); return; }
+    if(ADPDPThumbnailStripFloor7588(self,self.backgroundColor)){
+        ADSetViewBackground7226(self,ADOLED(),YES);
+        return;
+    }
     if(ADClassNameIs7183(self.window,"AppCXWindow")){
         if(!react&&ADInAppCXPassthrough7256(self)&&ADNeutralNearWhite7255(self.backgroundColor))ADSetViewBackground7226(self,ADOLED(),YES);
         if(ADInAppCXBottomSheet7255(self))ADOwnAppCXSheetFloor7255(self);
@@ -4184,6 +4195,16 @@ static void ADGlowToaster7569(UIButton *button){
         }
     }
     BOOL react=ADReactNativeView7226(self);
+    if(ADShopShowProductFloor7590(self,color)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        return;
+    }
+    if(ADPDPThumbnailStripFloor7588(self,color)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        return;
+    }
     if(self.window&&ADClassNameIs7183(self.window,"AppCXWindow")){
         if(!react&&ADInAppCXPassthrough7256(self)&&ADNeutralNearWhite7255(color)){
             UIColor *black=ADOLED();
@@ -4229,6 +4250,58 @@ static void ADGlowToaster7569(UIButton *button){
     %orig(color);
 }
 %end
+
+
+static BOOL ADShopShowAid7590(UIView *v,NSString *exact,NSString *prefix,NSUInteger depth){
+    if(!v)return NO;
+    @try {
+        NSUInteger d=0;
+        for(UIView *n=v;n&&d++<depth;n=n.superview){
+            NSString *a=n.accessibilityIdentifier?:@"";
+            if(exact&&[exact length]>0&&[a isEqualToString:exact])return YES;
+            if(prefix&&[prefix length]>0&&[a hasPrefix:prefix])return YES;
+            if([n isKindOfClass:UIWindow.class])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADShopShowScope7590(UIView *v){
+    return v&&v.window&&ADClassNameIs7183(v.window,"AppCXWindow")&&
+           (ADShopShowAid7590(v,@"home-page-banner",nil,18)||ADShopShowAid7590(v,@"keep-shopping-the-shows",nil,18));
+}
+static BOOL ADShopShowProductFloor7590(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!v||!ADClassNameIs7183(v,"RCTView")||!ADShopShowScope7590(v)||!ADNeutralNearWhite7255(candidate))return NO;
+    if(ADShopShowAid7590(v,nil,@"product-container-",10)||ADShopShowAid7590(v,nil,@"product-image-view-",10)||ADShopShowAid7590(v,nil,@"product-image-",10))return YES;
+    if(ADShopShowAid7590(v,nil,@"keep-shopping-product-button-",10))return YES;
+    return NO;
+}
+static void ADShopShowOwnView7590(UIView *v){
+    if(!gP.enabled||!v||!v.window)return;
+    @try {
+        UIColor *bg=v.backgroundColor,*layerBg=nil;
+        if(v.layer.backgroundColor)layerBg=[UIColor colorWithCGColor:v.layer.backgroundColor];
+        if(ADShopShowProductFloor7590(v,bg)||ADShopShowProductFloor7590(v,layerBg))ADSetViewBackground7226(v,ADOLED(),YES);
+    } @catch(...) {}
+}
+
+static BOOL ADPDPThumbnailStripFloor7588(UIView *v,UIColor *color){
+    if(!v||!v.window)return NO;
+    @try {
+        BOOL sawThumb=NO,sawSNP=NO;
+        UIView *n=v;
+        for(int d=0;n&&d<10;d++,n=n.superview){
+            NSString *aid=n.accessibilityIdentifier?:@"";
+            if(!sawThumb&&[aid isEqualToString:@"thumbnails-view"])sawThumb=YES;
+            if(!sawSNP&&ADClassNameIs7183(n,"SNPRootView"))sawSNP=YES;
+            if(sawThumb&&sawSNP)break;
+        }
+        if(!(sawThumb&&sawSNP))return NO;
+        if([v.accessibilityIdentifier isEqualToString:@"thumbnails-view"])return YES;
+        return color?ADNeutralNearWhite7255(color):NO;
+    } @catch(...) { return NO; }
+}
+
+
 
 static BOOL ADTopChromeClass713(UIView *v){
     if(!v)return NO;
@@ -6085,13 +6158,33 @@ static void ADPersonRepairOrderSearchAncestors7242(UIView *v){
 // direct child of the already-proven 360x50 inner Search-orders shell and is the
 // sibling of RNCEKVTextInputFocusWrapper.  Own only this glyph; do not touch the
 // v7.242 border implementation above.
+static BOOL ADPersonOrderSearchCompactHost7589(UIView *host){
+    if(!gP.enabled||!host||!host.window||!ADInPersonTab7206(host)||!ADClassNameIs7183(host,"RCTView"))return NO;
+    @try {
+        // v7.590 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
+        // Its direct children are exactly one 20x20 RCTImageView magnifier and one
+        // RNCEKVTextInputFocusWrapper. Keep this independent from the old 360x50 owner.
+        CGFloat w=host.bounds.size.width,h=host.bounds.size.height;
+        if(w<172.0||w>176.0||h<48.0||h>52.0)return NO;
+        BOOL image=NO,focus=NO;
+        for(UIView *c in host.subviews){
+            if(ADClassNameIs7183(c,"RNCEKVTextInputFocusWrapper"))focus=YES;
+            else if(ADClassNameIs7183(c,"RCTImageView")){
+                CGFloat cw=c.bounds.size.width,ch=c.bounds.size.height;
+                if(cw>=18.0&&cw<=22.0&&ch>=18.0&&ch<=22.0)image=YES;
+            }
+        }
+        return image&&focus;
+    } @catch(...) { return NO; }
+}
 static BOOL ADPersonOrderSearchMagnifierWrapper7243(UIView *v){
     if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v,"RCTImageView"))return NO;
     @try {
         CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
         if(w<18.0||w>22.0||h<18.0||h>22.0)return NO;
         UIView *host=v.superview;
-        return host&&ADPersonOrderSearchInner7242(host)&&ADPersonDescendantClass7242(host,"RNCEKVTextInputFocusWrapper",8);
+        return host&&((ADPersonOrderSearchInner7242(host)&&ADPersonDescendantClass7242(host,"RNCEKVTextInputFocusWrapper",8))||
+                     ADPersonOrderSearchCompactHost7589(host));
     } @catch(...) { return NO; }
 }
 static BOOL ADPersonOrderSearchMagnifierLeaf7243(UIImageView *iv){
@@ -9132,16 +9225,18 @@ static void ADOwnReactView7226(UIView *v){
     UIView *v=(UIView *)self;
     objc_setAssociatedObject(v,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     ADOwnReactView7226(v);
+    ADShopShowOwnView7590(v);
 }
 - (void)didMoveToSuperview {
     %orig;
     UIView *v=(UIView *)self;
     objc_setAssociatedObject(v,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    if(v.window)ADOwnReactView7226(v);
+    if(v.window){ ADOwnReactView7226(v); ADShopShowOwnView7590(v); }
 }
 - (void)layoutSubviews {
     %orig;
     ADOwnReactView7226((UIView *)self);
+    ADShopShowOwnView7590((UIView *)self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
@@ -9231,6 +9326,16 @@ static void ADOwnReactView7226(UIView *v){
     if(gP.enabled&&v.window&&ADInPaymentSheet7401(v)){
         %orig(color);
         ADPaymentOwnView7401(v);
+        return;
+    }
+    if(gP.enabled&&ADShopShowProductFloor7590(v,color)){
+        UIColor *black=ADOLED();
+        gADPaintWriteDepth7226++;
+        @try {
+            %orig(black);
+            self.layer.backgroundColor=black.CGColor;
+        }
+        @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
         return;
     }
     int surface=(gP.enabled&&v.window)?ADReactSurface7226(v):ADReactSurfaceNone7226;
@@ -11430,6 +11535,56 @@ static void ADEnsureNativeTWBOverlay7270(UIImageView *iv){
         if(ov.zPosition!=FLT_MAX)ov.zPosition=FLT_MAX;
     } @catch(...) {}
 }
+static const void *kADShopShowOriginalMode7590=&kADShopShowOriginalMode7590;
+static int ADShopShowImageKind7590(UIImageView *iv){
+    if(!iv||!iv.window||!iv.image||!ADShopShowScope7590(iv))return 0;
+    @try {
+        if(iv.image.renderingMode==UIImageRenderingModeAlwaysTemplate)return 0;
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;if(w<36.0||h<36.0)return 0;
+        BOOL product=ADShopShowAid7590(iv,nil,@"product-image-view-",12)||ADShopShowAid7590(iv,nil,@"keep-shopping-product-button-",12);
+        if(product)return 2;
+        BOOL hero=ADShopShowAid7590(iv,nil,@"mosaic-content-card_",14)||ADShopShowAid7590(iv,nil,@"campaign-card_",14)||ADShopShowAid7590(iv,nil,@"navigation-thumbnail-image-",8)||ADShopShowAid7590(iv,@"keep-shopping-the-shows",nil,16);
+        return hero?1:0;
+    } @catch(...) { return 0; }
+}
+static void ADShopShowApplyImage7590(UIImageView *iv){
+    if(!iv)return;
+    @try {
+        int kind=ADShopShowImageKind7590(iv);NSNumber *old=objc_getAssociatedObject(iv,kADShopShowOriginalMode7590);
+        if(!kind){ if(old){ iv.contentMode=(UIViewContentMode)old.integerValue;objc_setAssociatedObject(iv,kADShopShowOriginalMode7590,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } return; }
+        if(kind==2){ if(!old)objc_setAssociatedObject(iv,kADShopShowOriginalMode7590,@(iv.contentMode),OBJC_ASSOCIATION_RETAIN_NONATOMIC);iv.contentMode=UIViewContentModeScaleAspectFill;iv.clipsToBounds=YES; }
+        if(gP.enabled&&gP.whiteTame&&iv.window)ADEnsureNativeTWBOverlay7270(iv);
+    } @catch(...) {}
+}
+
+static BOOL ADPDPThumbnailImage7588(UIImageView *iv){
+    if(!iv||!iv.window||!iv.image)return NO;
+    @try {
+        BOOL sawThumb=NO,sawSNP=NO;
+        UIView *n=iv;
+        for(int d=0;n&&d<10;d++,n=n.superview){
+            NSString *aid=n.accessibilityIdentifier?:@"";
+            if(!sawThumb&&[aid isEqualToString:@"thumbnails-view"])sawThumb=YES;
+            if(!sawSNP&&ADClassNameIs7183(n,"SNPRootView"))sawSNP=YES;
+            if(sawThumb&&sawSNP)break;
+        }
+        if(!(sawThumb&&sawSNP))return NO;
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        return w>=20.0&&h>=20.0&&w<=96.0&&h<=96.0;
+    } @catch(...) { return NO; }
+}
+static void ADPDPApplyThumbnailTWB7588(UIImageView *iv){
+    if(!iv)return;
+    @try {
+        CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay);
+        if(!gP.enabled||!gP.whiteTame||!ADPDPThumbnailImage7588(iv)){
+            if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+            return;
+        }
+        ADEnsureNativeTWBOverlay7270(iv);
+    } @catch(...) {}
+}
+
 static void ADApplyNativeTWBCached7183(UIImageView *iv,BOOL authoredSubNav){
     if(!iv)return;
     @try {
@@ -11740,6 +11895,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     ADSchedulePersonImageSettle7227(self);
     ADApplyCNMExactDogTWB7309(self);
     ADServiceImage7565(self);
+    ADShopShowApplyImage7590(self);
 }
 - (void)didMoveToWindow {
     %orig;
@@ -11753,6 +11909,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     ADSchedulePersonImageSettle7227(self);
     ADApplyCNMExactDogTWB7309(self);
     ADServiceImage7565(self);
+    ADShopShowApplyImage7590(self);
 }
 - (void)didMoveToSuperview {
     %orig;
@@ -11767,6 +11924,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     }
     ADApplyCNMExactDogTWB7309(self);
     ADServiceImage7565(self);
+    ADShopShowApplyImage7590(self);
 }
 - (void)setTintColor:(UIColor *)color {
     if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
@@ -11830,6 +11988,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     ADLayoutImageOverlays7226(self);
     ADApplyCNMExactDogTWB7309(self);
     ADServiceImage7565(self);
+    ADShopShowApplyImage7590(self);
 }
 %end
 
@@ -11993,6 +12152,8 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
     ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,YES);
     ADPaymentFinalizeCreateImage7402((UIImageView *)self,YES);
     ADPermissionOwnImage7408((UIImageView *)self);
+    ADPDPApplyThumbnailTWB7588((UIImageView *)self);
+    ADShopShowApplyImage7590((UIImageView *)self);
 }
 - (void)didMoveToSuperview {
     objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -12007,6 +12168,8 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
         ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,YES);
         ADPaymentFinalizeCreateImage7402((UIImageView *)self,YES);
         ADPermissionOwnImage7408((UIImageView *)self);
+        ADPDPApplyThumbnailTWB7588((UIImageView *)self);
+    ADShopShowApplyImage7590((UIImageView *)self);
     }
 }
 - (void)didMoveToWindow {
@@ -12018,6 +12181,8 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
         ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,YES);
         ADPaymentFinalizeCreateImage7402((UIImageView *)self,YES);
         ADPermissionOwnImage7408((UIImageView *)self);
+        ADPDPApplyThumbnailTWB7588((UIImageView *)self);
+    ADShopShowApplyImage7590((UIImageView *)self);
     } else {
         objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -12035,6 +12200,8 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
     NSNumber *payCached=objc_getAssociatedObject(self,kADPaymentCreateImageKind7402);
     ADPaymentFinalizeCreateImage7402((UIImageView *)self,(payCached&&payCached.intValue>0)?NO:YES);
     ADPermissionOwnImage7408((UIImageView *)self);
+    ADPDPApplyThumbnailTWB7588((UIImageView *)self);
+    ADShopShowApplyImage7590((UIImageView *)self);
 }
 %end
 
