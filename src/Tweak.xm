@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.590-cumulative-ui-universal-full-shop-show"
+#define AD_VERSION "v7.591-regression-recovery-medical-search"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -5948,11 +5948,56 @@ static UIView *ADPersonRoot7206(UIView *v){
     } @catch(...) {}
     return nil;
 }
+static const void *kADPersonOrderResultsRoot7591=&kADPersonOrderResultsRoot7591;
+static BOOL ADOrderResultsSearchShape7591(UIView *v){
+    if(!v||!v.window||!ADClassNameIs7183(v,"RCTView"))return NO;
+    @try {
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        // Screenshot-proven pushed Your Orders results search field: ~404x44pt.
+        if(w<388.0||w>414.0||h<40.0||h>58.0)return NO;
+        BOOL focus=NO,image=NO; NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:v.subviews];
+        NSUInteger i=0;int seen=0;
+        while(i<q.count&&seen++<18){
+            UIView *c=q[i++]; NSString *cn=NSStringFromClass(c.class)?:@"";
+            if([cn rangeOfString:@"RNCEKVTextInputFocusWrapper" options:NSCaseInsensitiveSearch].location!=NSNotFound)focus=YES;
+            if([cn rangeOfString:@"RCTImageView" options:NSCaseInsensitiveSearch].location!=NSNotFound){
+                CGFloat cw=c.bounds.size.width,ch=c.bounds.size.height;
+                if(cw>=16.0&&cw<=28.0&&ch>=16.0&&ch<=28.0)image=YES;
+            }
+            if(q.count<20)for(UIView *x in c.subviews)if(x)[q addObject:x];
+        }
+        return focus&&image;
+    } @catch(...) { return NO; }
+}
+static UIView *ADPersonOrderResultsRoot7591(UIView *v){
+    if(!v||!v.window)return nil;
+    @try {
+        UIView *root=nil;
+        for(UIView *n=v;n;n=n.superview){
+            if(objc_getAssociatedObject(n,kADPersonOrderResultsRoot7591))return n;
+            if(ADClassNameIs7183(n,"SNPRootView")||ADClassNameIs7183(n,"RCTRootContentView")){root=n;break;}
+            if([n isKindOfClass:UIWindow.class])break;
+        }
+        if(!root)return nil;
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:root];NSUInteger i=0;int seen=0;
+        while(i<q.count&&seen++<260){
+            UIView *n=q[i++];
+            if(ADOrderResultsSearchShape7591(n)){
+                objc_setAssociatedObject(root,kADPersonOrderResultsRoot7591,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                return root;
+            }
+            if(q.count<250)for(UIView *c in n.subviews)if(c)[q addObject:c];
+        }
+    } @catch(...) {}
+    return nil;
+}
+
 static BOOL ADInPersonTab7206(UIView *v){
     if(!v)return NO;
     NSNumber *surface=objc_getAssociatedObject(v,kADReactSurfaceCache7232);
     if(surface)return surface.intValue==ADReactSurfacePerson7226;
     UIView *root=ADPersonRoot7206(v);
+    if(!root)root=ADPersonOrderResultsRoot7591(v);
     if(root)objc_setAssociatedObject(v,kADReactSurfaceCache7232,@(ADReactSurfacePerson7226),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     return root!=nil;
 }
@@ -6158,10 +6203,44 @@ static void ADPersonRepairOrderSearchAncestors7242(UIView *v){
 // direct child of the already-proven 360x50 inner Search-orders shell and is the
 // sibling of RNCEKVTextInputFocusWrapper.  Own only this glyph; do not touch the
 // v7.242 border implementation above.
+static BOOL ADPersonOrderResultsSearchHost7591(UIView *host){
+    return gP.enabled&&host&&host.window&&ADInPersonTab7206(host)&&ADOrderResultsSearchShape7591(host);
+}
+static void ADPersonOwnOrderResultsSearch7591(UIView *host){
+    if(!ADPersonOrderResultsSearchHost7591(host))return;
+    @try {
+        UIColor *gray=[UIColor colorWithWhite:0.19 alpha:1.0];
+        host.layer.contents=nil;
+        ADSetViewBackground7226(host,gray,YES);
+        host.layer.backgroundColor=gray.CGColor;
+        host.layer.borderWidth=1.0;
+        host.layer.borderColor=ADBorderGray706().CGColor;
+        if(host.layer.cornerRadius<8.0)host.layer.cornerRadius=10.0;
+        host.clipsToBounds=YES;
+        ADPersonSetRCTBorder7208(host,1.0);
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:host.subviews];NSUInteger i=0;int seen=0;
+        while(i<q.count&&seen++<24){
+            UIView *v=q[i++];
+            if(![v isKindOfClass:UIImageView.class]){
+                UIColor *bg=v.backgroundColor;
+                NSString *cn=NSStringFromClass(v.class)?:@"";
+                if(ADNeutralNearWhite7255(bg)||[cn rangeOfString:@"TextInput" options:NSCaseInsensitiveSearch].location!=NSNotFound||
+                   [cn rangeOfString:@"RNCEKV" options:NSCaseInsensitiveSearch].location!=NSNotFound){
+                    ADSetViewBackground7226(v,gray,YES);v.layer.backgroundColor=gray.CGColor;
+                }
+                if([v isKindOfClass:UITextField.class]){
+                    UITextField *tf=(UITextField *)v;tf.textColor=ADLightText706();tf.tintColor=ADLightText706();
+                }
+            }
+            if(q.count<24)for(UIView *c in v.subviews)if(c)[q addObject:c];
+        }
+    } @catch(...) {}
+}
+
 static BOOL ADPersonOrderSearchCompactHost7589(UIView *host){
     if(!gP.enabled||!host||!host.window||!ADInPersonTab7206(host)||!ADClassNameIs7183(host,"RCTView"))return NO;
     @try {
-        // v7.590 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
+        // v7.591 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
         // Its direct children are exactly one 20x20 RCTImageView magnifier and one
         // RNCEKVTextInputFocusWrapper. Keep this independent from the old 360x50 owner.
         CGFloat w=host.bounds.size.width,h=host.bounds.size.height;
@@ -6184,7 +6263,7 @@ static BOOL ADPersonOrderSearchMagnifierWrapper7243(UIView *v){
         if(w<18.0||w>22.0||h<18.0||h>22.0)return NO;
         UIView *host=v.superview;
         return host&&((ADPersonOrderSearchInner7242(host)&&ADPersonDescendantClass7242(host,"RNCEKVTextInputFocusWrapper",8))||
-                     ADPersonOrderSearchCompactHost7589(host));
+                     ADPersonOrderSearchCompactHost7589(host)||ADPersonOrderResultsSearchHost7591(host));
     } @catch(...) { return NO; }
 }
 static BOOL ADPersonOrderSearchMagnifierLeaf7243(UIImageView *iv){
@@ -6770,6 +6849,7 @@ static void ADPersonOwnView7206(UIView *v){
     @try {
         ADPersonObserveSectionAnchor7212(v);
         ADPersonCenterReturnsText7522(v);
+        if(ADPersonOrderResultsSearchHost7591(v)){ ADPersonOwnOrderResultsSearch7591(v); return; }
         BOOL orderSearchOuter=ADPersonOrderSearchOuter7242(v);
         BOOL orderSearchInner=ADPersonOrderSearchInner7242(v);
         if(orderSearchOuter||orderSearchInner||objc_getAssociatedObject(v,kADPersonOrderSearchOutline7242)){
@@ -11576,11 +11656,9 @@ static BOOL ADPDPThumbnailImage7588(UIImageView *iv){
 static void ADPDPApplyThumbnailTWB7588(UIImageView *iv){
     if(!iv)return;
     @try {
-        CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay);
-        if(!gP.enabled||!gP.whiteTame||!ADPDPThumbnailImage7588(iv)){
-            if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-            return;
-        }
+        // Exact-owner additive helper only. Never tear down kADTWBOverlay for a
+        // non-thumbnail image: Person/Menu/Home already use that shared overlay.
+        if(!gP.enabled||!gP.whiteTame||!ADPDPThumbnailImage7588(iv))return;
         ADEnsureNativeTWBOverlay7270(iv);
     } @catch(...) {}
 }

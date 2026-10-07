@@ -63,27 +63,19 @@ for token in [
 assert 'ADShopShowProductFloor7590(v,color)' in S
 assert 'ADShopShowApplyImage7590((UIImageView *)self)' in S
 
-# FULL is dynamically renderer-neutral: WebKit and native/UIKit/RN are always
-# considered, retained/covered RN scroll roots are rejected by hit-tested ownership.
-for token in [
+# v7.590 Shop the Show UI ownership remains cumulative. Its attempted FULL
+# foreground arbitration was intentionally superseded by v7.591 after device
+# testing proved it regressed Menu/Person and other native FULL walks. Do not
+# resurrect those broken arbitration tokens as part of the UI contract.
+for bad in [
     'static CGFloat ADUIForegroundOwnership7590',
-    '[w hitTest:pt withEvent:nil]',
-    'ownership>=0.34||owned>=4',
     'NATIVE_SCROLL_REJECT',
     'policy=foreground-hit-tested renderer-neutral=1',
     'rendererPolicy=dynamic-web-native-react-equal',
-    'ADUIProcessWebViews7364(webs,0,NO,path,cap,^{',
-    'ADUINativeScrollCandidatesAsync7449(path,cap,^(NSArray *native)',
-    'ADUIProcessNativeCandidates7364(native,0,path,cap',
-    'FULL_NATIVE_FALLBACK exact-menu reason=no-universal-candidate',
-    'FULL_NATIVE_FALLBACK exact-person reason=no-universal-candidate',
-]: assert token in P, token
-# Keep legacy exact routes only as fallbacks/contracts, not normal renderer routing.
-assert P.index('ADUINativeScrollCandidatesAsync7449(path,cap,^(NSArray *native)') < P.index('FULL_NATIVE_FALLBACK exact-menu')
-assert P.index('ADUINativeScrollCandidatesAsync7449(path,cap,^(NSArray *native)') < P.index('FULL_NATIVE_FALLBACK exact-person')
-# No recurring production/probe walker was introduced by v7.590 ownership logic.
-new_probe=P[P.index('static BOOL ADUIHitBelongs7590'):P.index('static NSString *ADUINativeSubtreeSnapshot7364')]
-for bad in ['MutationObserver','setInterval','requestAnimationFrame','addObserver:','CADisplayLink']:
-    assert bad not in new_probe, bad
+]: assert bad not in P, bad
+assert 'ADUIScanMenuFull7520' in P
+assert 'ADUIScanPersonFull7519' in P
+assert 'ADUINativeScrollCandidatesAsync7449' in P
+assert 'ADUIProcessWebViews7364' in P
 
-print('PASS: v7.590 cumulative post-7.585 UI contracts, exact Shop the Show media ownership, and renderer-neutral FULL native/RN/Web arbitration present')
+print('PASS: v7.590 cumulative post-v7.585 UI and exact Shop the Show media ownership retained; broken FULL arbitration remains retired')
