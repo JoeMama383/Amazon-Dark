@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.584-medical-health-ai-theme"
+#define AD_VERSION "v7.585-medical-auth-probe-followup"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2513,7 +2513,7 @@ static NSString *ADStoreMapMediaJS7566(void){
 
 static NSString *ADPharmacyMediaJS7563(void){
     CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
-    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7563-pharmacy-media');if(!s){s=d.createElement('style');s.id='ad7563-pharmacy-media';(d.head||d.documentElement).appendChild(s);}s.textContent='[data-csa-c-painter=pharmacy-lego-painter] .image>img,#main-content.ap-lego:has(#nav-link-health-ai-mobile) :is(.image.image-size-fit>img,.healthai-storefront-carousel-card img,video){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}';}catch(_){}})();",factor,factor];
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7563-pharmacy-media');if(!s){s=d.createElement('style');s.id='ad7563-pharmacy-media';(d.head||d.documentElement).appendChild(s);}s.textContent='[data-csa-c-painter=pharmacy-lego-painter] .image>img,#main-content.ap-lego:has(#nav-link-health-ai-mobile) :is(.image.image-size-fit>img,.healthai-storefront-carousel-card img,video),#warblerApplicationRoot div.ssyRqSbd.EwAzg4W1[data-csa-c-slot-id^=warbler-chat-conv-card-] .X5qnxnlL img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}';}catch(_){}})();",factor,factor];
 }
 
 // v7.562: Seller Messaging Assistant route family. The user-supplied viewport archive was
