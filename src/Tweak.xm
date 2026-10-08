@@ -1,4 +1,4 @@
-/* AmazonDark v7.515 */
+/* AmazonDark v7.595 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.593-reviews-business-card-theme"
+#define AD_VERSION "v7.595-buyagain-discover-comparison-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2572,7 +2572,7 @@ static NSString *ADNewMenusJS7482(void){
     base=[base stringByAppendingString:ADPDPFollowupMediaJS7573()];
     base=[base stringByAppendingString:ADCapturedMediaJS7574()];
     base=[base stringByAppendingString:ADDealsPriceHistoryFollowupJS7574()];
-    // v7.593: inlined here so the established isolated gnu++98 ADNewMenus preflight
+    // v7.595: inlined here so the established isolated gnu++98 ADNewMenus preflight
     // compiles the real new include and not a missing separately extracted helper.
     NSString *reviewBusiness=[NSString stringWithUTF8String:
 #include "ADReviewBusiness7593.js.inc"
@@ -2582,6 +2582,12 @@ static NSString *ADNewMenusJS7482(void){
     reviewBusiness=[reviewBusiness stringByReplacingOccurrencesOfString:@"__AD7593_FACTOR__" withString:[NSString stringWithFormat:@"%.3f",ad7593Factor]];
     reviewBusiness=[reviewBusiness stringByReplacingOccurrencesOfString:@"__AD7593_ENABLED__" withString:(gP.whiteTame?@"true":@"false")];
     base=[base stringByAppendingString:reviewBusiness];
+    NSString *menu595=[NSString stringWithUTF8String:
+#include "ADMenuFollowup7595.js.inc"
+    ];
+    menu595=[menu595 stringByReplacingOccurrencesOfString:@"__AD7595_FACTOR__" withString:[NSString stringWithFormat:@"%.3f",ad7593Factor]];
+    menu595=[menu595 stringByReplacingOccurrencesOfString:@"__AD7595_ENABLED__" withString:(gP.whiteTame?@"true":@"false")];
+    base=[base stringByAppendingString:menu595];
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
 
@@ -6257,7 +6263,7 @@ static void ADPersonOwnOrderResultsSearch7591(UIView *host){
 static BOOL ADPersonOrderSearchCompactHost7589(UIView *host){
     if(!gP.enabled||!host||!host.window||!ADInPersonTab7206(host)||!ADClassNameIs7183(host,"RCTView"))return NO;
     @try {
-        // v7.593 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
+        // v7.595 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
         // Its direct children are exactly one 20x20 RCTImageView magnifier and one
         // RNCEKVTextInputFocusWrapper. Keep this independent from the old 360x50 owner.
         CGFloat w=host.bounds.size.width,h=host.bounds.size.height;
@@ -12267,6 +12273,7 @@ static int ADAlexaSuggestionImageIndex7285(UIImageView *iv,BOOL discover){
         return (int)pos;
     } @catch(...) { return -1; }
 }
+
 static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
     int idx=ADAlexaSuggestionImageIndex7285(iv,discover); if(idx<0)return;
     @try {
@@ -12282,6 +12289,26 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
         ADEnsureNativeTWBOverlay7270(iv);
         ADLayoutImageOverlays7226(iv);
     } @catch(...) {}
+}
+
+static BOOL ADReviewGalleryTameImage7594(UIImageView *iv){
+    if(!iv||!gP.enabled||!gP.whiteTame||!iv.window||!iv.image||!ADClassNameIs7183(iv,"RCTUIImageViewAnimated"))return NO;
+    @try {
+        BOOL main=NO,thumb=NO;
+        for(UIView *n=(UIView *)iv;n&&n!=iv.window;n=n.superview){
+            NSString *aid=n.accessibilityIdentifier?:@"";
+            if([aid isEqualToString:@"FollowAvatarImage"])return NO;
+            if([aid isEqualToString:@"image-viewer"]||[aid isEqualToString:@"zoomable-view-content-container"]||[aid isEqualToString:@"zoomable-view-single-tap-container"])main=YES;
+            if([aid isEqualToString:@"MoreVideosButtonTopThumbnail"]||[aid isEqualToString:@"MoreVideosButtonBottomThumbnail"])thumb=YES;
+            if(main)break;
+        }
+        if(!main&&!thumb)return NO;
+        objc_setAssociatedObject(iv,kADTWBEligibilityImage,iv.image,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(iv,kADTWBEligibility,@NO,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADEnsureNativeTWBOverlay7270(iv);
+        ADLayoutImageOverlays7226(iv);
+        return YES;
+    } @catch(...) { return NO; }
 }
 
 %hook RCTUIImageViewAnimated
@@ -12303,6 +12330,7 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
     ADPermissionOwnImage7408((UIImageView *)self);
     ADPDPApplyThumbnailTWB7588((UIImageView *)self);
     ADShopShowApplyImage7590((UIImageView *)self);
+    ADReviewGalleryTameImage7594((UIImageView *)self);
 }
 - (void)didMoveToSuperview {
     objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -12319,6 +12347,7 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
         ADPermissionOwnImage7408((UIImageView *)self);
         ADPDPApplyThumbnailTWB7588((UIImageView *)self);
     ADShopShowApplyImage7590((UIImageView *)self);
+    ADReviewGalleryTameImage7594((UIImageView *)self);
     }
 }
 - (void)didMoveToWindow {
@@ -12332,6 +12361,7 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
         ADPermissionOwnImage7408((UIImageView *)self);
         ADPDPApplyThumbnailTWB7588((UIImageView *)self);
     ADShopShowApplyImage7590((UIImageView *)self);
+    ADReviewGalleryTameImage7594((UIImageView *)self);
     } else {
         objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -12351,6 +12381,7 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
     ADPermissionOwnImage7408((UIImageView *)self);
     ADPDPApplyThumbnailTWB7588((UIImageView *)self);
     ADShopShowApplyImage7590((UIImageView *)self);
+    ADReviewGalleryTameImage7594((UIImageView *)self);
 }
 %end
 

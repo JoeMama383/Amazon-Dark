@@ -59,4 +59,4 @@ assert prop('apply','border')=='1px solid #747a7c'
 assert prop('label','color')=='#fff'
 assert prop('link','-webkit-text-fill-color')=='currentColor'
 assert prop('artwork','filter')=='brightness(0.710)'
-print('PASS: v7.593 reviews semantic histogram/CTA/images and standalone guarded Prime Business Card colors')
+print('PASS: v7.594 reviews semantic histogram/CTA/images and standalone guarded Prime Business Card colors')
