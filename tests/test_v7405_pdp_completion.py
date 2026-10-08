@@ -45,7 +45,7 @@ for token in ('#horizontalMediaCarousel','img.a-amazon-image','#aplus_feature_di
 assert 'brightness(%.3f)' in twb
 # Core integration retains the existing programs and v7.439 completion while v7.454 adds main-residual + frame-owner triggers with no recurring machinery.
 core=S.split('static NSString *ADCoreWebJS7271(void){',1)[1].split('static WKUserScript *ADSharedUserScript7387',1)[0]
-assert '@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@"' in core  # v7.454 appends two event-driven programs, for 17 total
+assert '@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@"' in core  # v7.596 emits all 18 supplied modules, including address management
 assert 'ADProductScrollVideoBorderJS7405()' in core and 'ADPDPCompletionJS7405()' in core and 'ADPDPSafeFrameJS7432()' in core and 'ADPDPCompletionTWBJS7405()' in core and 'ADPDPUICompletionJS7439()' in core and 'ADPDPMainResidualJS7440()' in core and 'ADFrameOwnerTriggerJS7440()' in core
 for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener('scroll'"):
     assert bad not in video_border and bad not in block and bad not in twb, bad

@@ -1,3 +1,9 @@
+# AmazonDark v7.596~performance-probe-runtime-audit
+
+Based on v7.595. Adds a bounded, opt-in performance recorder, removes redundant native/Web work, corrects preference-dependent script caching and restores a dropped address theme module. Themes the probe-captured order-confirmation page with OLED floors, neutral buttons, preserved semantic colors and preference-controlled artwork dimming.
+
+See DIFF-v7.596.md for changes and recorder limits, VALIDATION-v7.596.md for verification, and COMMANDS.md for push and separate probe commands. This is a source handoff; CI/device build and on-phone measurements remain required.
+
 # AmazonDark v7.592~probe-backed-ui-completion
 
 Built from the supplied v7.591 source. Completes the captured medical/authentication, coupon, thumbnail, review and Shop the Show owners while retaining v7.591's recovered Person/Home image behavior and universal FULL dispatcher.

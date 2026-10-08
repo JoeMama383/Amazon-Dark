@@ -70,6 +70,8 @@
 " if(/Prime\\s*Business\\s*Card/i.test(seen)&&/(Amazon\\s*Gift\\s*Card|upon\\s*approval|annual\\s*credit\\s*card\\s*fee)/i.test((d.body.textContent||'').slice(0,11000))){d.documentElement.setAttribute('data-ad7593-business-card','1');ad7593BusinessNeutralPass();}\n"
 "}catch(_){}}\n"
 "ad7593BusinessOwner();\n"
+"if(!d.__ad7596BusinessEvents){d.__ad7596BusinessEvents=true;\n"
 "if(d.addEventListener)d.addEventListener('DOMContentLoaded',ad7593BusinessOwner,{once:true});\n"
 "if(window.addEventListener){window.addEventListener('load',ad7593BusinessOwner,{once:true});window.addEventListener('pageshow',ad7593BusinessOwner,{once:true});}\n"
+"}\n"
 "}catch(_){}})();\n"

@@ -42,7 +42,7 @@ assert paint('divider','background','after')=='#000'
 start=js.index('function ad7585WarblerShadow()')
 end=js.index('/*',js.index("window.customElements.whenDefined(tag).then(ad7591MedicalShadowPass);",start)) if '/*' in js[js.index("window.customElements.whenDefined(tag).then(ad7591MedicalShadowPass);",start):] else len(js)
 # Extract only the shadow delivery group, excluding the payload's outer closure.
-end=js.index("catch(_){}",js.index("window.customElements.whenDefined(tag).then(ad7591MedicalShadowPass);",start))+len("catch(_){}")
+end=js.index("// Interests uses the accepted rules",start) # include the idempotent listener installation guard
 program=r'''
 const assert=require('assert'); let ready=false, callbacks={}, events={}, styles=[];
 const shadow={querySelector(s){return styles.find(x=>'#'+x.id===s)||null},appendChild(x){styles.push(x)}};
