@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.592-probe-backed-ui-completion"
+#define AD_VERSION "v7.593-reviews-business-card-theme"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2572,6 +2572,16 @@ static NSString *ADNewMenusJS7482(void){
     base=[base stringByAppendingString:ADPDPFollowupMediaJS7573()];
     base=[base stringByAppendingString:ADCapturedMediaJS7574()];
     base=[base stringByAppendingString:ADDealsPriceHistoryFollowupJS7574()];
+    // v7.593: inlined here so the established isolated gnu++98 ADNewMenus preflight
+    // compiles the real new include and not a missing separately extracted helper.
+    NSString *reviewBusiness=[NSString stringWithUTF8String:
+#include "ADReviewBusiness7593.js.inc"
+    ];
+    CGFloat ad7593Strength=((CGFloat)MAX(0,MIN(100,gP.whiteTameStrength)))/100.0;
+    CGFloat ad7593Factor=1.0-(0.10+0.48*ad7593Strength);
+    reviewBusiness=[reviewBusiness stringByReplacingOccurrencesOfString:@"__AD7593_FACTOR__" withString:[NSString stringWithFormat:@"%.3f",ad7593Factor]];
+    reviewBusiness=[reviewBusiness stringByReplacingOccurrencesOfString:@"__AD7593_ENABLED__" withString:(gP.whiteTame?@"true":@"false")];
+    base=[base stringByAppendingString:reviewBusiness];
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
 
@@ -6247,7 +6257,7 @@ static void ADPersonOwnOrderResultsSearch7591(UIView *host){
 static BOOL ADPersonOrderSearchCompactHost7589(UIView *host){
     if(!gP.enabled||!host||!host.window||!ADInPersonTab7206(host)||!ADClassNameIs7183(host,"RCTView"))return NO;
     @try {
-        // v7.592 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
+        // v7.593 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
         // Its direct children are exactly one 20x20 RCTImageView magnifier and one
         // RNCEKVTextInputFocusWrapper. Keep this independent from the old 360x50 owner.
         CGFloat w=host.bounds.size.width,h=host.bounds.size.height;

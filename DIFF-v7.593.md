@@ -1,0 +1,8 @@
+# AmazonDark v7.593 — incremental changes over v7.592
+
+- **Customer Reviews (probe-confirmed DOM):** On standalone `#mobile-product-reviews` and in-product `#cruise-customer-reviews`, neutral headings/body/title text are white, secondary text is readable gray; blue links, orange star ratings and histogram fill remain authored.
+- **Histogram:** `#histogramTable .a-meter` white remainder recolored medium gray; `.a-meter-bar` orange preserved; no geometry or duplicated border work.
+- **Review buttons:** exact `.writeReviewButton` and search/helpful controls are OLED, white text, and standard gray borders; review photo carousel/raster media tamed at the adjustable global white-tame strength.
+- **Prime Business Card (screenshot-backed, no exact probe owner yet):** Standalone page recognition requires `Prime Business Card` plus the card's own gift/approval/fees wording, and excludes PDP, checkout, and cart. Page-specific neutral surfaces become OLED, neutral black text white, buttons OLED with gray border, neutral SVG glyphs white. Existing blue/orange branded surfaces, text links, card branding, and ratings are preserved. A finite one-time neutral-paint check handles **opaque near-white** panel owners while leaving transparent overlays and saturated blue/orange brand backgrounds authored; no recurring observer or timer. Raster imagery uses current adjustable tame strength.
+- **No FULL probe dispatcher change:** v7.592 FULL native/React/WebKit scanner and TAR export remain intact. Both captured v7.592 FULL TARs show `COVERAGE state=partial` (`cancelled-or-web-error`); no completed-scan claim.
+- Version bumped to 7.593 with FULL / VIEWPORT / TRANSITION identities synchronized. Added `src/ADReviewBusiness7593.js.inc` and a real CSS-selector regression.
