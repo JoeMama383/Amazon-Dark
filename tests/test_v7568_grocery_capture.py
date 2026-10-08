@@ -47,7 +47,7 @@ const root=el('root');root.tagName='HTML';root.scrollHeight=900;root.scrollTop=0
 global.window={innerWidth:400,innerHeight:800,scrollY:0};global.document={documentElement:root,body:root,scrollingElement:root,elementsFromPoint:()=>[root],getElementById:()=>null};global.getComputedStyle=()=>style;
 const result=JSON.parse(eval(SOURCE));if(!result.nodes.some(n=>n.attrs.id==='button0'))throw Error('grid-only regression');if(result.nodes.length>1800||!result.counts.truncated)throw Error('unbounded or silent truncation');
 '''.replace('SOURCE',json.dumps(js))
-result=subprocess.run(['node','-e',harness],capture_output=True,text=True)
+result=subprocess.run(['node','-'],input=harness,capture_output=True,text=True)
 assert result.returncode==0,result.stderr
 U=(R/'src/ADUniversalUIProbe7362.inc').read_text()
 assert 'TRIGGER_REJECTED reason=capture-already-running' not in U

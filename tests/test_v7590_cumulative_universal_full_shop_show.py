@@ -22,7 +22,7 @@ for token in [
 for token in [
     'pui-bottom-sheet#links-bottomsheet',
     'pui-bottom-sheet#glowModal',
-    'a#mobile-kyanite-logo{filter:brightness(0) invert(1)!important',
+    'a#mobile-kyanite-logo{filter:none!important',
     'body:has(#verification-code-form) :is(#cvf-page-content>.a-row:first-child',
 ]: assert token in N, token
 

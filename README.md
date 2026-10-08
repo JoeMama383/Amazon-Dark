@@ -1,3 +1,9 @@
+# AmazonDark v7.592~probe-backed-ui-completion
+
+Built from the supplied v7.591 source. Completes the captured medical/authentication, coupon, thumbnail, review and Shop the Show owners while retaining v7.591's recovered Person/Home image behavior and universal FULL dispatcher.
+
+FULL now gets bounded background finalization time. A current unfinished capture can also export as explicitly partial evidence; that does not certify complete coverage. See DIFF-v7.592.md, VALIDATION-v7.592.md and COMMANDS.md for the audit, validation limits and phone push/probe commands.
+
 # AmazonDark v7.567~health-raster-map-details
 
 Based on origin/main 16df804e (v7.566). The Health AI banner remains exempt from the taming overlay. Its raster conversion now removes pale translucent edge pixels that previously escaped the alpha threshold, and raises dark cyan title pixels to readable cyan while preserving channel ratios and already-bright glyph colors. This is a raster contrast correction, not another dimming overlay.

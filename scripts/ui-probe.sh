@@ -1,11 +1,11 @@
 #!/bin/sh
-# AmazonDark v7.591 universal UI probe helper.
+# AmazonDark v7.592 universal UI probe helper.
 # FULL: screenshot-triggered while Amazon stays foregrounded.
 # VIEWPORT: arm once, show the target in Amazon, then background Amazon once.
 # The app captures the last foreground scene at WillResignActive; export runs afterward.
 # FULL, VIEWPORT, and TRANSITION all export one current capture as plain .tar.
 set -eu
-VER=7.591
+VER=7.592
 CUR=${VER#7.}
 NAME=AmazonDark-v$VER
 ROOT=${AD_UI_ROOT:-/var/mobile}
@@ -50,7 +50,7 @@ make_tar(){
 
 find_capture(){
   mode=$1
-  BEST_TS=0; BEST_FILE=""; BEST_STATE=""; BEST_DIR=""
+  BEST_TS=0; BEST_FILE=""; BEST_STATE=""; BEST_DIR=""; SOURCE_STATE=""; TERMINAL=0
   now=$(date +%s)
   while IFS= read -r d; do
     state="$d/$NAME-ui-$mode.state"
@@ -66,9 +66,18 @@ find_capture(){
   [ "$BEST_TS" -gt 0 ] 2>/dev/null || return 2
   age=$((now-BEST_TS))
   [ "$age" -ge -5 ] || return 3
-  case "$BEST_STATE" in completed|partial) ;; *) return 4;; esac
+  SOURCE_STATE=$BEST_STATE
   [ -f "$BEST_FILE" ] || return 5
-  grep -q '================ END RUN ================' "$BEST_FILE" 2>/dev/null || return 4
+  if grep -q '================ END RUN ================' "$BEST_FILE" 2>/dev/null; then TERMINAL=1; fi
+  case "$BEST_STATE" in
+    completed|partial) [ "$TERMINAL" = 1 ] || { [ "$mode" = full ] || return 4; BEST_STATE=partial; };;
+    started)
+      [ "$mode" = full ] || return 4
+      # Export an immutable copy of THIS receipt's evidence, never an older run.
+      # A stopped scroll is not proof of completed DOM/native/frame coverage.
+      BEST_STATE=partial;;
+    *) return 4;;
+  esac
   return 0
 }
 
@@ -125,12 +134,16 @@ case "${1:-}" in
     stage=$(mktemp -d)
     trap 'rm -f "$TARGETS"; rm -rf "$stage"' EXIT HUP INT TERM
     cp "$BEST_FILE" "$stage/"
+    if [ "$SOURCE_STATE" = started ] || [ "$TERMINAL" = 0 ]; then
+      printf 'Capture has no committed completion receipt; exporting available evidence as partial. Full coverage is not certified.\n' >&2
+    fi
     {
       printf 'AmazonDark v%s universal UI probe\n' "$VER"
       printf 'mode=%s\n' "$mode"
       printf 'source=%s\n' "${BEST_FILE##*/}"
       printf 'state=%s\n' "$BEST_STATE"
-      printf 'finished_epoch=%s\n' "$BEST_TS"
+      printf 'receipt_epoch=%s\n' "$BEST_TS"
+      printf 'source_state=%s\nterminal_marker=%s\n' "$SOURCE_STATE" "$TERMINAL"
       printf 'archive=plain-tar\n'
       printf 'exported_utc='; date -u '+%Y-%m-%dT%H:%M:%SZ'
     } > "$stage/manifest.txt"

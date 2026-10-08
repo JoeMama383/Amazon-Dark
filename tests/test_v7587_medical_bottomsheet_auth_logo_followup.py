@@ -51,7 +51,7 @@ def paint(node_id, prop, pseudo=None):
 assert paint('pui-bottom-sheet-modal', 'background') == '#000'
 assert paint('bottom-sheet-modal-content', 'background') == '#000'
 assert paint('glowModal', 'background') == '#000'
-assert paint('mobile-kyanite-logo', 'filter') == 'brightness(0) invert(1)'
+assert paint('mobile-kyanite-logo', 'filter') == 'none' # invert its leaf only, never twice
 assert paint('sheet-text', 'color') == '#fff'
 assert paint('auth-logo-strip', 'background') == '#000'
 assert paint('auth-logo', 'filter') == 'brightness(0) invert(1)'

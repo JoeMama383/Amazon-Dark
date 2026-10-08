@@ -10,7 +10,7 @@ ROOT=Path(__file__).resolve().parents[1]
 inc=(ROOT/'src/ADNewMenus7482.js.inc').read_text()
 js=''.join(json.loads(line) for line in inc.splitlines() if line.strip())
 assert 'function ad7585WarblerShadow()' in js
-assert 'arc-button[data-testid=\\"wfe-sidebar-cid-signin-btn\\"]' in js
+assert 'arc-button[data-testid=wfe-sidebar-cid-signin-btn]' in js
 assert "q.id='ad7585-sidebar-cid-style'" in js
 for bad in ('MutationObserver(', 'setInterval(', 'setTimeout(', 'requestAnimationFrame(', "addEventListener('scroll'"):
     assert bad not in js, bad
@@ -75,8 +75,10 @@ assert paint('picker-link','-webkit-text-fill-color')=='currentColor'
 assert paint('quick','background')=='#303335'
 assert paint('quick','border-color')=='#747a7c'
 assert paint('quick','color')=='#fff'
-assert paint('card','background')=='#000'
-assert paint('image-lane','background')=='#000'
+assert paint('card','background-color')=='#000'
+assert paint('image-lane','background-color')=='#000'
+# A background shorthand here silently deletes the doctor's inline background URL.
+assert paint('image-lane','background') is None
 assert paint('card-title','color')=='#fff'
 assert paint('card-body','color')=='#fff'
 assert paint('card-blue','color') is None
@@ -102,14 +104,14 @@ assert paint('auth-link','-webkit-text-fill-color')=='currentColor'
 
 # Configured white-tame now reaches only the recommendation artwork leaf, not structural/glyph nodes.
 source=(ROOT/'src/Tweak.xm').read_text(); media=block(source,'ADPharmacyMediaJS7563'); fmt=strings(media)
-assert '#warblerApplicationRoot div.ssyRqSbd.EwAzg4W1[data-csa-c-slot-id^=warbler-chat-conv-card-] .X5qnxnlL img' in media
+assert '#warblerApplicationRoot [data-testid=cos-prime-override-card-li] .X5qnxnlL' in media
 emitted=fmt%(.684,.684)
 rules=emitted.split("s.textContent='",1)[1].split("';",1)[0]
 mm=cssselect2.Matcher()
 for rule in tinycss2.parse_stylesheet(rules,skip_comments=True,skip_whitespace=True):
     if rule.type!='qualified-rule': continue
     for sel in cssselect2.compile_selector_list(tinycss2.serialize(rule.prelude)): mm.add_selector(sel,True)
-art=html.fromstring('''<div id="warblerApplicationRoot"><div class="ssyRqSbd EwAzg4W1" data-csa-c-slot-id="warbler-chat-conv-card-1"><div class="X5qnxnlL"><img id="art"/></div><svg><path id="glyph"/></svg></div></div>''')
+art=html.fromstring('''<div id="warblerApplicationRoot"><li data-testid="cos-prime-override-card-li"><div class="ssyRqSbd EwAzg4W1" data-csa-c-slot-id="warbler-chat-conv-card-1"><div class="X5qnxnlL" id="art" style="background-image:url(doctor.png)"></div><svg><path id="glyph"/></svg></div></li><li><div class="X5qnxnlL"><img id="illustration"/></div></li></div>''')
 matched={e.etree_element.get('id') for e in cssselect2.ElementWrapper.from_html_root(art).iter_subtree() if e.etree_element.get('id') and mm.match(e)}
 assert matched=={'art'},matched
 

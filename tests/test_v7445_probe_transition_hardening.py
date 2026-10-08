@@ -76,6 +76,6 @@ with tempfile.TemporaryDirectory(prefix='ad-v7447-ui-') as t:
     assert set(shared.glob('*.tar'))==before
     run('export',ok=False)
     (docs/'AmazonDark-v7.460-ui-full.state').write_text(f'started {now} {full}\n')
-    assert 'still running or incomplete' in run('export','full',ok=False)
+    assert 'exactly one partial' in run('export','full')
 
 print('PASS: v7.454 freezes armed VIEWPORT at background, uses TAR for all probe exports, preserves bounded FULL, and retains the scale-normalized transition fix')

@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.591-regression-recovery-medical-search"
+#define AD_VERSION "v7.592-probe-backed-ui-completion"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2513,7 +2513,9 @@ static NSString *ADStoreMapMediaJS7566(void){
 
 static NSString *ADPharmacyMediaJS7563(void){
     CGFloat factor=gP.whiteTame?(1.0-(0.10+0.48*MAX(0,MIN(100,gP.whiteTameStrength))/100.0)):1.0;
-    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7563-pharmacy-media');if(!s){s=d.createElement('style');s.id='ad7563-pharmacy-media';(d.head||d.documentElement).appendChild(s);}s.textContent='[data-csa-c-painter=pharmacy-lego-painter] .image>img,#main-content.ap-lego:has(#nav-link-health-ai-mobile) :is(.image.image-size-fit>img,.healthai-storefront-carousel-card img,video),#warblerApplicationRoot div.ssyRqSbd.EwAzg4W1[data-csa-c-slot-id^=warbler-chat-conv-card-] .X5qnxnlL img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}';}catch(_){}})();",factor,factor];
+    // The doctor is a background image on the prime card's media lane. The other
+    // lanes contain small illustration glyphs, not photographs: do not dim them.
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7563-pharmacy-media');if(!s){s=d.createElement('style');s.id='ad7563-pharmacy-media';(d.head||d.documentElement).appendChild(s);}s.textContent='[data-csa-c-painter=pharmacy-lego-painter] .image>img,#main-content.ap-lego:has(#nav-link-health-ai-mobile) :is(.image.image-size-fit>img,.healthai-storefront-carousel-card img,video),#warblerApplicationRoot [data-testid=cos-prime-override-card-li] .X5qnxnlL{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}';}catch(_){}})();",factor,factor];
 }
 
 // v7.562: Seller Messaging Assistant route family. The user-supplied viewport archive was
@@ -4270,7 +4272,12 @@ static BOOL ADShopShowScope7590(UIView *v){
            (ADShopShowAid7590(v,@"home-page-banner",nil,18)||ADShopShowAid7590(v,@"keep-shopping-the-shows",nil,18));
 }
 static BOOL ADShopShowProductFloor7590(UIView *v,UIColor *candidate){
-    if(!gP.enabled||!v||!ADClassNameIs7183(v,"RCTView")||!ADShopShowScope7590(v)||!ADNeutralNearWhite7255(candidate))return NO;
+    if(!gP.enabled||!v||!ADClassNameIs7183(v,"RCTView")||!ADShopShowScope7590(v))return NO;
+    NSString *aid=v.accessibilityIdentifier?:@"";
+    BOOL shell=[aid isEqualToString:@"home-page-banner"]||[aid isEqualToString:@"keep-shopping-the-shows"]||
+               [aid isEqualToString:@"mosaic-content-card-asin-body"]||[aid hasPrefix:@"mosaic-content-card_"]||[aid hasPrefix:@"keep-shopping-item-"];
+    if(shell&&(ADDarkNeutral7259(candidate,NO)||ADNeutralNearWhite7255(candidate)))return YES;
+    if(!ADNeutralNearWhite7255(candidate))return NO;
     if(ADShopShowAid7590(v,nil,@"product-container-",10)||ADShopShowAid7590(v,nil,@"product-image-view-",10)||ADShopShowAid7590(v,nil,@"product-image-",10))return YES;
     if(ADShopShowAid7590(v,nil,@"keep-shopping-product-button-",10))return YES;
     return NO;
@@ -6240,7 +6247,7 @@ static void ADPersonOwnOrderResultsSearch7591(UIView *host){
 static BOOL ADPersonOrderSearchCompactHost7589(UIView *host){
     if(!gP.enabled||!host||!host.window||!ADInPersonTab7206(host)||!ADClassNameIs7183(host,"RCTView"))return NO;
     @try {
-        // v7.591 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
+        // v7.592 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
         // Its direct children are exactly one 20x20 RCTImageView magnifier and one
         // RNCEKVTextInputFocusWrapper. Keep this independent from the old 360x50 owner.
         CGFloat w=host.bounds.size.width,h=host.bounds.size.height;
@@ -10870,6 +10877,22 @@ static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
 }
 %end
 
+// Captured native CVF title bar; do not mark it as checkout or alter other bars.
+static BOOL ADVerificationNav7592(UINavigationBar *bar){
+    return gP.enabled&&[bar.topItem.title isEqualToString:@"Authentication required"];
+}
+static void ADOwnVerificationNav7592(UINavigationBar *bar){
+    if(!ADVerificationNav7592(bar))return;
+    @try {
+        ADSetViewBackground7226(bar,ADOLED(),YES);
+        bar.barTintColor=ADOLED();bar.tintColor=[UIColor whiteColor];
+        bar.standardAppearance=ADOLEDCheckoutAppearance7375(bar.standardAppearance);
+        bar.scrollEdgeAppearance=ADOLEDCheckoutAppearance7375(bar.scrollEdgeAppearance?:bar.standardAppearance);
+        bar.compactAppearance=ADOLEDCheckoutAppearance7375(bar.compactAppearance?:bar.standardAppearance);
+        bar.compactScrollEdgeAppearance=ADOLEDCheckoutAppearance7375(bar.compactScrollEdgeAppearance?:bar.compactAppearance);
+    } @catch(...) {}
+}
+
 %hook UINavigationBar
 - (void)willMoveToWindow:(UIWindow *)newWindow {
     BOOL checkout=gP.enabled&&newWindow&&ADCheckoutNavActive7375(self);
@@ -10878,6 +10901,7 @@ static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
 }
 - (void)didMoveToWindow {
     %orig;
+    ADOwnVerificationNav7592(self);
     if(ADCheckoutNavActive7375(self)){
         ADMarkCheckoutNav7375(self); ADCheckoutNavAppearances7375(self);
         for(UIView *v in self.subviews)if([NSStringFromClass(v.class) isEqualToString:@"_UIBarBackground"]){ADOwnCheckoutNav7369((_UIBarBackground *)v);break;}
@@ -10890,12 +10914,14 @@ static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
     }
     if(checkout){ ADMarkCheckoutNav7375(self); ADCheckoutNavAppearances7375(self); }
     %orig(items,animated);
+    ADOwnVerificationNav7592(self);
 }
 - (void)pushNavigationItem:(UINavigationItem *)item animated:(BOOL)animated {
     BOOL checkout=ADCheckoutNavMarked7375(self);
     @try { if(!checkout&&item.title.length)checkout=[item.title rangeOfString:@"Place Your Order" options:NSCaseInsensitiveSearch].location!=NSNotFound; } @catch(...) {}
     if(checkout){ ADMarkCheckoutNav7375(self); ADCheckoutNavAppearances7375(self); }
     %orig(item,animated);
+    ADOwnVerificationNav7592(self);
 }
 - (void)setTintColor:(UIColor *)color {
     if(gP.enabled&&ADCheckoutNavMarked7375(self)){
@@ -10906,6 +10932,11 @@ static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
     %orig(color);
 }
 - (void)setStandardAppearance:(UINavigationBarAppearance *)appearance {
+    if(ADVerificationNav7592(self)){
+        UINavigationBarAppearance *owned=ADOLEDCheckoutAppearance7375(appearance);
+        %orig(owned);
+        return;
+    }
     if(gADCheckoutAppearanceWrite7375){
         %orig(appearance);
         return;
@@ -10918,6 +10949,11 @@ static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
     %orig(appearance);
 }
 - (void)setScrollEdgeAppearance:(UINavigationBarAppearance *)appearance {
+    if(ADVerificationNav7592(self)){
+        UINavigationBarAppearance *owned=ADOLEDCheckoutAppearance7375(appearance?:self.standardAppearance);
+        %orig(owned);
+        return;
+    }
     if(gADCheckoutAppearanceWrite7375){
         %orig(appearance);
         return;
@@ -10931,6 +10967,11 @@ static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
     %orig(appearance);
 }
 - (void)setCompactAppearance:(UINavigationBarAppearance *)appearance {
+    if(ADVerificationNav7592(self)){
+        UINavigationBarAppearance *owned=ADOLEDCheckoutAppearance7375(appearance?:self.standardAppearance);
+        %orig(owned);
+        return;
+    }
     if(gADCheckoutAppearanceWrite7375){
         %orig(appearance);
         return;
@@ -10944,6 +10985,11 @@ static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
     %orig(appearance);
 }
 - (void)setCompactScrollEdgeAppearance:(UINavigationBarAppearance *)appearance {
+    if(ADVerificationNav7592(self)){
+        UINavigationBarAppearance *owned=ADOLEDCheckoutAppearance7375(appearance?:self.compactAppearance?:self.standardAppearance);
+        %orig(owned);
+        return;
+    }
     if(gADCheckoutAppearanceWrite7375){
         %orig(appearance);
         return;
@@ -11616,6 +11662,7 @@ static void ADEnsureNativeTWBOverlay7270(UIImageView *iv){
     } @catch(...) {}
 }
 static const void *kADShopShowOriginalMode7590=&kADShopShowOriginalMode7590;
+static const void *kADShopShowOriginalClip7592=&kADShopShowOriginalClip7592;
 static int ADShopShowImageKind7590(UIImageView *iv){
     if(!iv||!iv.window||!iv.image||!ADShopShowScope7590(iv))return 0;
     @try {
@@ -11630,9 +11677,22 @@ static int ADShopShowImageKind7590(UIImageView *iv){
 static void ADShopShowApplyImage7590(UIImageView *iv){
     if(!iv)return;
     @try {
-        int kind=ADShopShowImageKind7590(iv);NSNumber *old=objc_getAssociatedObject(iv,kADShopShowOriginalMode7590);
-        if(!kind){ if(old){ iv.contentMode=(UIViewContentMode)old.integerValue;objc_setAssociatedObject(iv,kADShopShowOriginalMode7590,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } return; }
-        if(kind==2){ if(!old)objc_setAssociatedObject(iv,kADShopShowOriginalMode7590,@(iv.contentMode),OBJC_ASSOCIATION_RETAIN_NONATOMIC);iv.contentMode=UIViewContentModeScaleAspectFill;iv.clipsToBounds=YES; }
+        int kind=gP.enabled?ADShopShowImageKind7590(iv):0;NSNumber *old=objc_getAssociatedObject(iv,kADShopShowOriginalMode7590);
+        if(kind!=2&&old){
+            iv.contentMode=(UIViewContentMode)old.integerValue;
+            NSNumber *clip=objc_getAssociatedObject(iv,kADShopShowOriginalClip7592);
+            if(clip)iv.clipsToBounds=clip.boolValue;
+            objc_setAssociatedObject(iv,kADShopShowOriginalMode7590,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADShopShowOriginalClip7592,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        if(!kind)return;
+        if(kind==2){
+            if(!old){
+                objc_setAssociatedObject(iv,kADShopShowOriginalMode7590,@(iv.contentMode),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(iv,kADShopShowOriginalClip7592,@(iv.clipsToBounds),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }
+            iv.contentMode=UIViewContentModeScaleAspectFill;iv.clipsToBounds=YES;
+        }
         if(gP.enabled&&gP.whiteTame&&iv.window)ADEnsureNativeTWBOverlay7270(iv);
     } @catch(...) {}
 }
@@ -11642,7 +11702,8 @@ static BOOL ADPDPThumbnailImage7588(UIImageView *iv){
     @try {
         BOOL sawThumb=NO,sawSNP=NO;
         UIView *n=iv;
-        for(int d=0;n&&d<10;d++,n=n.superview){
+        // Captured leaf reaches SNPRootView at depth 10 (the old <10 missed it).
+        for(int d=0;n&&d<12;d++,n=n.superview){
             NSString *aid=n.accessibilityIdentifier?:@"";
             if(!sawThumb&&[aid isEqualToString:@"thumbnails-view"])sawThumb=YES;
             if(!sawSNP&&ADClassNameIs7183(n,"SNPRootView"))sawSNP=YES;

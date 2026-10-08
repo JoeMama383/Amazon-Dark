@@ -29,5 +29,5 @@ function run(supported){
  assert.equal(d.adoptedStyleSheets[0],sheet);
  vm.runInContext(code,c);assert.equal(d.adoptedStyleSheets.length,1);assert.equal(d.adoptedStyleSheets[0],sheet);
 }run(true);run(false);'''.replace('SOURCE',json.dumps(js))
-cp=subprocess.run(['node','-e',harness],capture_output=True,text=True);assert cp.returncode==0,cp.stderr
+cp=subprocess.run(['node','-'],input=harness,capture_output=True,text=True);assert cp.returncode==0,cp.stderr
 print('PASS: exact App Settings owner/text X restored; Interests survives head replacement, early header hydration and repeat delivery')

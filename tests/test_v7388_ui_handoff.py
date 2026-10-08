@@ -70,7 +70,21 @@ with tempfile.TemporaryDirectory(prefix='ad-ui-handoff-') as td:
         assert viewport.name in names and full.name not in names and 'manifest.txt' in names
 
     (amazon/(name+'-ui-full.state')).write_text(f'started {now} {partial.name}\n')
-    assert 'still running or incomplete' in run('export','full',ok=False)
+    assert 'exactly one partial' in run('export','full')
+    with tarfile.open(shared/(partial.stem+'.tar')) as z:
+        manifest=z.extractfile('./manifest.txt').read().decode()
+        assert 'state=partial' in manifest and 'source_state=started' in manifest and 'terminal_marker=0' in manifest
+        assert z.extractfile('./'+partial.name).read()==b'INCOMPLETE\n'
+        assert not any(n.endswith(full.name) for n in z.getnames())
+    # A finished body with a stale started receipt remains honestly partial.
+    partial.write_text('COMPLETE BODY\n'+terminal)
+    assert 'exactly one partial' in run('export','full')
+    with tarfile.open(shared/(partial.stem+'.tar')) as z:
+        assert 'terminal_marker=1' in z.extractfile('./manifest.txt').read().decode()
+    # Export never writes a false terminal marker/state back into the live capture.
+    assert (amazon/(name+'-ui-full.state')).read_text().startswith('started ')
+    partial.unlink()
+    assert 'file is missing' in run('export','full',ok=False)
 
 helper=HELPER.read_text()
 assert 'kill -USR2' not in helper and 'find_pid' not in helper
