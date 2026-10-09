@@ -1,3 +1,7 @@
+# AmazonDark v7.614~ci-regression-repair
+
+CI/probe-version synchronization of v7.613; retains its UI patches and the earlier 7.605–7.612 iterations. See `COMMANDS.md`, `DIFF-v7.614.md` and `VALIDATION-v7.614.md`.
+
 # AmazonDark v7.611~your-saves-oled-followup
 
 Builds on the complete v7.610 codebase. Exact WebKit Your Saves/Lists & Registries theming from r8 VIEWPORT: OLED section and card floors, medium gray filter pills retaining blue selected stroke, white neutral product text/prices/buttons/icons, gray dividers, and preference-controlled image taming. A FULL probe diagnostic now explicitly logs interruptions when Amazon goes into the background. No global observers, scans or layout rewrites. See DIFF-v7.611.md, VALIDATION-v7.611.md and COMMANDS.md; device verification remains pending.

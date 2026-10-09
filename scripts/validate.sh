@@ -22,6 +22,7 @@ cur_tag="v${cur_version}-${cur_slug}"
 require_literal(){ grep -Fq "$2" "$1" || { echo "validate: version sync missing '$2' in $1" >&2; exit 1; }; }
 require_literal src/Tweak.xm "#define AD_VERSION \"$cur_tag\""
 require_literal scripts/ui-probe.sh "VER=$cur_version"
+require_literal scripts/performance-probe.sh "VER=$cur_version"
 require_literal scripts/skeleton-probe.sh "AD_PROBE_VERSION=$cur_version"
 require_literal scripts/skeleton-probe.sh "AD_PROBE_NAME=AmazonDark-v$cur_version"
 require_literal src/ADUniversalUIProbe7362.inc "AMAZONDARK v$cur_version UNIVERSAL"

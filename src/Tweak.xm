@@ -1,4 +1,4 @@
-/* AmazonDark v7.613 */
+/* AmazonDark v7.614 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.613-keep-shopping-media"
+#define AD_VERSION "v7.614-ci-regression-repair"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -4088,21 +4088,6 @@ static BOOL ADLiveHasAncestorAid7612(UIView *v,NSString *wanted,NSUInteger maxDe
         }
     } @catch(...) {}
     return NO;
-}
-static BOOL ADInLiveViewer7612(UIView *v){
-    if(!gP.enabled||!v||!v.window)return NO;
-    @try {
-        NSString *aid=v.accessibilityIdentifier?:@"";
-        if([aid isEqualToString:@"broadcast-viewer"]||[aid isEqualToString:@"media-view-tappable-container"]||
-           [aid isEqualToString:@"broadcast-viewer-inner-view-container"]||[aid isEqualToString:@"video-animated-component-wrapper"]||
-           [aid isEqualToString:@"overlay-outer-container"]||[aid isEqualToString:@"overlay-bottom-area"]||
-           [aid isEqualToString:@"creator-container"]||[aid isEqualToString:@"creator-info-follow"]||
-           [aid isEqualToString:@"AnimatedFollowButton"]||[aid isEqualToString:@"IVSPlayer"]||
-           [aid isEqualToString:@"expandable-text-title"]||[aid isEqualToString:@"expandable-text"]||
-           [aid isEqualToString:@"expandable-scrollview"])return YES;
-        return ADLiveHasAncestorAid7612(v,@"broadcast-viewer",12)||ADLiveHasAncestorAid7612(v,@"overlay-outer-container",12)||
-               ADLiveHasAncestorAid7612(v,@"creator-container",12)||ADLiveHasAncestorAid7612(v,@"AnimatedFollowButton",6);
-    } @catch(...) { return NO; }
 }
 static BOOL ADLiveReportSheet7612(UIView *v){
     if(!gP.enabled||!v||!v.window)return NO;
