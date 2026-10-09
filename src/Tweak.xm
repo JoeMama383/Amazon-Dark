@@ -1,4 +1,4 @@
-/* AmazonDark v7.596 */
+/* AmazonDark v7.597 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.596-performance-probe-runtime-audit"
+#define AD_VERSION "v7.597-live-thankyou-completion"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2573,7 +2573,7 @@ static NSString *ADNewMenusJS7482(void){
     base=[base stringByAppendingString:ADPDPFollowupMediaJS7573()];
     base=[base stringByAppendingString:ADCapturedMediaJS7574()];
     base=[base stringByAppendingString:ADDealsPriceHistoryFollowupJS7574()];
-    // v7.596: inlined here so the established isolated gnu++98 ADNewMenus preflight
+    // v7.597: inlined here so the established isolated gnu++98 ADNewMenus preflight
     // compiles the real new include and not a missing separately extracted helper.
     NSString *reviewBusiness=[NSString stringWithUTF8String:
 #include "ADReviewBusiness7593.js.inc"
@@ -2594,6 +2594,11 @@ static NSString *ADNewMenusJS7482(void){
     ;
     order596=[order596 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     base=[base stringByAppendingString:order596];
+    NSString *live597=@""
+#include "ADLiveTheme7597.js.inc"
+    ;
+    live597=[live597 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
+    base=[base stringByAppendingString:live597];
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
 
@@ -6281,7 +6286,7 @@ static void ADPersonOwnOrderResultsSearch7591(UIView *host){
 static BOOL ADPersonOrderSearchCompactHost7589(UIView *host){
     if(!gP.enabled||!host||!host.window||!ADInPersonTab7206(host)||!ADClassNameIs7183(host,"RCTView"))return NO;
     @try {
-        // v7.596 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
+        // v7.597 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
         // Its direct children are exactly one 20x20 RCTImageView magnifier and one
         // RNCEKVTextInputFocusWrapper. Keep this independent from the old 360x50 owner.
         CGFloat w=host.bounds.size.width,h=host.bounds.size.height;
@@ -12580,6 +12585,32 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     }
 }
 
+
+// v7.597 FULL r3: exact native CXI back/search buttons above the Amazon Live WebView.
+static BOOL ADCXINeutralButton7597(UIButton *button){
+    if(!gP.enabled||!button)return NO;
+    NSString *aid=button.accessibilityIdentifier;
+    if(![aid isEqualToString:@"nav_back_button"]&&![aid isEqualToString:@"nav_search_button"])return NO;
+    UIView *p=button.superview;
+    for(unsigned i=0;p&&i<3;i++,p=p.superview)if([p.accessibilityIdentifier isEqualToString:@"cxi_top_nav"])return YES;
+    return NO;
+}
+%hook CXIHighlightableTouchAreaButton
+- (void)setTintColor:(UIColor *)color {
+    if(ADCXINeutralButton7597((UIButton *)self))color=ADLightText706();
+    %orig(color);
+}
+- (void)layoutSubviews {
+    %orig;
+    UIButton *button=(UIButton *)self;
+    if(!ADCXINeutralButton7597(button))return;
+    UIColor *color=ADLightText706();
+    if(![button.tintColor isEqual:color])button.tintColor=color;
+    UIImageView *iv=button.imageView;
+    if(iv.image&&iv.image.renderingMode!=UIImageRenderingModeAlwaysTemplate)iv.image=[iv.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    if(![iv.tintColor isEqual:color])iv.tintColor=color;
+}
+%end
 
 %ctor {
     if(strcmp(__progname,"Amazon")!=0)return;

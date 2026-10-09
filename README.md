@@ -1,3 +1,9 @@
+# AmazonDark v7.597~live-thankyou-completion
+
+Based on v7.596. Completes the probe-captured Amazon Live page and missed checkout music cards, sponsored continuation images and Add to cart backing floors. Search glyphs match placeholder/typed text; native Live back/search glyphs are white. Preserves semantic colors and the existing performance recorder/runtime fixes.
+
+See DIFF-v7.597.md, VALIDATION-v7.597.md and COMMANDS.md. This is a source handoff: CI must build the installable package, and final visual confirmation requires a phone run.
+
 # AmazonDark v7.596~performance-probe-runtime-audit
 
 Based on v7.595. Adds a bounded, opt-in performance recorder, removes redundant native/Web work, corrects preference-dependent script caching and restores a dropped address theme module. Themes the probe-captured order-confirmation page with OLED floors, neutral buttons, preserved semantic colors and preference-controlled artwork dimming.

@@ -1,0 +1,49 @@
+(function(){try{
+var d=document,s=d.getElementById('ad7597-live-and-thankyou');
+if(!s){s=d.createElement('style');s.id='ad7597-live-and-thankyou';(d.head||d.documentElement||d).appendChild(s);}
+var css=`
+/* v7.596 viewport r1/r2: V2 music tiles and sponsored continuation are different owners from V3/p13n. */
+#typ-body-container#typ-body-container :is([class*=_YXN2L_baseTile_],.p13n-sc-sunk-container,.p13n-sc-atc-container,[class*=_sp-typ-mobile-carousel_style_imageContainer__]){background:#000!important;box-shadow:none!important;}
+#typ-body-container#typ-body-container [class*=_YXN2L_baseTileBorder_]{border-color:#494d4d!important;}
+#typ-body-container#typ-body-container :is([class*=_YXN2L_productTitleV2_],[class*=_YXN2L_productTitleV2_] .a-truncate-cut){color:#fff!important;-webkit-text-fill-color:#fff!important;}
+#typ-body-container#typ-body-container :is([class*=_YXN2L_productInsightsMultiFO_],[class*=_YXN2L_displayStarCount_]){color:#b1b5b5!important;-webkit-text-fill-color:#b1b5b5!important;}
+/* The orange expanded-tile backing/border and Featured now strip are deliberately untouched. */
+#typ-body-container#typ-body-container :is(img[class*=_YXN2L_productImage_],img.sp-dynamic-image){filter:brightness(__FACTOR__)!important;-webkit-filter:brightness(__FACTOR__)!important;mix-blend-mode:normal!important;}
+/* FULL r3: Amazon Live page. Paint exact floors, not a blanket descendant background. */
+#live-page-container-mobile#live-page-container-mobile,#live-page-container-mobile#live-page-container-mobile :is(#live-destination-main,#live-destination-main-max-width,#live-destination-header,#live-destination-widget,[class*=sticky-header-wrapper-module__headerWrapper_],[class*=search-header-module__suggestedSearchResults_],[class*=tile--t5OMY],[class*=hasATCEnabled],._1kLEA8TJ0p4w_GirCtDGQi,[class*=asin-item-module__imgContainer_],[class*=product-faceouts-module__seeMoreContainer_],[class*=avatar-module__imageWrapper_],[class*=responsive-image_gradient__],[class*=product-faceouts-module__skeleton_],[class*=lazy-responsive-image-module__skeleton_]){background-color:#000!important;background-image:none!important;box-shadow:none!important;}
+#live-page-container-mobile#live-page-container-mobile [class*=asin-item-module__productAsin_]:not([class*=asin-item-module__deal_]){background-color:#000!important;}
+#live-page-container-mobile#live-page-container-mobile{color:#fff!important;color-scheme:dark!important;}
+#live-page-container-mobile#live-page-container-mobile :is([class*=broadcast-title-module__broadcastTitle_],[class*=broadcast-generic-module__broadcastTitle_],[class*=browse-category-pill-module__title_],[class*=titleAnchor--],[class*=dealPrice--],[class*=netPrice--],[class*=currencySymbolV2--],[class*=fractionalValue--],[class*=period--],[class*=carousel-generic-module__title_]){color:#fff!important;-webkit-text-fill-color:#fff!important;}
+#live-page-container-mobile#live-page-container-mobile [class*=broadcast-generic-module__channelTitleLink_]{color:#b1b5b5!important;-webkit-text-fill-color:#b1b5b5!important;}
+#live-page-container-mobile#live-page-container-mobile :is([class*=carousel-generic-module__baseTitle_],[class*=carousel-generic-module__baseTitle_] span,[class*=featuringText--],[class*=featuringText--] span,[class*=dealPrice--] .srOnly--14Ljj,.vjs-menu-item .vjs-control-text,.vjs-default-button .vjs-control-text){color:#fff!important;-webkit-text-fill-color:#fff!important;}
+#live-page-container-mobile#live-page-container-mobile :is([class*=product-faceouts-module__seeMore_],[class*=product-faceouts-module__seeMore_] span){color:#b1b5b5!important;-webkit-text-fill-color:#b1b5b5!important;}
+#live-page-container-mobile#live-page-container-mobile :is(.widget-container,#live-destination-main,#live-destination-main-max-width,#live-destination-widget,#live-destination-widget>.celwidget){color:#fff!important;}
+/* Search icon and placeholder share the exact same neutral; typed text stays white. */
+#live-page-container-mobile#live-page-container-mobile [class*=search-header-module__searchBarWrapper_]{background:#303335!important;border:1px solid #747a7c!important;box-shadow:none!important;color:#b1b5b5!important;}
+#live-page-container-mobile#live-page-container-mobile #amazon-live-search{background:transparent!important;background-image:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;box-shadow:none!important;border-color:transparent!important;}
+#live-page-container-mobile#live-page-container-mobile #amazon-live-search::placeholder{color:#b1b5b5!important;-webkit-text-fill-color:#b1b5b5!important;opacity:1!important;}
+#live-page-container-mobile#live-page-container-mobile [class*=search-header-module__searchIcon_],#live-page-container-mobile#live-page-container-mobile [class*=search-header-module__searchBarWrapper_] :is(svg,path){color:#b1b5b5!important;fill:#b1b5b5!important;}
+#live-page-container-mobile#live-page-container-mobile [class*=search-header-module__searchBarWrapper_]:has(#amazon-live-search:not(:placeholder-shown)) :is(svg,path){color:#fff!important;fill:#fff!important;}
+#live-page-container-mobile#live-page-container-mobile [class*=browse-category-pill-module__browseCategory_]{background:#303335!important;border:1px solid #747a7c!important;color:#fff!important;box-shadow:none!important;}
+#live-page-container-mobile#live-page-container-mobile [class*=browse-category-pill-module__title_] :is(svg,path){fill:#fff!important;color:#fff!important;}
+#live-page-container-mobile#live-page-container-mobile :is([class*=addToCartButton--],[class*=yellowButton--],[class*=scroll-carousel_carouselControl__],.vjs-default-button,.vjs-done-button){background:#000!important;background-image:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border:1px solid #747a7c!important;box-shadow:none!important;}
+#live-page-container-mobile#live-page-container-mobile :is([class*=addToCartButton--],[class*=yellowButton--],[class*=scroll-carousel_carouselControl__],.vjs-default-button,.vjs-done-button):active{background:#202324!important;}
+#live-page-container-mobile#live-page-container-mobile :is(.vjs-menu-content,.vjs-modal-dialog,.vjs-control-bar){background:#000!important;background-image:none!important;color:#fff!important;border-color:#494d4d!important;}
+#live-page-container-mobile#live-page-container-mobile :is(.vjs-menu-title,.vjs-menu-item,.vjs-menu-item-text,.vjs-modal-dialog label,.vjs-modal-dialog legend){color:#fff!important;-webkit-text-fill-color:#fff!important;}
+#live-page-container-mobile#live-page-container-mobile :is(.vjs-menu-item.vjs-selected,.vjs-progress-holder,.vjs-load-progress){background:#303335!important;}
+#live-page-container-mobile#live-page-container-mobile :is(.vjs-modal-dialog select,.vjs-modal-dialog option){background:#000!important;color:#fff!important;border-color:#747a7c!important;}
+#live-page-container-mobile#live-page-container-mobile :is(hr,.a-divider,[class*=scroll-carousel_carouselControl__]){border-color:#494d4d!important;}
+/* Artwork leaves only: controls, captions, logos, badges and orange rings are not dimmed as ancestors. */
+#live-page-container-mobile#live-page-container-mobile :is(img:not([class*=live-destination-retargeting-pixel]):not([class*=search-header-module__logoContainer_] img),video,[class*=azliveVjsClearPoster--]){filter:brightness(__FACTOR__)!important;-webkit-filter:brightness(__FACTOR__)!important;mix-blend-mode:normal!important;}
+/* Keep the existing blurred backing's 0.4 brightness, without stacking another parent filter. */
+#live-page-container-mobile#live-page-container-mobile [class*=azliveVjsBlurPoster--]{filter:blur(8px) brightness(0.4)!important;-webkit-filter:blur(8px) brightness(0.4)!important;}
+/* Exact multicolor logo: lift its dark navy wordmark, retain orange Live and source alpha. */
+#live-page-container-mobile#live-page-container-mobile [class*=search-header-module__logoContainer_] img{filter:url(#ad7597-live-logo-contrast)!important;-webkit-filter:url(#ad7597-live-logo-contrast)!important;}
+`;
+if(s.textContent!==css)s.textContent=css;
+if(!d.getElementById('ad7597-live-logo-contrast')){
+ var svg=d.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('width','0');svg.setAttribute('height','0');svg.setAttribute('aria-hidden','true');svg.style.cssText='position:absolute;pointer-events:none';
+ svg.innerHTML='<defs><filter id="ad7597-live-logo-contrast" color-interpolation-filters="sRGB"><feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -1 0 0 0 0.8" result="dark"/><feComponentTransfer in="dark" result="mask"><feFuncA type="discrete" tableValues="0 1"/></feComponentTransfer><feComposite in="mask" in2="SourceAlpha" operator="in" result="whiteWord"/><feComposite in="SourceGraphic" in2="mask" operator="out" result="remainder"/><feMerge><feMergeNode in="remainder"/><feMergeNode in="whiteWord"/></feMerge></filter></defs>';
+ (d.body||d.documentElement).appendChild(svg);
+}
+}catch(_){}})();

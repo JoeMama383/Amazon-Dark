@@ -1,7 +1,7 @@
 #!/bin/sh
 # One bounded foreground session. No screenshots, UI scrolling or historical bundles.
 set -eu
-VER=7.596
+VER=7.597
 ROOT=${AD_UI_ROOT:-/var/mobile}
 CONTAINERS=${AD_UI_CONTAINERS:-$ROOT/Containers/Data/Application}
 SHARED=${AD_UI_SHARED:-/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents}
@@ -13,7 +13,7 @@ for receipt in "$CONTAINERS"/*/Documents/AmazonDark-v7.*-probe-status.json; do
   [ -f "$receipt" ] || continue
   rv=${receipt##*/}; rv=${rv#AmazonDark-v7.}; rv=${rv%-probe-status.json}
   case "$rv" in ''|*[!0-9]*) continue;; esac
-  [ "$rv" -ge 344 ] && [ "$rv" -le 596 ] || continue
+  [ "$rv" -ge 344 ] && [ "$rv" -le 597 ] || continue
   if grep -Eq '"bundle"[[:space:]]*:[[:space:]]*"com[.]amazon[.]Amazon"' "$receipt" &&
      grep -Eq '"event"[[:space:]]*:[[:space:]]*"PROBE_BOOTSTRAP"' "$receipt" &&
      grep -Eq '"version"[[:space:]]*:[[:space:]]*"v7[.]'"$rv"'-' "$receipt"; then
