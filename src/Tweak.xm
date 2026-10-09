@@ -1,4 +1,4 @@
-/* AmazonDark v7.605 */
+/* AmazonDark v7.613 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.605-sustainability-rounded-border"
+#define AD_VERSION "v7.613-keep-shopping-media"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2628,6 +2628,41 @@ static NSString *ADNewMenusJS7482(void){
 #include "ADSustainabilityBorder7605.js.inc"
     ;
     base=[base stringByAppendingString:sustain605];
+    // v7.606: scoped Climate Pledge browse raster/section/category-list rules.
+    NSString *climate606=@""
+#include "ADClimatePledge7606.js.inc"
+    ;
+    climate606=[climate606 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
+    base=[base stringByAppendingString:climate606];
+    // v7.612: the existing PDP count label and authored HOC summary rule.
+    NSString *pdp607=@""
+#include "ADPDPLastMile7607.js.inc"
+    ;
+    base=[base stringByAppendingString:pdp607];
+    // v7.612: review-filter popover button recolor only; preserve sprites/geometry.
+    NSString *review7608=@""
+#include "ADReviewFilterMenu7608.js.inc"
+    ;
+    base=[base stringByAppendingString:review7608];
+    // v7.612: exact review-sort dropdown OLED + blue selected-border preservation.
+    NSString *reviewSort7609=@""
+#include "ADReviewSortPopover7609.js.inc"
+    ;
+    base=[base stringByAppendingString:reviewSort7609];
+    // v7.612: exact Your Saves/WebKit carousel, list, filters and product cards.
+    NSString *saves7611=@""
+#include "ADYourSaves7611.js.inc"
+    ;
+    saves7611=[saves7611 stringByReplacingOccurrencesOfString:@"__TAME__" withString:(gP.whiteTame?@"true":@"false")];
+    saves7611=[saves7611 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
+    base=[base stringByAppendingString:saves7611];
+    // v7.613: single document-ready Keep shopping for image restoration + TWB,
+    // scoped by the rendered heading or existing authored keep-shopping IDs.
+    NSString *keepShopping7613=@""
+#include "ADKeepShopping7613.js.inc"
+    ;
+    keepShopping7613=[keepShopping7613 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
+    base=[base stringByAppendingString:keepShopping7613];
 
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
@@ -4040,6 +4075,165 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
 // authored orange/yellow/blue and other saturated Amazon semantics remain stock.
 #include "ADAppSettingsSheet7547.h"
 static const void *kADPersonSavingsSheet7259=&kADPersonSavingsSheet7259;
+
+static const void *kADLiveVideoShade7612=&kADLiveVideoShade7612;
+static const void *kADLiveVectorOwned7612=&kADLiveVectorOwned7612;
+static BOOL ADLiveHasAncestorAid7612(UIView *v,NSString *wanted,NSUInteger maxDepth){
+    if(!v||!wanted.length)return NO;
+    @try {
+        NSUInteger depth=0;
+        for(UIView *n=v;n&&depth++<maxDepth;n=n.superview){
+            NSString *aid=n.accessibilityIdentifier?:@"";
+            if([aid isEqualToString:wanted])return YES;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADInLiveViewer7612(UIView *v){
+    if(!gP.enabled||!v||!v.window)return NO;
+    @try {
+        NSString *aid=v.accessibilityIdentifier?:@"";
+        if([aid isEqualToString:@"broadcast-viewer"]||[aid isEqualToString:@"media-view-tappable-container"]||
+           [aid isEqualToString:@"broadcast-viewer-inner-view-container"]||[aid isEqualToString:@"video-animated-component-wrapper"]||
+           [aid isEqualToString:@"overlay-outer-container"]||[aid isEqualToString:@"overlay-bottom-area"]||
+           [aid isEqualToString:@"creator-container"]||[aid isEqualToString:@"creator-info-follow"]||
+           [aid isEqualToString:@"AnimatedFollowButton"]||[aid isEqualToString:@"IVSPlayer"]||
+           [aid isEqualToString:@"expandable-text-title"]||[aid isEqualToString:@"expandable-text"]||
+           [aid isEqualToString:@"expandable-scrollview"])return YES;
+        return ADLiveHasAncestorAid7612(v,@"broadcast-viewer",12)||ADLiveHasAncestorAid7612(v,@"overlay-outer-container",12)||
+               ADLiveHasAncestorAid7612(v,@"creator-container",12)||ADLiveHasAncestorAid7612(v,@"AnimatedFollowButton",6);
+    } @catch(...) { return NO; }
+}
+static BOOL ADLiveReportSheet7612(UIView *v){
+    if(!gP.enabled||!v||!v.window)return NO;
+    @try {
+        NSString *aid=v.accessibilityIdentifier?:@"";
+        if([aid isEqualToString:@"bottom-sheet-content"]||[aid isEqualToString:@"bottom-sheet-close-icon"]||
+           [aid isEqualToString:@"overflow-submenu-report"]||[aid hasPrefix:@"report-"]||
+           [aid isEqualToString:@"overflow-menu-item-text"]||[aid isEqualToString:@"report-menu-text"])return YES;
+        return ADLiveHasAncestorAid7612(v,@"overflow-submenu-report",7)||ADLiveHasAncestorAid7612(v,@"bottom-sheet-content",7);
+    } @catch(...) { return NO; }
+}
+static BOOL ADLiveTitlePlate7612(UIView *v){
+    if(!gP.enabled||!v||!v.window)return NO;
+    @try {
+        NSString *aid=v.accessibilityIdentifier?:@"";
+        if([aid isEqualToString:@"expandable-text-title"]||[aid isEqualToString:@"expandable-text"])return YES;
+        if([aid isEqualToString:@"expandable-scrollview"]&&
+           (ADLiveHasAncestorAid7612(v,@"expandable-text-title",4)||ADLiveHasAncestorAid7612(v,@"expandable-text",4)))return YES;
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADLiveFollowGradient7612(UIView *v){
+    if(!gP.enabled||!v||!v.window)return NO;
+    @try { return [v.accessibilityIdentifier isEqualToString:@"AnimatedButtonGradient"]||ADLiveHasAncestorAid7612(v,@"AnimatedButtonGradient",3); } @catch(...) { return NO; }
+}
+static BOOL ADLiveFollowPill7612(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADLiveHasAncestorAid7612(v,@"AnimatedFollowButton",3))return NO;
+    @try {
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<70.0||w>110.0||h<28.0||h>42.0)return NO;
+        UIColor *bg=v.backgroundColor,*lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
+        return ADNeutralNearWhite7255(bg)||ADNeutralNearWhite7255(lbg)||v.layer.borderWidth>0.5||v.layer.cornerRadius>=12.0;
+    } @catch(...) { return NO; }
+}
+static BOOL ADLiveTextOwner7612(UIView *v){
+    if(!gP.enabled||!v||!v.window)return NO;
+    @try { return ADLiveReportSheet7612(v)||[v.accessibilityIdentifier isEqualToString:@"AnimatedFollowButtonText"]; } @catch(...) { return NO; }
+}
+static UIColor *ADLiveForcedBackground7612(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!v||!v.window)return nil;
+    @try {
+        if(ADLiveTitlePlate7612(v)||ADLiveFollowGradient7612(v))return [UIColor clearColor];
+        if(ADLiveFollowPill7612(v))return ADOLED();
+        if(ADLiveReportSheet7612(v)){
+            NSString *aid=v.accessibilityIdentifier?:@"";
+            if([aid isEqualToString:@"bottom-sheet-container"])return nil;
+            return ADOLED();
+        }
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADLiveOwnView7612(UIView *v){
+    if(!gP.enabled||!v||!v.window)return NO;
+    @try {
+        if(ADLiveTitlePlate7612(v)){
+            ADSetViewBackground7226(v,[UIColor clearColor],YES); v.opaque=NO; return YES;
+        }
+        if(ADLiveFollowGradient7612(v)){
+            ADSetViewBackground7226(v,[UIColor clearColor],YES); v.layer.backgroundColor=nil; v.hidden=YES; v.alpha=0.0; return YES;
+        }
+        if(ADLiveFollowPill7612(v)){
+            ADSetViewBackground7226(v,ADOLED(),YES);
+            v.layer.borderWidth=MAX(1.0,v.layer.borderWidth);
+            v.layer.borderColor=ADMenuButtonBorder7255().CGColor;
+            v.layer.masksToBounds=YES;
+            return YES;
+        }
+        if(ADLiveReportSheet7612(v)){
+            NSString *aid=v.accessibilityIdentifier?:@"";
+            if(![aid isEqualToString:@"bottom-sheet-container"]){
+                ADSetViewBackground7226(v,ADOLED(),YES);
+                if(v.layer.shadowOpacity>0.0)v.layer.shadowOpacity=0.0;
+            }
+            return YES;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADLiveThemeTextStorage7612(UIView *v,NSTextStorage *ts){
+    if(!gP.enabled||!v||!v.window||!ts)return NO;
+    @try {
+        if(ADLiveTextOwner7612(v)){ ADMenuLightStorage7255(ts); return YES; }
+    } @catch(...) {}
+    return NO;
+}
+static void ADLiveOwnText7612(UIView *v){
+    if(!gP.enabled||!v||!v.window)return;
+    @try {
+        if(ADLiveTextOwner7612(v)){
+            NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts){ ADMenuLightStorage7255(ts); [v setNeedsDisplay]; [v.layer setNeedsDisplay]; }
+            if([v isKindOfClass:[UILabel class]]){
+                UILabel *l=(UILabel *)v; UIColor *want=ADLightText706(); if(![l.textColor isEqual:want])l.textColor=want;
+                if(l.attributedText.length){ NSAttributedString *r=ADMenuLightString7255(l.attributedText); if(r)l.attributedText=r; }
+            }
+        }
+    } @catch(...) {}
+}
+static void ADLiveOwnVector7612(UIView *svg){
+    if(!gP.enabled||!svg||!svg.window||!ADClassNameIs7183(svg,@"RNSVGSvgView"))return;
+    @try {
+        NSString *aid=svg.accessibilityIdentifier?:@"";
+        BOOL target=[aid isEqualToString:@"bottom-sheet-close-icon"]||[aid isEqualToString:@"close-button-icon"];
+        if(!target)return;
+        Class F=NSClassFromString(@"CAFilter"); if(!F)return; SEL ft=sel_registerName("filterWithType:"); if(![F respondsToSelector:ft])return;
+        id inv=((id(*)(id,SEL,id))objc_msgSend)(F,ft,@"colorInvert"); if(!inv)return;
+        id hue=((id(*)(id,SEL,id))objc_msgSend)(F,ft,@"hueRotate");
+        @try { if(hue)[hue setValue:@(3.141592653589793) forKey:@"inputAngle"]; } @catch(...) { hue=nil; }
+        svg.layer.filters=hue?@[inv,hue]:@[inv];
+        objc_setAssociatedObject(svg,kADLiveVectorOwned7612,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } @catch(...) {}
+}
+static void ADLiveOwnVideo7612(UIView *v){
+    if(!gP.enabled||!v||!v.window)return;
+    @try {
+        NSString *aid=v.accessibilityIdentifier?:@"";
+        if(!([aid isEqualToString:@"IVSPlayer"]||ADClassNameIs7183(v,@"AmazonIvsView")||ADClassNameIs7183(v,@"IVSPlayerView")))return;
+        UIView *shade=objc_getAssociatedObject(v,kADLiveVideoShade7612);
+        if(!shade){
+            shade=[[UIView alloc] initWithFrame:v.bounds];
+            shade.userInteractionEnabled=NO;
+            shade.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+            shade.backgroundColor=[[UIColor blackColor] colorWithAlphaComponent:0.18];
+            [v addSubview:shade];
+            objc_setAssociatedObject(v,kADLiveVideoShade7612,shade,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        shade.frame=v.bounds;
+        if(shade.superview!=v)[v addSubview:shade];
+        [v bringSubviewToFront:shade];
+    } @catch(...) {}
+}
+
 static const void *kADProfilePickerSheet7482=&kADProfilePickerSheet7482;
 static BOOL ADDarkNeutral7259(UIColor *color,BOOL nilIsDark){
     if(!color)return nilIsDark;
@@ -4058,8 +4252,16 @@ static BOOL ADDarkNeutral7259(UIColor *color,BOOL nilIsDark){
 }
 static BOOL ADPersonSavingsDarkNeutral7259(UIColor *color){ return ADDarkNeutral7259(color,NO); }
 static UIView *ADPersonSavingsSheetRoot7259(UIView *v){
-    if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return nil;
+    if(!v||!v.window)return nil;
     @try {
+        // v7.612 r6: profile-picker moved from AppCXWindow into main UIWindow's
+        // AMSModalLayoutOverlay; the old AppCXWindow guard excluded it entirely.
+        BOOL appWindow=ADClassNameIs7183(v.window,"AppCXWindow");
+        BOOL modalWindow=NO;
+        if(!appWindow)for(UIView *a=v;a&&a!=v.window;a=a.superview){
+            if([a.accessibilityIdentifier isEqualToString:@"AMSModalLayoutOverlay"]){modalWindow=YES;break;}
+        }
+        if(!appWindow&&!modalWindow)return nil;
         UIView *root=nil;
         for(UIView *n=v;n;n=n.superview){
             if(ADClassNameIs7183(n,"RCTView")&&[n.accessibilityIdentifier isEqualToString:@"sheet-view"]){ root=n; break; }
@@ -4101,6 +4303,91 @@ static BOOL ADProfilePickerDivider7482(UIView *v,UIColor *color){
     if(!ADProfilePickerSheet7482(v)||!ADNeutralNearWhite7255(color))return NO;
     CGRect r=v.bounds; return r.size.height>0.0&&r.size.height<=1.5&&r.size.width>=100.0;
 }
+// v7.612 exact updated profile picker owners from v7.605 VIEWPORT r6.
+// Source colors are neutral except authored blue/teal action text.  Only
+// background ink is normalized, never dimensions, card radius or sprites.
+static BOOL ADProfilePickerInside7610(UIView *v,NSString *owner,NSUInteger max){
+    for(UIView *a=v;a&&max--;a=a.superview)if([a.accessibilityIdentifier isEqualToString:owner])return YES;
+    return NO;
+}
+static UIColor *ADProfilePickerBackground7610(UIView *v,UIColor *source){
+    if(!gP.enabled||!ADProfilePickerSheet7482(v))return source;
+    if(ADProfilePickerDivider7482(v,source))return ADBorderGray706();
+    // Original selected-account card and Switch Accounts button geometry remains.
+    BOOL selected=ADProfilePickerInside7610(v,@"profile-picker-list-profile-item-row-0-account-holder",5);
+    BOOL switcher=ADProfilePickerInside7610(v,@"Switch_Accounts_Ingress",3);
+    if((selected||switcher)&&ADNeutralNearWhite7255(source))return ADMenuButtonFill7255();
+    if(ADNeutralNearWhite7255(source))return ADOLED();
+    return source;
+}
+static void ADProfilePickerRepaint7610(UIView *v){
+    if(!gP.enabled||!ADProfilePickerSheet7482(v))return;
+    UIColor *source=v.backgroundColor;
+    UIColor *paint=ADProfilePickerBackground7610(v,source);
+    if(paint&&paint!=source)ADSetViewBackground7226(v,paint,YES);
+    // Recolor only actual existing neutral-light outlines. No border creation,
+    // width/radius changes or changes to authored colored selection strokes.
+    if(v.layer.borderWidth>0.0&&v.layer.borderColor){
+        UIColor *border=[UIColor colorWithCGColor:v.layer.borderColor];
+        if(ADNeutralNearWhite7255(border))v.layer.borderColor=ADBorderGray706().CGColor;
+    }
+}
+// Notifications UI is native React, not WebKit.  The supplied r7 snapshot
+// lacks the notifications feed itself, so use only an explicit owner class
+// witness, never a color-only global rule across unrelated routes.
+static BOOL ADNotificationsController7610(UIView *v){
+    if(!v||!v.window)return NO;
+    BOOL react=ADReactNativeView7226(v);
+    if(!react&&![v isKindOfClass:[UIImageView class]])return NO;
+    for(UIView *a=v;a&&a!=v.window;a=a.superview){
+        UIResponder *res=a.nextResponder;
+        if(![res isKindOfClass:[UIViewController class]])continue;
+        NSString *cls=NSStringFromClass([res class]);
+        if([cls rangeOfString:@"Notification" options:NSCaseInsensitiveSearch].location!=NSNotFound &&
+          ([cls rangeOfString:@"List" options:NSCaseInsensitiveSearch].location!=NSNotFound||
+           [cls rangeOfString:@"Inbox" options:NSCaseInsensitiveSearch].location!=NSNotFound||
+           [cls rangeOfString:@"Screen" options:NSCaseInsensitiveSearch].location!=NSNotFound||
+           [cls rangeOfString:@"Center" options:NSCaseInsensitiveSearch].location!=NSNotFound))return YES;
+    }
+    return NO;
+}
+static UIColor *ADNotificationsFloorColor7610(UIView *v,UIColor *color);
+static BOOL ADNotificationsNeutralFloor7610(UIColor *c){
+    if(!c)return NO;
+    CGFloat rr=0,gg=0,bb=0,aa=0;
+    if(![c getRed:&rr green:&gg blue:&bb alpha:&aa]||aa<0.16)return NO;
+    // Only the captured pale gray/cyan surfaces.  Saturated teal text/accents
+    // are preserved by leaving all text rendering and image colors untouched.
+    return rr>.75&&gg>.79&&bb>.79&&(MAX(rr,MAX(gg,bb))-MIN(rr,MIN(gg,bb)))<.16;
+}
+static UIColor *ADNotificationsFloorColor7610(UIView *v,UIColor *color){
+    if(!ADNotificationsNeutralFloor7610(color))return color;
+    // Exact authored separator: only its color is changed, never geometry.
+    if(v&&v.bounds.size.height>0&&v.bounds.size.height<=1.5&&v.bounds.size.width>=160.0)
+        return ADBorderGray706();
+    return ADOLED();
+}
+static NSTextStorage *ADPersonTextStorage7206(UIView *v);
+static const void *kADProfilePickerInitialPaint7610=&kADProfilePickerInitialPaint7610;
+static void ADProfilePickerInitialPaint7610(UIView *v){
+    UIView *root=ADPersonSavingsSheetRoot7259(v);
+    if(!root||!ADProfilePickerSheet7482(v))return;
+    if(objc_getAssociatedObject(root,kADProfilePickerInitialPaint7610))return;
+    objc_setAssociatedObject(root,kADProfilePickerInitialPaint7610,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    // Exactly one bounded pass when the profile-close witness appears: React
+    // mounted sibling cards before its marker and did not restyle ancestors.
+    NSMutableArray *queue=[NSMutableArray arrayWithObject:root];
+    NSUInteger head=0;
+    while(head<queue.count&&head<192){
+        UIView *leaf=queue[head++];
+        if(ADClassNameIs7183(leaf,"RCTView"))ADProfilePickerRepaint7610(leaf);
+        if(ADClassNameIs7183(leaf,"RCTTextView")){
+            NSTextStorage *text=ADPersonTextStorage7206(leaf);
+            if(text)ADPersonSavingsLightStorage7259(text);
+        }
+        if(leaf.subviews.count)[queue addObjectsFromArray:leaf.subviews];
+    }
+}
 static void ADOwnPersonSavingsFloor7259(UIView *v){
     if(ADAppSettingsOwn7547(v))return;
     if(!gP.enabled||!v||!v.window||!ADInPersonSavingsSheet7259(v))return;
@@ -4110,7 +4397,9 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
         if(ADProfilePickerDivider7482(v,bg)||ADProfilePickerDivider7482(v,layerBG)){
             ADSetViewBackground7226(v,ADBorderGray706(),YES); return;
         }
-        if(ADNeutralNearWhite7255(bg)||ADNeutralNearWhite7255(layerBG))ADSetViewBackground7226(v,ADOLED(),YES);
+        UIColor *paint=ADProfilePickerBackground7610(v,bg);
+        if(paint&&paint!=bg)ADSetViewBackground7226(v,paint,YES);
+        else if(ADNeutralNearWhite7255(layerBG))ADSetViewBackground7226(v,ADProfilePickerBackground7610(v,layerBG),YES);
     } @catch(...) {}
 }
 
@@ -4199,6 +4488,12 @@ static void ADShopShowApplyImage7590(UIImageView *iv);
         return;
     }
     BOOL react=ADReactNativeView7226(self);
+    if(react&&ADProfilePickerSheet7482(self)){
+        ADOwnPersonSavingsFloor7259(self);
+        ADProfilePickerRepaint7610(self);
+    }
+    if(react&&ADNotificationsController7610(self)&&ADNotificationsNeutralFloor7610(self.backgroundColor))
+        ADSetViewBackground7226(self,ADNotificationsFloorColor7610(self,self.backgroundColor),YES);
     if(ADShopShowProductFloor7590(self,self.backgroundColor)){ ADSetViewBackground7226(self,ADOLED(),YES); return; }
     if(ADPDPThumbnailStripFloor7588(self,self.backgroundColor)){
         ADSetViewBackground7226(self,ADOLED(),YES);
@@ -4291,6 +4586,12 @@ static void ADShopShowApplyImage7590(UIImageView *iv);
         }
     }
     BOOL react=ADReactNativeView7226(self);
+    UIColor *live=ADLiveForcedBackground7612(self,color);
+    if(live){
+        %orig(live);
+        ADLiveOwnView7612(self);
+        return;
+    }
     if(ADShopShowProductFloor7590(self,color)){
         UIColor *black=ADOLED();
         %orig(black);
@@ -4318,6 +4619,16 @@ static void ADShopShowApplyImage7590(UIImageView *iv);
             %orig(black);
             return;
         }
+    }
+    if(react&&ADProfilePickerSheet7482(self)){
+        UIColor *paint=ADProfilePickerBackground7610(self,color);
+        %orig(paint);
+        return;
+    }
+    if(react&&ADNotificationsController7610(self)&&ADNotificationsNeutralFloor7610(color)){
+        UIColor *notificationPaint=ADNotificationsFloorColor7610(self,color);
+        %orig(notificationPaint);
+        return;
     }
     if(ADWebKitInternalView7154(self)||react||ADExactBackgroundOwner7226(self)||ADInAuthoredVisualSubNav7175(self)){
         %orig(color);
@@ -9358,6 +9669,7 @@ static void ADOwnReactView7226(UIView *v){
     @try {
         ADServiceDiscover7565(v,nil);
         if(ADServiceScope7565(v)){ ADServicePaint7565(v); return; }
+        if(ADLiveOwnView7612(v))return;
         if(ADReviewMenuRoot7430(v)){ ADReviewMenuOwn7430(v); return; }
         if(ADAppSettingsRoot7548(v)){ ADAppSettingsOwn7548(v); return; }
         if(ADAlexaResultsRoot7427(v)){ ADAlexaResultsOwnView7427(v); return; }
@@ -9389,8 +9701,18 @@ static void ADOwnReactView7226(UIView *v){
             ADPaymentOwnView7401(v);
             return;
         }
-        if(ADClassNameIs7183(v.window,"AppCXWindow")&&ADProfilePickerSheet7482(v)){
+        if(ADProfilePickerSheet7482(v)){
             ADOwnPersonSavingsFloor7259(v);
+            ADProfilePickerRepaint7610(v);
+            if([v.accessibilityIdentifier isEqualToString:@"profile-picker-close-bottomsheet-button"]){
+                UIView *root=ADPersonSavingsSheetRoot7259(v);
+                if(root){ADOwnPersonSavingsFloor7259(root);ADProfilePickerInitialPaint7610(v);}
+            }
+            return;
+        }
+        if(ADNotificationsController7610(v)){
+            if(ADNotificationsNeutralFloor7610(v.backgroundColor))
+                ADSetViewBackground7226(v,ADNotificationsFloorColor7610(v,v.backgroundColor),YES);
             return;
         }
         int surface=ADReactSurface7226(v);
@@ -9541,6 +9863,26 @@ static void ADOwnReactView7226(UIView *v){
             self.layer.backgroundColor=black.CGColor;
         }
         @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
+        return;
+    }
+    if(gP.enabled&&v.window&&ADProfilePickerSheet7482(v)){
+        UIColor *paint=ADProfilePickerBackground7610(v,color);
+        gADPaintWriteDepth7226++;
+        @try{
+            %orig(paint);
+            if(paint!=color)v.layer.backgroundColor=paint.CGColor;
+        }
+        @finally{if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--;}
+        return;
+    }
+    if(gP.enabled&&v.window&&ADNotificationsController7610(v)&&ADNotificationsNeutralFloor7610(color)){
+        UIColor *notificationPaint=ADNotificationsFloorColor7610(v,color);
+        gADPaintWriteDepth7226++;
+        @try{
+            %orig(notificationPaint);
+            v.layer.backgroundColor=notificationPaint.CGColor;
+        }
+        @finally{if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--;}
         return;
     }
     int surface=(gP.enabled&&v.window)?ADReactSurface7226(v):ADReactSurfaceNone7226;
@@ -9791,23 +10133,40 @@ static void ADAlexaOwnVector7285(UIView *svg){
         objc_setAssociatedObject(svg,kADAlexaVectorOwned7285,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     } @catch(...) {}
 }
+%hook AmazonIvsView
+- (void)didMoveToWindow {
+    %orig;
+    ADLiveOwnVideo7612((UIView *)self);
+}
+- (void)didMoveToSuperview {
+    %orig;
+    if(((UIView *)self).window)ADLiveOwnVideo7612((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADLiveOwnVideo7612((UIView *)self);
+}
+%end
+
 %hook RNSVGSvgView
 - (void)didMoveToWindow {
     %orig;
     ADAlexaOwnVector7285((UIView *)self);
     ADAppSettingsOwnVector7548((UIView *)self);
     ADPaymentOwnVector7401((UIView *)self);
+    ADLiveOwnVector7612((UIView *)self);
     ADAlexaResultsOwnVector7427((UIView *)self); ADPermissionOwnVector7480((UIView *)self);
 }
 - (void)didMoveToSuperview {
     %orig;
-    if(((UIView *)self).window){ ADAlexaOwnVector7285((UIView *)self); ADAppSettingsOwnVector7548((UIView *)self); ADPaymentOwnVector7401((UIView *)self); ADAlexaResultsOwnVector7427((UIView *)self); ADPermissionOwnVector7480((UIView *)self); }
+    if(((UIView *)self).window){ ADAlexaOwnVector7285((UIView *)self); ADAppSettingsOwnVector7548((UIView *)self); ADPaymentOwnVector7401((UIView *)self); ADLiveOwnVector7612((UIView *)self); ADAlexaResultsOwnVector7427((UIView *)self); ADPermissionOwnVector7480((UIView *)self); }
 }
 - (void)layoutSubviews {
     %orig;
     ADAlexaOwnVector7285((UIView *)self);
     ADAppSettingsOwnVector7548((UIView *)self);
     ADPaymentOwnVector7401((UIView *)self);
+    ADLiveOwnVector7612((UIView *)self);
     ADAlexaResultsOwnVector7427((UIView *)self); ADPermissionOwnVector7480((UIView *)self);
 }
 %end
@@ -9851,6 +10210,7 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
     if(!gP.enabled)return NO;
     ADServiceDiscover7565(v,textStorage);
     if(ADServiceScope7565(v)){ ADMenuLightStorage7255(textStorage); return YES; }
+    if(ADLiveThemeTextStorage7612(v,textStorage))return YES;
     if(ADReviewMenuRoot7430(v)){ ADMenuLightStorage7255(textStorage); return YES; }
     if(ADAppSettingsRoot7548(v)){ ADMenuLightStorage7255(textStorage); return YES; }
     if(ADAlexaResultsRoot7427(v)){ ADMenuLightStorage7255(textStorage); return YES; }
@@ -9874,9 +10234,9 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
     }
     if(surface==ADReactSurfaceMenu7255){ ADMenuLightStorage7255(textStorage); return YES; }
     if(ADInLocationSheetContent7196(v)){ ADLocationSheetLightStorage7196(v,textStorage); return YES; }
-    if(ADClassNameIs7183(v.window,"AppCXWindow")){
-        if(ADInAppCXBottomSheet7255(v)){ ADAppCXSheetLightStorage7255(textStorage); return YES; }
-        if(ADInPersonSavingsSheet7259(v)){ ADPersonSavingsLightStorage7259(textStorage); return YES; }
+    if(ADInPersonSavingsSheet7259(v)){ ADPersonSavingsLightStorage7259(textStorage); return YES; }
+    if(ADClassNameIs7183(v.window,"AppCXWindow")&&ADInAppCXBottomSheet7255(v)){
+        ADAppCXSheetLightStorage7255(textStorage);return YES;
     }
     return NO;
 }
@@ -9884,6 +10244,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(!gP.enabled||!v.window)return;
     ADServiceDiscover7565(v,nil);
     if(ADServiceScope7565(v)){ ADServicePaint7565(v); return; }
+    if(ADLiveTextOwner7612(v)){ ADLiveOwnText7612(v); return; }
     if(ADReviewMenuRoot7430(v)){ ADMenuLightStorage7255(ADPersonTextStorage7206(v)); return; }
     if(ADAppSettingsRoot7548(v)){ ADAppSettingsOwnText7548(v); return; }
     if(ADAlexaResultsRoot7427(v)){ ADAlexaResultsOwnText7427(v); return; }
@@ -9899,10 +10260,13 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(surface==ADReactSurfacePerson7226||(includeBuyAgain&&ADPersonBuyAgain7208(v))){ ADPersonOwnText7206(v); return; }
     if(surface==ADReactSurfaceMenu7255){ ADMenuOwnText7255(v); return; }
     if(ADInLocationSheetContent7196(v)){ ADLocationSheetOwnText7196(v); return; }
-    if(ADClassNameIs7183(v.window,"AppCXWindow")){
-        NSTextStorage *ts=ADPersonTextStorage7206(v); if(!ts)return;
-        if(ADInAppCXBottomSheet7255(v))ADAppCXSheetLightStorage7255(ts);
-        else if(ADInPersonSavingsSheet7259(v))ADPersonSavingsLightStorage7259(ts);
+    if(ADInPersonSavingsSheet7259(v)){
+        NSTextStorage *ts=ADPersonTextStorage7206(v);
+        if(ts)ADPersonSavingsLightStorage7259(ts);
+        return;
+    }
+    if(ADClassNameIs7183(v.window,"AppCXWindow")&&ADInAppCXBottomSheet7255(v)){
+        NSTextStorage *ts=ADPersonTextStorage7206(v);if(ts)ADAppCXSheetLightStorage7255(ts);
     }
 }
 
@@ -9910,7 +10274,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     NSAttributedString *r=nil;
     UIView *v=(UIView *)self;
-    if(gP.enabled&&ADInLocationCanonical7416(v)) r=ADLocationSheetLightString7196(v,attributedText);
+    if(gP.enabled&&ADLiveTextOwner7612(v)) r=ADMenuLightString7255(attributedText);
+    else if(gP.enabled&&ADInLocationCanonical7416(v)) r=ADLocationSheetLightString7196(v,attributedText);
     else if(gP.enabled&&ADPermissionButtonText7409(v)) r=ADPermissionTextString7409(v,attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedText);
@@ -9926,7 +10291,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     NSAttributedString *r=nil;
     UIView *v=(UIView *)self;
-    if(gP.enabled&&ADInLocationCanonical7416(v)) r=ADLocationSheetLightString7196(v,attributedString);
+    if(gP.enabled&&ADLiveTextOwner7612(v)) r=ADMenuLightString7255(attributedString);
+    else if(gP.enabled&&ADInLocationCanonical7416(v)) r=ADLocationSheetLightString7196(v,attributedString);
     else if(gP.enabled&&ADPermissionButtonText7409(v)) r=ADPermissionTextString7409(v,attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedString);
@@ -9943,7 +10309,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     if(!gP.enabled||!((UIView *)self).window)return;
     UIView *v=(UIView *)self;
-    if(ADInLocationCanonical7416(v))ADLocationSheetOwnText7196(v);
+    if(ADLiveTextOwner7612(v))ADLiveOwnText7612(v);
+    else if(ADInLocationCanonical7416(v))ADLocationSheetOwnText7196(v);
     else if(ADPermissionButtonText7409(v)||ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
     else if(ADInPaymentSheet7401(v))ADPaymentOwnText7401(v);
     else if(ADAppSettingsRoot7548(v))ADAppSettingsOwnText7548(v);
@@ -9956,7 +10323,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
-        if(ADInLocationCanonical7416(v))ADLocationSheetOwnText7196(v);
+        if(ADLiveTextOwner7612(v))ADLiveOwnText7612(v);
+        else if(ADInLocationCanonical7416(v))ADLocationSheetOwnText7196(v);
         else if(ADPermissionButtonText7409(v)||ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
         else if(ADAppSettingsRoot7548(v))ADAppSettingsOwnText7548(v);
     }
@@ -9987,6 +10355,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(gP.enabled&&ADPersonForgotCopy7599(v))ADPersonLightStorage7206(textStorage);
     %orig(textStorage,contentFrame,descendantViews);
     ADPersonCenterReturnsText7522(v);
+    if(liveText)ADLiveOwnText7612(v);
     if(reviewMenu)ADMenuLightStorage7255(ADPersonTextStorage7206(v));
     if(appSettings)ADAppSettingsOwnText7548(v);
     if(alexaResults)ADAlexaResultsOwnText7427(v);
@@ -10017,6 +10386,11 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     // tile-widget/iconSection ancestry immediately before draw. Existing accent
     // preservation keeps Prime blue and other authored saturated runs intact.
     UIView *v=(UIView *)self;
+    if(gP.enabled&&ADLiveTextOwner7612(v)){
+        ADLiveOwnText7612(v);
+        %orig(rect);
+        return;
+    }
     if(gP.enabled&&ADReviewMenuRoot7430(v)){
         ADMenuLightStorage7255(ADPersonTextStorage7206(v));
         %orig(rect);
@@ -10065,6 +10439,11 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
         if(v.window){
             if(ADInPaymentSheet7401(v)){
                 NSAttributedString *themed=ADPaymentLightString7401(attributedText);
+                %orig(themed);
+                return;
+            }
+            if(ADInPersonSavingsSheet7259(v)){
+                NSAttributedString *themed=ADPersonSavingsLightString7259(attributedText);
                 %orig(themed);
                 return;
             }
@@ -10125,6 +10504,11 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
             return;
         }
         if(v.window){
+            if(ADInPersonSavingsSheet7259(v)){
+                UIColor *themed=ADPersonSavingsDarkNeutral7259(color)?ADLightText706():color;
+                %orig(themed);
+                return;
+            }
             if(ADClassNameIs7183(v.window,"AppCXWindow")){
                 if(ADInAppCXBottomSheet7255(v)){
                     UIColor *themed=ADNeutralNearBlack7255(color)?ADLightText706():color;
@@ -12093,6 +12477,16 @@ static void ADMenuOwnImageWrapper7255(UIView *v){
 
 #include "ADServiceSheetImages7565.inc"
 
+// Only in a positively named notifications controller and only for actual
+// loaded, non-template media: keep the original image visible and tame once.
+// This cannot synthesize missing network image data (r7 lacked feed hierarchy).
+static void ADNotificationsImage7610(UIImageView *iv){
+    if(!gP.enabled||!gP.whiteTame||!iv||!iv.window||!iv.image)return;
+    if(!ADNotificationsController7610(iv))return;
+    if(iv.image.renderingMode==UIImageRenderingModeAlwaysTemplate)return;
+    if(iv.bounds.size.width<38.0||iv.bounds.size.height<38.0)return;
+    ADEnsureNativeTWBOverlay7270(iv);
+}
 static void ADOwnImageView7226(UIImageView *iv,BOOL resetCache){
     if(!iv)return;
     if(resetCache){
@@ -12190,6 +12584,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     ADOwnSearchLeadingMagnifier7229(self);
     ADPersonOwnOrderSearchMagnifierLeaf7243(self);
     ADOwnImageView7226(self,YES);
+    ADNotificationsImage7610(self);
     ADSchedulePersonImageSettle7227(self);
     ADApplyCNMExactDogTWB7309(self);
     ADShopShowApplyImage7590(self);
@@ -12203,6 +12598,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     ADOwnSearchLeadingMagnifier7229(self);
     ADPersonOwnOrderSearchMagnifierLeaf7243(self);
     ADOwnImageView7226(self,YES);
+    ADNotificationsImage7610(self);
     ADSchedulePersonImageSettle7227(self);
     ADApplyCNMExactDogTWB7309(self);
     ADShopShowApplyImage7590(self);
@@ -12216,6 +12612,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
         ADOwnSearchLeadingMagnifier7229(self);
         ADPersonOwnOrderSearchMagnifierLeaf7243(self);
         ADOwnImageView7226(self,YES);
+    ADNotificationsImage7610(self);
         ADSchedulePersonImageSettle7227(self);
     }
     ADApplyCNMExactDogTWB7309(self);
@@ -12281,6 +12678,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     if(ADPersonRightArrow7231(self)||ADPersonMedicalAuthoredIcon7231(self)||
        ADPersonReviewCompactImage7229(self)||ADPersonCustomerServiceLeadingImage7229(self))
         ADOwnImageView7226(self,YES);
+    ADNotificationsImage7610(self);
     ADMenuFinalizeImage7255(self,objc_getAssociatedObject(self,kADMenuFinalRasterKind7255)==nil);
     ADLayoutImageOverlays7226(self);
     ADApplyCNMExactDogTWB7309(self);

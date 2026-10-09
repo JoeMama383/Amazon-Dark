@@ -1,3 +1,21 @@
+# AmazonDark v7.611~your-saves-oled-followup
+
+Builds on the complete v7.610 codebase. Exact WebKit Your Saves/Lists & Registries theming from r8 VIEWPORT: OLED section and card floors, medium gray filter pills retaining blue selected stroke, white neutral product text/prices/buttons/icons, gray dividers, and preference-controlled image taming. A FULL probe diagnostic now explicitly logs interruptions when Amazon goes into the background. No global observers, scans or layout rewrites. See DIFF-v7.611.md, VALIDATION-v7.611.md and COMMANDS.md; device verification remains pending.
+
+# AmazonDark v7.610~profile-and-notification-followup
+
+Based on v7.609, restores updated native Shopping As profile picker ownership under `UIWindow/AMSModalLayoutOverlay`. Adds guarded notifications palette/media fallback, pending a probe from the actual notification feed. See `DIFF-v7.610.md`, `VALIDATION-v7.610.md` and `COMMANDS.md`.
+
+# AmazonDark v7.609~review-photo-and-sort-popup
+
+Based on v7.608. Restores the authored CSS-backed inline customer review photos lost to v7.593/7.594 background-image resets and darkens the recovered media using the existing preference-controlled brightness factor. Styles the probe-identified review sort dropdown OLED with white text/close glyph and preserved blue selected border. No new scans or geometry changes. See DIFF-v7.609.md, VALIDATION-v7.609.md and COMMANDS.md.
+
+# AmazonDark v7.608~review-filter-menu-buttons
+
+Based on v7.607. Recolors the review filter secondary-view menu buttons and option cards to neutral dark-mode treatments while preserving existing sprites, selected indicators and geometry. Floors were already correct; this release only normalizes button fills, borders, dividers and neutral text within the exact `#reviews-filter-options-view` popover.
+
+See DIFF-v7.608.md, VALIDATION-v7.608.md and COMMANDS.md. CI/device verification remains required.
+
 # AmazonDark v7.599~alexa-owner-full-recovery
 
 Based on v7.598. Restores Alexa-for-shopping native OLED ownership after Amazon moved its `navigation-root` from AppCXWindow into the main-window AppCX bottom sheet. Reuses the historical card, suggestion-pill, SVG and input control rules with an exact new host gate; fixes Person Forgot-something React text rehydration; prioritizes the correct Alexa native FULL probe route over the underlying hamburger. See DIFF-v7.599.md, VALIDATION-v7.599.md and COMMANDS.md. CI and on-device verification remain required.
