@@ -1,4 +1,4 @@
-/* AmazonDark v7.597 */
+/* AmazonDark v7.598 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.597-live-thankyou-completion"
+#define AD_VERSION "v7.598-pdp-reviews-ad-followup"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2573,7 +2573,7 @@ static NSString *ADNewMenusJS7482(void){
     base=[base stringByAppendingString:ADPDPFollowupMediaJS7573()];
     base=[base stringByAppendingString:ADCapturedMediaJS7574()];
     base=[base stringByAppendingString:ADDealsPriceHistoryFollowupJS7574()];
-    // v7.597: inlined here so the established isolated gnu++98 ADNewMenus preflight
+    // v7.598: inlined here so the established isolated gnu++98 ADNewMenus preflight
     // compiles the real new include and not a missing separately extracted helper.
     NSString *reviewBusiness=[NSString stringWithUTF8String:
 #include "ADReviewBusiness7593.js.inc"
@@ -6286,7 +6286,7 @@ static void ADPersonOwnOrderResultsSearch7591(UIView *host){
 static BOOL ADPersonOrderSearchCompactHost7589(UIView *host){
     if(!gP.enabled||!host||!host.window||!ADInPersonTab7206(host)||!ADClassNameIs7183(host,"RCTView"))return NO;
     @try {
-        // v7.597 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
+        // v7.598 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
         // Its direct children are exactly one 20x20 RCTImageView magnifier and one
         // RNCEKVTextInputFocusWrapper. Keep this independent from the old 360x50 owner.
         CGFloat w=host.bounds.size.width,h=host.bounds.size.height;
@@ -12586,7 +12586,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 }
 
 
-// v7.597 FULL r3: exact native CXI back/search buttons above the Amazon Live WebView.
+// v7.598 FULL r3: exact native CXI back/search buttons above the Amazon Live WebView.
 static BOOL ADCXINeutralButton7597(UIButton *button){
     if(!gP.enabled||!button)return NO;
     NSString *aid=button.accessibilityIdentifier;

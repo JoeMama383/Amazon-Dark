@@ -1,52 +1,52 @@
-# AmazonDark v7.597 commands
+# AmazonDark v7.598 commands
 
-Save the `AmazonDark-v7.597-live-thankyou-completion-source.zip` file in `/var/mobile` on your iPhone before pushing.
+Save the `AmazonDark-v7.598-pdp-reviews-ad-followup-source.zip` file in `/var/mobile` on your iPhone before pushing.
 
-## Push — v7.597 (existing clone)
+## Push — v7.598 (existing clone)
 ```sh
 sh <<'SH'
 set -eu
 cd /var/mobile/Amazon-Dark-phone
-ZIP=$(find /var/mobile -type d -name '.Trash*' -prune -o -type f -name 'AmazonDark-v7.597-live-thankyou-completion-source*.zip' -print 2>/dev/null |
+ZIP=$(find /var/mobile -type d -name '.Trash*' -prune -o -type f -name 'AmazonDark-v7.598-pdp-reviews-ad-followup-source*.zip' -print 2>/dev/null |
 while IFS= read -r candidate; do
   if unzip -tq "$candidate" >/dev/null 2>&1; then printf '%s\n' "$candidate"; break; fi
 done)
 [ -n "$ZIP" ] || { echo "Save the source ZIP to the phone first."; exit 1; }
-STAGE=$(mktemp -d /var/mobile/ad7597.XXXXXX)
+STAGE=$(mktemp -d /var/mobile/ad7598.XXXXXX)
 unzip -q "$ZIP" -d "$STAGE"
-grep -qx 'Version: 7.597~live-thankyou-completion' "$STAGE/layout/DEBIAN/control"
+grep -qx 'Version: 7.598~pdp-reviews-ad-followup' "$STAGE/layout/DEBIAN/control"
 cp -a "$STAGE/." .
 chmod 755 layout/DEBIAN/postinst
 AD_STRICT_VALIDATE=0 sh scripts/validate.sh
 git add -A
-if ! git diff --cached --quiet; then git commit -m "v7.597: complete Amazon Live and thank-you card theming"; fi
+if ! git diff --cached --quiet; then git commit -m "v7.598: fix PDP reviews page and sponsored ad follow-ups"; fi
 git push origin main
 SH
 ```
 
-## FULL — v7.597
+## FULL — v7.598
 Take a screenshot **inside Amazon**. Keep Amazon visible until the entire scrolling scan completes; leaving the app aborts FULL. Then export from NewTerm.
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export full
 ```
 
-## VIEWPORT — v7.597 ARM
+## VIEWPORT — v7.598 ARM
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh arm
 ```
 Show the exact target scene in Amazon, then background once. VIEWPORT does not scroll.
 
-## VIEWPORT — v7.597 EXPORT
+## VIEWPORT — v7.598 EXPORT
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export viewport
 ```
 
-## TRANSITION — v7.597 ARM
+## TRANSITION — v7.598 ARM
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh arm transition
 ```
 
-## TRANSITION — v7.597 EXPORT
+## TRANSITION — v7.598 EXPORT
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh export
 ```
