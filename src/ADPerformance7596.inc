@@ -1,5 +1,5 @@
 #include <math.h>
-// v7.599: bounded, explicitly armed performance diagnostics. Main-thread counters.
+// v7.600: bounded, explicitly armed performance diagnostics. Main-thread counters.
 // Kept separate from FULL/VIEWPORT: no UI inventory, screenshot or scroll mutation.
 struct ADPerfMetric7596 { unsigned long count,buckets[8]; double total,max; };
 static ADPerfMetric7596 gADPerfLanes7596[ADPerfLaneCount],gADPerfFrames7596,gADPerfInputAge7596;
@@ -20,7 +20,7 @@ static NSDictionary *ADPerfMetricJSON7596(ADPerfMetric7596 m){
 }
 static NSString *ADPerfPath7596(NSString *suffix){
     NSString *d=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES).firstObject;
-    return [d stringByAppendingPathComponent:[@"AmazonDark-v7.599-performance" stringByAppendingString:suffix]];
+    return [d stringByAppendingPathComponent:[@"AmazonDark-v7.600-performance" stringByAppendingString:suffix]];
 }
 static void *kADPerfLoading7596=&kADPerfLoading7596;
 @interface ADPerformance7596 : NSObject <WKScriptMessageHandler>
