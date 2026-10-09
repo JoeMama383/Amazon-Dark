@@ -1,3 +1,7 @@
+# AmazonDark v7.615~native-live-compile-repair
+
+Fixes the v7.612 Amazon Live Objective-C++ forward-declaration and C-string class argument errors discovered at the first full Theos compile after multiple UI source changes. No runtime UI styling changes. v7.614 probe-sync and all source UI work are preserved. See `DIFF-v7.615.md`, `VALIDATION-v7.615.md`, and `COMMANDS.md`. On-device build verification remains pending.
+
 # AmazonDark v7.614~ci-regression-repair
 
 CI/probe-version synchronization of v7.613; retains its UI patches and the earlier 7.605–7.612 iterations. See `COMMANDS.md`, `DIFF-v7.614.md` and `VALIDATION-v7.614.md`.

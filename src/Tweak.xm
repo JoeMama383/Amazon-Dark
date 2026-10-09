@@ -1,4 +1,4 @@
-/* AmazonDark v7.614 */
+/* AmazonDark v7.615 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.614-ci-regression-repair"
+#define AD_VERSION "v7.615-native-live-compile-repair"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -4076,6 +4076,11 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
 #include "ADAppSettingsSheet7547.h"
 static const void *kADPersonSavingsSheet7259=&kADPersonSavingsSheet7259;
 
+// v7.615: these implementations appear below the v7.612 Live owner block.
+// ObjC++ needs typed declarations BEFORE the Live block uses them; Python-only
+// regression checks did not compile Tweak.xm in the iOS SDK.
+static UIColor *ADMenuButtonBorder7255(void);
+static NSTextStorage *ADPersonTextStorage7206(UIView *v);
 static const void *kADLiveVideoShade7612=&kADLiveVideoShade7612;
 static const void *kADLiveVectorOwned7612=&kADLiveVectorOwned7612;
 static BOOL ADLiveHasAncestorAid7612(UIView *v,NSString *wanted,NSUInteger maxDepth){
@@ -4186,7 +4191,7 @@ static void ADLiveOwnText7612(UIView *v){
     } @catch(...) {}
 }
 static void ADLiveOwnVector7612(UIView *svg){
-    if(!gP.enabled||!svg||!svg.window||!ADClassNameIs7183(svg,@"RNSVGSvgView"))return;
+    if(!gP.enabled||!svg||!svg.window||!ADClassNameIs7183(svg,"RNSVGSvgView"))return;
     @try {
         NSString *aid=svg.accessibilityIdentifier?:@"";
         BOOL target=[aid isEqualToString:@"bottom-sheet-close-icon"]||[aid isEqualToString:@"close-button-icon"];
@@ -4203,7 +4208,7 @@ static void ADLiveOwnVideo7612(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
         NSString *aid=v.accessibilityIdentifier?:@"";
-        if(!([aid isEqualToString:@"IVSPlayer"]||ADClassNameIs7183(v,@"AmazonIvsView")||ADClassNameIs7183(v,@"IVSPlayerView")))return;
+        if(!([aid isEqualToString:@"IVSPlayer"]||ADClassNameIs7183(v,"AmazonIvsView")||ADClassNameIs7183(v,"IVSPlayerView")))return;
         UIView *shade=objc_getAssociatedObject(v,kADLiveVideoShade7612);
         if(!shade){
             shade=[[UIView alloc] initWithFrame:v.bounds];
