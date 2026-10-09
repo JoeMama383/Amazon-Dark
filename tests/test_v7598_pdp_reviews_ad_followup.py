@@ -9,9 +9,9 @@ RB=''.join(json.loads(l) for l in (ROOT/'src/ADReviewBusiness7593.js.inc').read_
 MF=''.join(json.loads(l) for l in (ROOT/'src/ADMenuFollowup7595.js.inc').read_text().splitlines())
 CMD=(ROOT/'COMMANDS.md').read_text()
 
-assert 'Version: 7.598~pdp-reviews-ad-followup' in C
-assert '#define AD_VERSION "v7.598-pdp-reviews-ad-followup"' in S
-assert '## FULL — v7.598' in CMD and '## VIEWPORT — v7.598 ARM' in CMD and '## TRANSITION — v7.598 ARM' in CMD
+assert 'Version: 7.599~alexa-owner-full-recovery' in C
+assert '#define AD_VERSION "v7.599-alexa-owner-full-recovery"' in S
+assert '## FULL — v7.599' in CMD and '## VIEWPORT — v7.599 ARM' in CMD and '## TRANSITION — v7.599 ARM' in CMD
 
 # Review page follow-up: broader review image gallery restoration + top product header visibility.
 for tok in (

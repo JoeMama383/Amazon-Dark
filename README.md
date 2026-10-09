@@ -1,3 +1,7 @@
+# AmazonDark v7.599~alexa-owner-full-recovery
+
+Based on v7.598. Restores Alexa-for-shopping native OLED ownership after Amazon moved its `navigation-root` from AppCXWindow into the main-window AppCX bottom sheet. Reuses the historical card, suggestion-pill, SVG and input control rules with an exact new host gate; fixes Person Forgot-something React text rehydration; prioritizes the correct Alexa native FULL probe route over the underlying hamburger. See DIFF-v7.599.md, VALIDATION-v7.599.md and COMMANDS.md. CI and on-device verification remain required.
+
 # AmazonDark v7.597~live-thankyou-completion
 
 Based on v7.596. Completes the probe-captured Amazon Live page and missed checkout music cards, sponsored continuation images and Add to cart backing floors. Search glyphs match placeholder/typed text; native Live back/search glyphs are white. Preserves semantic colors and the existing performance recorder/runtime fixes.

@@ -1,4 +1,4 @@
-/* AmazonDark v7.598 */
+/* AmazonDark v7.599 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.598-pdp-reviews-ad-followup"
+#define AD_VERSION "v7.599-alexa-owner-full-recovery"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2573,7 +2573,7 @@ static NSString *ADNewMenusJS7482(void){
     base=[base stringByAppendingString:ADPDPFollowupMediaJS7573()];
     base=[base stringByAppendingString:ADCapturedMediaJS7574()];
     base=[base stringByAppendingString:ADDealsPriceHistoryFollowupJS7574()];
-    // v7.598: inlined here so the established isolated gnu++98 ADNewMenus preflight
+    // v7.599: inlined here so the established isolated gnu++98 ADNewMenus preflight
     // compiles the real new include and not a missing separately extracted helper.
     NSString *reviewBusiness=[NSString stringWithUTF8String:
 #include "ADReviewBusiness7593.js.inc"
@@ -3925,6 +3925,36 @@ static BOOL ADInAppCXBottomSheet7255(UIView *v){
     } @catch(...) {}
     return NO;
 }
+// v7.599: Alexa moved from a separate AppCXWindow into the main UIWindow.
+// Keep the historical Alexa owner, keyed to its physical native navigation tree,
+// never to the hosting UIWindow class. The underlying hamburger is a sibling.
+static BOOL ADAlexaModernOwner7599(UIView *v){
+    if(!v||!v.window)return NO;
+    BOOL nav=NO,sheet=NO;
+    @try { for(UIView *n=v;n;n=n.superview){
+        NSString *a=n.accessibilityIdentifier?:@"";
+        if([a isEqualToString:@"navigation-root"])nav=YES;
+        if([a isEqualToString:@"AppCXBottomSheetContentView"])sheet=YES;
+        if([n isKindOfClass:UIWindow.class])break;
+    } }@catch(...){} return nav&&sheet;
+}
+static BOOL ADAlexaModernCard7599(UIView *v){
+    if(!ADAlexaModernOwner7599(v)||!ADClassNameIs7183(v,"RCTView"))return NO;
+    CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+    if(w<382.0||w>398.0||h<54.0||h>62.0||v.subviews.count<1)return NO;
+    for(UIView *n=v.superview;n&&n!=v.window;n=n.superview){
+        NSString *a=n.accessibilityIdentifier?:@"";
+        if([a hasPrefix:@"in-view-wrapper-ftuxRuxSuggestionCardList-"])return YES;
+        if([a isEqualToString:@"navigation-root"])break;
+    }
+    return NO;
+}
+static BOOL ADAlexaModernFloor7599(UIView *v){
+    if(!ADAlexaModernOwner7599(v)||!ADClassNameIs7183(v,"RCTView"))return NO;
+    NSString *a=v.accessibilityIdentifier?:@"";
+    return [a isEqualToString:@"MainNavigationHeader-header-bar"]||
+           [a isEqualToString:@"ShadowContainer"];
+}
 typedef BOOL (*ADNeutralTextPredicate7271)(UIColor *);
 static NSAttributedString *ADLightNeutralString7271(NSAttributedString *in,ADNeutralTextPredicate7271 predicate){
     if(!in.length||!predicate)return in;
@@ -4144,7 +4174,7 @@ static void ADShopShowApplyImage7590(UIImageView *iv);
         ADSetViewBackground7226(self,ADOLED(),YES);
         return;
     }
-    if(ADClassNameIs7183(self.window,"AppCXWindow")){
+    if(ADClassNameIs7183(self.window,"AppCXWindow")||ADInAppCXPassthrough7256(self)){
         if(!react&&ADInAppCXPassthrough7256(self)&&ADNeutralNearWhite7255(self.backgroundColor))ADSetViewBackground7226(self,ADOLED(),YES);
         if(ADInAppCXBottomSheet7255(self))ADOwnAppCXSheetFloor7255(self);
         if(ADInPersonSavingsSheet7259(self))ADOwnPersonSavingsFloor7259(self);
@@ -4241,7 +4271,7 @@ static void ADShopShowApplyImage7590(UIImageView *iv);
         %orig(black);
         return;
     }
-    if(self.window&&ADClassNameIs7183(self.window,"AppCXWindow")){
+    if(self.window&&(ADClassNameIs7183(self.window,"AppCXWindow")||ADInAppCXPassthrough7256(self))){
         if(!react&&ADInAppCXPassthrough7256(self)&&ADNeutralNearWhite7255(color)){
             UIColor *black=ADOLED();
             %orig(black);
@@ -6286,7 +6316,7 @@ static void ADPersonOwnOrderResultsSearch7591(UIView *host){
 static BOOL ADPersonOrderSearchCompactHost7589(UIView *host){
     if(!gP.enabled||!host||!host.window||!ADInPersonTab7206(host)||!ADClassNameIs7183(host,"RCTView"))return NO;
     @try {
-        // v7.598 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
+        // v7.599 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
         // Its direct children are exactly one 20x20 RCTImageView magnifier and one
         // RNCEKVTextInputFocusWrapper. Keep this independent from the old 360x50 owner.
         CGFloat w=host.bounds.size.width,h=host.bounds.size.height;
@@ -8001,7 +8031,7 @@ static BOOL ADAlexaAncestorAid7285(UIView *v,NSString *wanted,int maxDepth){
 // v7.296: Alexa Settings is a probe-proven three-row React screen.
 // Own only those exact row families; no visible-string matching or global SVG recolor.
 static BOOL ADAlexaSettingsRowButton7296(UIView *v){
-    if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return NO;
+    if(!v||!v.window||!(ADClassNameIs7183(v.window,"AppCXWindow")||ADAlexaModernOwner7599(v)))return NO;
     @try {
         for(UIView *n=v;n&&n!=v.window;n=n.superview){
             NSString *aid=n.accessibilityIdentifier?:@"";
@@ -8014,7 +8044,7 @@ static BOOL ADAlexaSettingsRowButton7296(UIView *v){
     return NO;
 }
 static BOOL ADAlexaSettingsSeparator7296(UIView *v){
-    if(!v||!v.window||!ADClassNameIs7183(v,"RCTView")||!ADClassNameIs7183(v.window,"AppCXWindow"))return NO;
+    if(!v||!v.window||!ADClassNameIs7183(v,"RCTView")||!(ADClassNameIs7183(v.window,"AppCXWindow")||ADAlexaModernOwner7599(v)))return NO;
     @try {
         UIView *p=v.superview; NSString *pa=p.accessibilityIdentifier?:@"";
         if(!([pa isEqualToString:@"conversation_threads"]||[pa isEqualToString:@"get_started"]||
@@ -8046,7 +8076,7 @@ static void ADAlexaOwnSettingsSeparator7296(UIView *v){
 // native hydration families: the original ftuxRuxSuggestionPillList shells and
 // #pillViewStyle shells under #in-view-wrapper-related_questions_*. No visible-string matching.
 static int ADAlexaSuggestionPillFamily7295(UIView *v){
-    if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return 0;
+    if(!v||!v.window||!(ADClassNameIs7183(v.window,"AppCXWindow")||ADAlexaModernOwner7599(v)))return 0;
     @try {
         for(UIView *n=v;n&&n!=v.window;n=n.superview){
             NSString *aid=n.accessibilityIdentifier?:@"";
@@ -8092,7 +8122,7 @@ static void ADAlexaSuggestionPillLightStorage7288(NSTextStorage *ts){
     @try { [ts addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,ts.length)]; } @catch(...) {}
 }
 static int ADAlexaReactControlRole7285(UIView *v){
-    if(!v||!v.window||!ADClassNameIs7183(v,"RCTView")||!ADClassNameIs7183(v.window,"AppCXWindow"))return 0;
+    if(!v||!v.window||!ADClassNameIs7183(v,"RCTView")||!(ADClassNameIs7183(v.window,"AppCXWindow")||ADAlexaModernOwner7599(v)))return 0;
     @try {
         NSString *aid=v.accessibilityIdentifier?:@"";
         if([aid isEqualToString:@"PlusMenuButton"]&&ADAlexaAncestorAid7285(v,@"navigation-root",14))return 1;
@@ -9304,6 +9334,15 @@ static void ADOwnReactView7226(UIView *v){
         if(ADInPDPActionBar7426(v)){ ADPDPActionBarOwn7426(v); return; }
         if([v.accessibilityIdentifier isEqualToString:@"fullscreen-inflight-animated-view"])ADSetViewBackground7226(v,ADOLED(),YES);
         ADAlexaOwnReactControl7285(v);
+        if(ADAlexaModernCard7599(v)){
+            ADSetViewBackground7226(v,ADOLED(),YES);
+            ADMenuSetSingleRCTBorder7258(v,1.0,ADBorderGray706());
+            return;
+        }
+        if(ADAlexaModernFloor7599(v)){
+            ADSetViewBackground7226(v,ADOLED(),YES);
+            return;
+        }
         if(ADLocationCard7416(v)||ADInLocationCanonical7416(v)){
             ADLocationOwnCanonicalView7416(v);
             if(ADLocationCard7416(v)||ADLocationApply7416(v)||ADLocationThinDivider7416(v)||ADLocationWideNeutralRow7416(v)||ADBrightNeutralUIView708(v))return;
@@ -9400,6 +9439,15 @@ static void ADOwnReactView7226(UIView *v){
         UIColor *black=ADOLED();
         %orig(black);
         self.layer.backgroundColor=black.CGColor;
+        return;
+    }
+    // v7.599: React hydration commits the same physical Alexa cards repeatedly.
+    // Recolor the authored surface, without adding a second frame/overlay.
+    if(gP.enabled&&(ADAlexaModernCard7599(v)||ADAlexaModernFloor7599(v))){
+        UIColor *oled=ADOLED();
+        %orig(oled);
+        self.layer.backgroundColor=oled.CGColor;
+        if(ADAlexaModernCard7599(v))ADMenuSetSingleRCTBorder7258(v,1.0,ADBorderGray706());
         return;
     }
     // Direct card ownership is valid even before window attachment; this closes the
@@ -9653,7 +9701,7 @@ static void ADOwnReactView7226(UIView *v){
 // v7.285 Alexa/Rufus vector controls
 static const void *kADAlexaVectorOwned7285=&kADAlexaVectorOwned7285;
 static int ADAlexaVectorRole7285(UIView *svg){
-    if(!svg||!svg.window||!ADClassNameIs7183(svg,"RNSVGSvgView")||!ADClassNameIs7183(svg.window,"AppCXWindow"))return 0;
+    if(!svg||!svg.window||!ADClassNameIs7183(svg,"RNSVGSvgView")||!(ADClassNameIs7183(svg.window,"AppCXWindow")||ADAlexaModernOwner7599(svg)))return 0;
     @try {
         NSString *aid=svg.accessibilityIdentifier?:@"",*parentAid=svg.superview.accessibilityIdentifier?:@"";
         // Settings and Chat-history can hydrate one wrapper differently. The stable owner is
@@ -9749,6 +9797,26 @@ static void ADAlexaOwnVector7285(UIView *svg){
 }
 %end
 
+// v7.599 Person carousel: a native React hydration rerenders the two
+// neutral title/subtitle runs black after they were initially themed.
+// Use this exact geometry/ancestry, not visible strings or a recurring walker.
+static BOOL ADPersonForgotCopy7599(UIView *v){
+    if(!v||!v.window||!ADClassNameIs7183(v,"RCTTextView")||!ADInPersonTab7206(v))return NO;
+    @try {
+        UIView *copy=v.superview,*card=copy.superview;
+        if(!copy||!card||!ADClassNameIs7183(copy,"RCTView")||!ADClassNameIs7183(card,"RCTView"))return NO;
+        CGFloat cw=copy.bounds.size.width,ch=copy.bounds.size.height;
+        CGFloat w=card.bounds.size.width,h=card.bounds.size.height;
+        if(cw<150||cw>178||ch<65||ch>80||w<180||w>192||h<170||h>193)return NO;
+        NSUInteger textCount=0;for(UIView*c in copy.subviews)if(ADClassNameIs7183(c,"RCTTextView"))textCount++;
+        if(textCount!=2)return NO;
+        BOOL button=NO;for(UIView *container in card.subviews){
+            if([container.accessibilityIdentifier isEqualToString:@"test-shop-now-button"])button=YES;
+            for(UIView *c in container.subviews)if([c.accessibilityIdentifier isEqualToString:@"test-shop-now-button"])button=YES;
+        }
+        return button;
+    }@catch(...){}return NO;
+}
 static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOOL includeBuyAgain){
     if(!gP.enabled)return NO;
     ADServiceDiscover7565(v,textStorage);
@@ -9756,6 +9824,7 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
     if(ADReviewMenuRoot7430(v)){ ADMenuLightStorage7255(textStorage); return YES; }
     if(ADAppSettingsRoot7548(v)){ ADMenuLightStorage7255(textStorage); return YES; }
     if(ADAlexaResultsRoot7427(v)){ ADMenuLightStorage7255(textStorage); return YES; }
+    if(ADPersonForgotCopy7599(v)){ ADPersonLightStorage7206(textStorage); return YES; }
     if(ADInPDPActionBar7426(v)){ ADMenuLightStorage7255(textStorage); return YES; }
     // v7.411 exact button owner: ancestry is enough even before window/sheet hydration.
     if(ADPermissionButtonText7409(v)){ ADPermissionTextStorage7409(v,textStorage); return YES; }
@@ -9764,6 +9833,7 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
     if(ADPermissionSheetKind7408(v)){ ADPermissionTextStorage7409(v,textStorage); return YES; }
     if(ADInPaymentSheet7401(v)){ ADPaymentLightStorage7401(textStorage); return YES; }
     if(ADAlexaSuggestionPillText7288(v)){ ADAlexaSuggestionPillLightStorage7288(textStorage); return YES; }
+    if(ADAlexaModernOwner7599(v)){ ADAppCXSheetLightStorage7255(textStorage); return YES; }
     int surface=ADReactSurface7226(v);
     if(surface==ADReactSurfacePerson7226||(includeBuyAgain&&ADPersonBuyAgain7208(v))){
         if(ADPersonOfflineFallbackButtonText7299(v))ADPersonOfflineFallbackButtonStorage7299(textStorage);
@@ -9787,12 +9857,14 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(ADReviewMenuRoot7430(v)){ ADMenuLightStorage7255(ADPersonTextStorage7206(v)); return; }
     if(ADAppSettingsRoot7548(v)){ ADAppSettingsOwnText7548(v); return; }
     if(ADAlexaResultsRoot7427(v)){ ADAlexaResultsOwnText7427(v); return; }
+    if(ADPersonForgotCopy7599(v)){ ADPersonLightStorage7206(ADPersonTextStorage7206(v)); return; }
     if(ADInPDPActionBar7426(v)){ ADMenuLightStorage7255(ADPersonTextStorage7206(v)); return; }
     if(ADInLocationCanonical7416(v)){ ADLocationSheetOwnText7196(v); return; }
     if(ADPermissionButtonText7409(v)){ ADPermissionOwnText7408(v); return; }
     if(ADPermissionSheetKind7408(v)){ ADPermissionOwnText7408(v); return; }
     if(ADInPaymentSheet7401(v)){ ADPaymentOwnText7401(v); return; }
     if(ADAlexaSuggestionPillText7288(v)){ NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADAlexaSuggestionPillLightStorage7288(ts); return; }
+    if(ADAlexaModernOwner7599(v)){ NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADAppCXSheetLightStorage7255(ts); return; }
     int surface=ADReactSurface7226(v);
     if(surface==ADReactSurfacePerson7226||(includeBuyAgain&&ADPersonBuyAgain7208(v))){ ADPersonOwnText7206(v); return; }
     if(surface==ADReactSurfaceMenu7255){ ADMenuOwnText7255(v); return; }
@@ -9878,6 +9950,11 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(actionBar)ADMenuLightStorage7255(textStorage);
     BOOL location=gP.enabled&&ADInLocationCanonical7416(v);
     if(location&&textStorage.length)ADLocationSheetLightStorage7196(v,textStorage);
+    if(gP.enabled&&ADAlexaModernOwner7599(v)){
+        if(ADAlexaSuggestionPillText7288(v))ADAlexaSuggestionPillLightStorage7288(textStorage);
+        else ADAppCXSheetLightStorage7255(textStorage);
+    }
+    if(gP.enabled&&ADPersonForgotCopy7599(v))ADPersonLightStorage7206(textStorage);
     %orig(textStorage,contentFrame,descendantViews);
     ADPersonCenterReturnsText7522(v);
     if(reviewMenu)ADMenuLightStorage7255(ADPersonTextStorage7206(v));
@@ -9885,6 +9962,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(alexaResults)ADAlexaResultsOwnText7427(v);
     if(actionBar)ADMenuLightStorage7255(ADPersonTextStorage7206(v));
     if(location&&v.window)ADLocationSheetOwnText7196(v);
+    if(gP.enabled&&ADAlexaModernOwner7599(v))ADOwnReactText7271(v,NO);
+    if(gP.enabled&&ADPersonForgotCopy7599(v))ADPersonLightStorage7206(ADPersonTextStorage7206(v));
 }
 - (void)setTextStorage:(NSTextStorage *)textStorage {
     if(ADThemeReactTextStorage7271((UIView *)self,textStorage,YES)){
@@ -9923,7 +10002,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
         else if(ADPermissionSheetKind7408(v)){ if(ts)ADPermissionTextStorage7409(v,ts); }
         else if(ADInPaymentSheet7401(v)){ if(ts)ADPaymentLightStorage7401(ts); }
         if(ADAlexaSuggestionPillText7288(v)){ if(ts)ADAlexaSuggestionPillLightStorage7288(ts); }
-        if(ADClassNameIs7183(v.window,"AppCXWindow")){
+        if(ADClassNameIs7183(v.window,"AppCXWindow")||ADAlexaModernOwner7599(v)){
             if(ADInAppCXBottomSheet7255(v)){ if(ts)ADAppCXSheetLightStorage7255(ts); }
             else if(ADInPersonSavingsSheet7259(v)){ if(ts)ADPersonSavingsLightStorage7259(ts); }
         }
@@ -10075,7 +10154,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     UIView *v=(UIView *)self;
     objc_setAssociatedObject(v,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(!gP.enabled||!v.window||ADInAuthoredVisualSubNav7175(v))return;
-    if(ADClassNameIs7183(v.window,"AppCXWindow")){
+    if(ADClassNameIs7183(v.window,"AppCXWindow")||ADAlexaModernOwner7599(v)){
         if(ADInAppCXBottomSheet7255(v)){ if(ADNeutralNearBlack7255(self.textColor))self.textColor=ADLightText706(); return; }
         if(ADInPersonSavingsSheet7259(v)){ if(ADPersonSavingsDarkNeutral7259(self.textColor))self.textColor=ADLightText706(); return; }
     }
@@ -12586,7 +12665,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 }
 
 
-// v7.598 FULL r3: exact native CXI back/search buttons above the Amazon Live WebView.
+// v7.599 FULL r3: exact native CXI back/search buttons above the Amazon Live WebView.
 static BOOL ADCXINeutralButton7597(UIButton *button){
     if(!gP.enabled||!button)return NO;
     NSString *aid=button.accessibilityIdentifier;
