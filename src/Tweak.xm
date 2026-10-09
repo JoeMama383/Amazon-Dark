@@ -1,4 +1,4 @@
-/* AmazonDark v7.602 */
+/* AmazonDark v7.605 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.602-pdp-visual-repair"
+#define AD_VERSION "v7.605-sustainability-rounded-border"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2614,6 +2614,21 @@ static NSString *ADNewMenusJS7482(void){
     ;
     visualRepair602=[visualRepair602 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     base=[base stringByAppendingString:visualRepair602];
+    NSString *micro603=@""
+#include "ADPDPMicroFix7603.js.inc"
+    ;
+    base=[base stringByAppendingString:micro603];
+    NSString *finish604=@""
+#include "ADPDPViewportFinish7604.js.inc"
+    ;
+    finish604=[finish604 stringByReplacingOccurrencesOfString:@"__OVERLAY__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?(1.0-ad7593Factor):0.0)]];
+    base=[base stringByAppendingString:finish604];
+    // v7.605: uncover the *authored* certification card border corners; do not redraw.
+    NSString *sustain605=@""
+#include "ADSustainabilityBorder7605.js.inc"
+    ;
+    base=[base stringByAppendingString:sustain605];
+
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
 
