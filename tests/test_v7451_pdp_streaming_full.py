@@ -27,7 +27,7 @@ assert 'if(!pdpMain)gADUIFramePayloads7446++' in handler
 # The page-side scanner is finite, read-only, time-sliced and performs a cheap seen-node
 # catch-up instead of scroll-driving the product renderer.
 for tok in ["phase:'pdp-stream-full'", "setTimeout(slice,200)", 'state.pass=1', 'WeakSet', 'maxNodes=60000',
-            "handler.postMessage", "frameId:'main-pdp-7451'", "pending.length>=24"]:
+            "handler.postMessage", "frameId:'main-pdp-7451'", "pending.length>=96"]:
     assert tok in J, tok
 for bad in ['scrollTo(', '.scrollTop=', '.scrollLeft=', 'requestAnimationFrame(', 'MutationObserver(', "addEventListener('scroll'"]:
     assert bad not in J, bad

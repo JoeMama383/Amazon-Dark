@@ -31,7 +31,7 @@ assert 'WEB_OWNERS_INIT_FAILURE details=' in full
 for tok in ['visibleVerticalPrimary(root)','elementsFromPoint','cw<innerWidth*.65','ch<innerHeight*.30',
             'span<=largest','window.__adPDPStreamSeen7454=null']:
     assert tok in W, tok
-for tok in ['window.__adPDPStreamSeen7454','catchup=!!priorSeen','catchup?96:24','catchup?4:6',
+for tok in ['window.__adPDPStreamSeen7454','catchup=!!priorSeen','catchup?160:96','catchup?2:2',
             'state.pass===0&&!state.truncated&&!catchup']:
     assert tok in S, tok
 print('PASS: v7.460 preserves exact carousel scope, manual PDP FULL, and automatic non-PDP walk')

@@ -91,6 +91,10 @@ for p in root.glob('test_*.py'):
         for zv,oldslug in zip_ids:
             if zv==oldv: s=s.replace('AmazonDark-v'+zv+'-'+oldslug+'-source.zip', 'AmazonDark-v'+cur+'-'+slug+'-source.zip')
         s=s.replace('AmazonDark-v'+oldv, 'AmazonDark-v'+cur)
+        # Normalize legacy source wildcard handoffs just as we normalize exact ZIP
+        # names: their old slug is historical, not a current-package contract.
+        s=re.sub(r'AmazonDark-v'+re.escape(cur)+r'-[A-Za-z0-9._-]+-source\*\.zip',
+                 'AmazonDark-v'+cur+'-'+slug+'-source*.zip', s)
         s=s.replace('v'+oldv, 'v'+cur)
         s=s.replace(oldv, cur)
     s=s.replace('ad7460-home-hero-pill', 'ad7461-home-hero-pill')
