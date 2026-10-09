@@ -1,4 +1,4 @@
-/* AmazonDark v7.601 */
+/* AmazonDark v7.602 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.601-probe-backed-pdp-owners"
+#define AD_VERSION "v7.602-pdp-visual-repair"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2573,7 +2573,7 @@ static NSString *ADNewMenusJS7482(void){
     base=[base stringByAppendingString:ADPDPFollowupMediaJS7573()];
     base=[base stringByAppendingString:ADCapturedMediaJS7574()];
     base=[base stringByAppendingString:ADDealsPriceHistoryFollowupJS7574()];
-    // v7.601: inlined here so the established isolated gnu++98 ADNewMenus preflight
+    // v7.602: inlined here so the established isolated gnu++98 ADNewMenus preflight
     // compiles the real new include and not a missing separately extracted helper.
     NSString *reviewBusiness=[NSString stringWithUTF8String:
 #include "ADReviewBusiness7593.js.inc"
@@ -2609,6 +2609,11 @@ static NSString *ADNewMenusJS7482(void){
     ;
     probeOwners601=[probeOwners601 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     base=[base stringByAppendingString:probeOwners601];
+    NSString *visualRepair602=@""
+#include "ADPDPVisualRepair7602.js.inc"
+    ;
+    visualRepair602=[visualRepair602 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
+    base=[base stringByAppendingString:visualRepair602];
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
 
@@ -3935,7 +3940,7 @@ static BOOL ADInAppCXBottomSheet7255(UIView *v){
     } @catch(...) {}
     return NO;
 }
-// v7.601: Alexa moved from a separate AppCXWindow into the main UIWindow.
+// v7.602: Alexa moved from a separate AppCXWindow into the main UIWindow.
 // Keep the historical Alexa owner, keyed to its physical native navigation tree,
 // never to the hosting UIWindow class. The underlying hamburger is a sibling.
 static BOOL ADAlexaModernOwner7599(UIView *v){
@@ -6326,7 +6331,7 @@ static void ADPersonOwnOrderResultsSearch7591(UIView *host){
 static BOOL ADPersonOrderSearchCompactHost7589(UIView *host){
     if(!gP.enabled||!host||!host.window||!ADInPersonTab7206(host)||!ADClassNameIs7183(host,"RCTView"))return NO;
     @try {
-        // v7.601 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
+        // v7.602 VIEWPORT: current Your Orders carousel uses a compact 174x50 search field.
         // Its direct children are exactly one 20x20 RCTImageView magnifier and one
         // RNCEKVTextInputFocusWrapper. Keep this independent from the old 360x50 owner.
         CGFloat w=host.bounds.size.width,h=host.bounds.size.height;
@@ -9451,7 +9456,7 @@ static void ADOwnReactView7226(UIView *v){
         self.layer.backgroundColor=black.CGColor;
         return;
     }
-    // v7.601: React hydration commits the same physical Alexa cards repeatedly.
+    // v7.602: React hydration commits the same physical Alexa cards repeatedly.
     // Recolor the authored surface, without adding a second frame/overlay.
     if(gP.enabled&&(ADAlexaModernCard7599(v)||ADAlexaModernFloor7599(v))){
         UIColor *oled=ADOLED();
@@ -9807,7 +9812,7 @@ static void ADAlexaOwnVector7285(UIView *svg){
 }
 %end
 
-// v7.601 Person carousel: a native React hydration rerenders the two
+// v7.602 Person carousel: a native React hydration rerenders the two
 // neutral title/subtitle runs black after they were initially themed.
 // Use this exact geometry/ancestry, not visible strings or a recurring walker.
 static BOOL ADPersonForgotCopy7599(UIView *v){
@@ -12675,7 +12680,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 }
 
 
-// v7.601 FULL r3: exact native CXI back/search buttons above the Amazon Live WebView.
+// v7.602 FULL r3: exact native CXI back/search buttons above the Amazon Live WebView.
 static BOOL ADCXINeutralButton7597(UIButton *button){
     if(!gP.enabled||!button)return NO;
     NSString *aid=button.accessibilityIdentifier;

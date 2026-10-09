@@ -13,8 +13,8 @@ var css=`
 /* Product art, brand logos, stars, Prime and other dynamic colors retain their inherited treatment. */
 
 /* Actual FBT carousel owner is sims-multiProductBundle, not the old multi-bundle-container-t3. */
-#dp [id^="sims-multiProductBundle_feature_div_"] img.p13n-product-image,
-#dp [class*="_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display__"] img.a-dynamic-image{filter:brightness(__FACTOR__)!important;-webkit-filter:brightness(__FACTOR__)!important;mix-blend-mode:normal!important;opacity:1!important;}
+#dp#dp#dp [id^="sims-multiProductBundle_feature_div_"] img.p13n-product-image,
+#dp#dp#dp [class*="_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display__"] img.a-dynamic-image{filter:brightness(__FACTOR__)!important;-webkit-filter:brightness(__FACTOR__)!important;mix-blend-mode:normal!important;opacity:1!important;}
 /* Complementary mosaic cards: exact probe owner, not a guessed generic product grid. */
 #dp #sims-complements_feature_div_0 [class*="_c3Atb_image-display-"] img.p13n-product-image,
 #dp #sims-complements_feature_div_0 [class*="_c3Atb_image-display-"] img.a-dynamic-image{filter:brightness(__FACTOR__)!important;-webkit-filter:brightness(__FACTOR__)!important;mix-blend-mode:normal!important;opacity:1!important;}

@@ -1,0 +1,276 @@
+lint-logos: OK
+PASS: 79 production cold-launch policy cases
+PASS: v7.388 preserves accepted snapshot cold-artwork policy; generic XIB is passive probe-only
+PASS: shipped include compiles in c99; emitted JS bytes equal v7.539 keyboard-diagnostic payload
+PASS: shipped include compiles in gnu++98; emitted JS bytes equal v7.539 keyboard-diagnostic payload
+PASS: C++98 negative control rejects the failed v7.339 raw-string wrapper
+PASS: native capture uses app Documents; v7.408 helper identity agrees
+PASS: v7.602 transition helper exports one current armed session as plain TAR and never bundles historical captures
+PASS: constructor and reachable helpers contain no UIKit image/screen work
+PASS: guard rejects the actual v7.337 eager load and indirect logger regression
+PASS: logo-load exception is contained inside the dispatch_once callback
+PASS: v7.348 exact native gradient/bar strip owners present; no production MutationObserver
+PASS: v7.354 retains the accepted v7.350 splash seal and v7.349 Cart strip fix
+v7.351 Cart Save-for-later text regression: PASS
+PASS: v7.354 retains v7.351 optimization architecture and unchanged critical non-Search payload hashes
+PASS: CNM hot path, UIView classification reuse, universal probe writer/path consolidation, dead Menu ring removal, probe-only SB logging present
+PASS: v7.354 preserves v7.353 UI owners and TRFT header while narrowing Search carousel floor ownership
+PASS: v7.354 restores Search carousel media ownership and tames Store Spotlight logo/product images
+PASS: current build preserves v7.355 Cart Same-Day ownership and v7.356 exact Search title-strip correction
+PASS: v7.356 inline-ad/control fixes remain under the v7.358 exact Search Tiles ownership
+PASS: v7.357 Search footer/media protections remain; temporary Shop-by-style marker safely retired in v7.358
+PASS: v7.358 removes Search row boxes, seals Search Tiles pseudo floors, and neutralizes certification raster white square
+PASS: v7.359 themes exact MAB menu/Heart/chevron/two-cards owners and preserves the open blue ring
+PASS: v7.360 seals Search Tiles image planes/tames exact tile media family and restores Cart coupon green/white parity
+PASS: v7.454 retains exactly two universal UI probe categories and no route-specific dispatcher
+PASS: screenshot -> finite native/main-Web/child-SafeFrame FULL; armed next-background lifecycle -> last-foreground VIEWPORT
+PASS: main + cross-frame probe programs compile in gnu++98, parse in Node, and have no recurring scan machinery
+PASS: v7.363 Search-pane media/Rufus, Related Searches, claimed Cart coupon and promotion-badge fixes present
+PASS: v7.365 exact Cart same-day/removed/meta and Sustainability-sheet ownership present
+PASS: v7.366 exact visible empty-cart caption owner is light without broadening Cart text ownership
+PASS: v7.367 gives zero-base and base-and-tiered Subscribe cards identical ownership while preserving Amazon switch states
+PASS: current build retains v7.369 isolated checkout architecture, authored colors/artwork, Cart controls, and stable shared WebUI
+PASS: v7.370 re-installs isolated checkout scripts after Amazon clears them, fixes probe-proven text/color misses, and hardens the exact native checkout header
+PASS: v7.371 residual checkout/BYG probe-backed fixes present
+PASS: v7.372 BYG loader and countdown badge parity
+PASS: v7.373 checkout delivery press state
+PASS: v7.375 preserves BYG price and moves checkout first-paint ownership before layout
+PASS: checkout/TWB/CI contracts retained under v7.388; BYG recovery remains real-control/no-recurring
+PASS: v7.377 restores warm/app-switcher non-interference and leaves cold exact-splash theming intact
+PASS: v7.377-established BYG stepper/switcher/probe contracts remain under v7.388
+PASS: v7.378 removes the BYG focus-outline corners and uses one guarded real-renderer reload without recurring work
+PASS: Claude audit locked — ADStandalone %.4f/%.3f mapping clean, ADTWB overlays use shade, CI enforces lint + Python regressions
+PASS: v7.379 transition trace survives switcher/warm return, captures lifecycle windows, and passively observes placeholder delivery without mutation
+PASS: v7.388 features, structural checkout dedupe, switcher non-interference, packaging guard, dead/duplicate static audit
+PASS: v7.388 OLED ad loading floor retained; broad outer-slot sponsored promotion removed
+PASS: v7.382 precision contracts survive v7.388 without nested :has or broad carousel promotion
+PASS: v7.388 sponsored blocker uses isolated valid rules with full selector-family coverage
+PASS: sponsored payload is outside Logos, C-linkage-safe, and document-start injected
+PASS: Objective-C++/Objective-C sponsored boundary is explicitly C-linkage compatible
+PASS: v7.388 collapses only the two probe-proven sponsored outer shells
+PASS: BYG storage failures/repeat visits/hydration, checkout TWB cleanup, disabled Privacy pass-through
+PASS: v7.386 CSS semantic hashes, all 86 sponsored selectors, unchanged probe payloads, script/cache contracts
+PASS: production preference planner handles no-op, independent toggles, disable/re-enable and clamped strengths
+PASS: native scope/palette goldens, Search hydration/re-entry guard, checkout current-state checks and exception cleanup
+PASS: passive next-background VIEWPORT arm, package gate, upgrade discovery, unarmed status, and isolated current-session FULL/VIEWPORT TAR export
+PASS: v7.389 exact checkout sheet + checkout-only teal switcher shield
+PASS: v7.390 probe-backed seven-surface checkout/support UI completion + Subscribe loader
+PASS: v7.391 closes the three probe-confirmed v7.390 residual UI paint gaps
+PASS: v7.392 removes version-list drift from skeleton receipt handoff while preserving v7.391 production theming architecture
+PASS: v7.398 covers Returns/Tax wrapped articles, every help submenu card, and instructional figure shell while preserving dynamic text/media
+PASS: payment owners preserve blue/dynamic/switch paint while current unselected gift-card art joins the existing brightness-only TWB path
+PASS: v7.398 corrects wrapped legal article ownership, white legal copy, OLED separators, shared gray search glyph and complete feedback states
+PASS: v7.394 covers add-address, pickup/map/card, delivery/pickup toggle and suggested-help/WebKit keyboard accessory with exact probe-backed ownership
+PASS: v7.398 retains v7.395 typed-help, address-location, and pickup-alert latent white-state fixes
+PASS: v7.398 owns only the probe-proven bright AMI checkout child root during address navigation
+PASS: v7.398 darkens the three probe-proven checkout/payment auxiliary controls while preserving authored blue edges and checkbox art
+PASS: v7.398 closes legal/help ownership, shared search glyph, submenu/feedback latent states and payment latent white states without recurring runtime work
+PASS: v7.399 completes Add-address field/warning ownership while preserving semantic states and cheap runtime architecture
+PASS: v7.400 fully owns the probe-proven Delivery Instructions secondary popover without broad runtime machinery or semantic-state flattening
+PASS: v7.401 establishes a scoped dark pressed/highlight policy across all currently-owned AUI neutral row families
+PASS: v7.401 themes both native payment sheets and keeps owned neutral rows dark through press/highlight states
+PASS: current skeleton helper still discovers Amazon from historical v7.400 receipt with metadata/plutil unavailable
+PASS: v7.402 fixes payment skeleton/header/logo/switcher, pickup chevron/transition, and Add-new payment icons
+PASS: v7.402 skeleton helper discovers Amazon from exact direct-parent v7.401 receipt with metadata/plutil unavailable
+PASS: v7.403 themes shared SSF Product/Cart share, tames exact preview/channel imagery, preserves authored semantics, and adds opt-in probe suppression with regenerated probes
+PASS: v7.403 skeleton helper discovers Amazon from exact direct-parent v7.402 receipt with metadata/plutil unavailable
+PASS: v7.404 leaves one VIDEO_SINGLE_PRODUCT outer border, restyles exact Alexa cue to AmazonDark control palette, preserves Alexa artwork, and regenerates probes
+PASS: v7.404 skeleton helper discovers Amazon from exact direct-parent v7.403 receipt with metadata/plutil unavailable
+PASS: inherited v7.405 PDP completion remains probe-backed PDP floors/text/controls/media/share/pagination/top-ad treatment and regenerates all probes
+PASS: inherited v7.405 skeleton helper discovers Amazon from exact direct-parent v7.404 receipt
+PASS: v7.407 skeleton helper discovers Amazon from exact direct-parent v7.405 receipt
+PASS: v7.407 keeps one video+copy border while restoring the authored Sponsored footer and regenerates all probes
+PASS: v7.407 scopes the Product Search -> PDP image-backed skeleton to the exact native owner and renders it OLED/dark without recurring runtime work
+PASS: v7.407 skeleton helper discovers Amazon from exact direct-parent v7.406 receipt
+PASS: exact location-switcher probe witness satisfies the generalized inactive AppCX neutral-shield invariant without a route/payment prerequisite
+PASS: v7.408 themes the three probe-proven sheets and replaces route-specific neutral switcher assumptions with one inactive AppCXWindow visual-effect invariant
+PASS: v7.408 skeleton helper discovers Amazon from exact direct-parent v7.407 receipt
+PASS: v7.409 preserves Camera checkbox, forces permission button text light, uses one rounded gray React border, and closes location side-rail timing hole
+PASS: v7.409 skeleton helper discovers Amazon from exact direct-parent v7.408 receipt
+PASS: v7.410 closes permission-text marker timing and location presentation-shell/top-rail first-paint gaps
+PASS: v7.410 skeleton helper discovers Amazon from exact direct-parent v7.409 receipt
+PASS: v7.411 removes permission-button classification dependency and owns location transition plates before route/scroller hydration
+PASS: v7.411 helper accepts exact direct-parent v7.410 receipt
+PASS: v7.412 visual contracts are retained through the v7.418 canonical location owner
+PASS: v7.412 helper accepts exact direct-parent v7.411 receipt
+PASS: forward-class compile fix is retained while location ownership is simplified
+PASS: v7.413 helper accepts exact direct-parent v7.412 receipt
+PASS: v7.418 removes the wrong Nile sibling owner and retains the actual card/ZIP/list visual contracts
+PASS: v7.415 final-commit race is retained but now scoped to the actual canonical location renderer
+PASS: v7.418 uses one event-driven full-screen location owner for main/ZIP/country/current-location screens
+PASS: v7.418 helper accepts the v7.415 direct-parent receipt
+PASS: v7.418 retains v7.417 narrow non-media Search carousel title-strip restoration
+PASS: v7.418 fixes current gift-card/claim-code white owners, tames only gift-card art, and removes React switch outline chrome without touching input outlines or switch paint
+PASS: v7.418 transition helper accepts the direct-parent v7.416 receipt and arms current-version probe paths
+PASS: v7.419 matches claim-code wrapper to #181a1b and brightness-tames selected/unselected gift-card art exactly once
+PASS: v7.419 transition helper accepts the direct-parent v7.418 receipt and arms current-version probe paths
+PASS: v7.420 owns only the probe-proven Cart tan tab-root plane and collapses the exact payment sticky-footer divider
+PASS: v7.420 transition helper accepts the direct-parent v7.419 receipt and arms current-version probe paths
+PASS: current build retains the speed-BYG carousel shell and semantic gray/white add-to-cart controls while retaining the old dense-grid path
+PASS: v7.437 transition helper accepts the direct-parent v7.420 receipt and arms current-version probe paths
+PASS: v7.437 transition helper accepts the direct-parent v7.421 receipt and arms current-version probe paths
+PASS: v7.437 transition helper accepts the direct-parent v7.422 receipt and arms current-version probe paths
+PASS: v7.437 transition helper accepts the direct-parent v7.423 receipt and arms current-version probe paths
+PASS: v7.437 transition helper accepts the direct-parent v7.424 receipt and arms current-version probe paths
+PASS: PDP/child isolation, repeat injection and media brightness 0/45/100
+PASS: v7.437 transition helper accepts the direct-parent v7.425 receipt and arms current-version probe paths
+PASS: all 429 AI-result nodes scoped; unrelated roots rejected
+PASS: v7.437 transition helper accepts the direct-parent v7.426 receipt and arms current-version probe paths
+PASS: probe-family CSS cascade restores media blend, neutral text, OLED floors and unboxed arrow; preserves blue/red/star paint
+PASS: v7.437 transition helper accepts the direct-parent v7.427 receipt and arms current-version probe paths
+PASS: compact banner strength 0/45/100, single owner, media reset, reinjection and preference cleanup
+PASS: v7.437 transition helper accepts the direct-parent v7.428 receipt and arms current-version probe paths
+PASS: native review topology: 3 gray actions, 1 OLED details, 1 gray Ask; only Ask gradient and attribution SVG change; 11 glyphs preserved
+PASS: v7.437 transition helper accepts the direct-parent v7.429 receipt and arms current-version probe paths
+PASS: v7.431 exactly completes r2-r5 PDP header/ad/swatch/price/video-border owners without new recurring work
+PASS: v7.437 transition helper accepts the direct-parent v7.430 receipt and arms current-version probe paths
+PASS: v7.437 themes hydrated PDP SafeFrame ad floors/text/media without a referrer dependency or recurring runtime work
+PASS: v7.437 universal FULL/VIEWPORT bridge captures sanitized computed UI state inside cross-origin and nested frames
+PASS: v7.437 applies probe-backed PDP/Search fixes and current probe identities
+PASS: v7.437 owns the probe-confirmed white sponsored-results parent rail
+PASS: v7.437 standardizes all three probe-confirmed PDP standalone ad renderer families
+PASS: v7.438 repairs the Search Objective-C literal and balances checkout format arguments 8/8
+PASS: v7.439 covers the probe-confirmed PDP standalone/video/lightAds/Safety-doc families while retaining all recent UI fixes
+PASS: v7.454 retains PDP child-frame ownership with an idempotent cached delivery path and no recurring scans
+PASS: v7.454 executes media styles at both strength bounds; wrapper blending releases loaded images and only artwork receives dimming
+PASS: v7.454 freezes armed VIEWPORT at background, uses TAR for all probe exports, preserves bounded FULL, and retains the scale-normalized transition fix
+PASS: cooperative final-full collector yields 400-node fixture; root/owner offsets restore independently
+PASS: v7.454 bounded diagnostic capture and explicit incomplete coverage
+PASS: current build preserves performance-consolidation recurring-work invariants, PDP frame caching, and linear probe queues
+PASS: v7.454 FULL is cooperative, post-lazy-load complete, and does not rewalk the entire DOM per scroll step
+PASS: v7.602 routes Product Detail through manual read-only checkpoints and preserves automatic FULL elsewhere
+PASS: v7.602 retains the finite read-only streamer for non-PDP catch-up without using it as the PDP primary path
+PASS: missing bridge, full offscreen inventory on both routes, yielding, no offset mutation, deadline
+PASS: universal PDP/search walk, real overflow owner, lazy growth accounting, single restore, collapse/background/detachment guards
+PASS: v7.602 preserves exact carousel scope, manual PDP FULL, and automatic non-PDP walk
+PASS: retired manual-only PDP path; automatic walk is gated by verified modal unlock
+PASS: PDP modal-lock reproduction, automatic full traversal after stock close, late modal recovery, safe failure, session reset
+PASS: v7.460 suppresses only the probe-recorded screenshot presenter callback
+PASS: v7.460 owns every probe-backed PDP defect and missed image family
+PASS: v7.602 makes VIEWPORT single-pass/terminal-safe and flips the exact home hero sponsored pill to black at the same alpha
+PASS: v7.602 targets the captured single-video Sponsored pill directly with a fresh style identity
+PASS: Home hero owns both captured Sponsored-pill variants at black/60% without a broad sponsored-label selector
+PASS: v7.473 handoff stays and regenerates all probes
+PASS: v7.473 keeps frozen carousel scope and moves stubborn PDP ad paint onto a persistent core survivor sheet
+PASS: v7.473 preserves legacy anchors and retires the failed promotion lane in favor of the core survivor sheet
+PASS: v7.473 retains frozen PDP/source anchors while replacing only the failed ad-survivor mechanism
+PASS: v7.473 satisfies consolidation anchors with a persistent non-recurring PDP ad survivor sheet
+PASS: v7.473 retains frozen carousel exclusions while making its exact paint sheet hydration-survivable
+PASS: v7.473 keeps private user-style/isolated experiments retired and uses the normal all-frame core script with a constructable survivor sheet
+PASS: v7.473 retains the actual PUTB fade fix and expands frame evidence to adopted survivor sheets
+PASS: v7.473 carries all four probe-proven ad families in one persistent page-world survivor sheet without semantic repaint or recurring work
+PASS: v7.473 preserves the frozen mature standalone engine and adds exact hydration-surviving coverage for its uncovered PDP renderers
+PASS: v7.473 converts the uncovered PDP families to a persistent core survivor sheet and expands viewport proof for adopted stylesheets
+PASS: v7.478 restores variant offsite neutral subcopy, PUTB description copy, and selected format cap without flattening dynamic ad colors
+PASS: v7.478 retains v7.475 lifecycle ownership while retiring its two probe-disproven broad selectors
+PASS: v7.478 retains the v7.476 no-clipping contract while restoring the working top-offsite ownership boundary
+PASS: v7.478 preserves v7.477 exact PDP ownership while correcting its opaque medium-ad overlay and failed outer Top-tab geometry strategy
+PASS: v7.480 preserves the six v7.478 Home/PDP ownership repairs while hardening the countdown owner
+PASS: v7.480 full-screen camera permission owns OLED floors, neutral text/buttons/checkbox and neutral SVG brushes while preserving saturated colors
+PASS: v7.602 Returns main + email secondary views are probe-backed and preserve semantic colors
+PASS: v7.480 covers the TNF visible white paint and clears only the PDP action-bar container top edge
+PASS: v7.480 preflights the exact v7.479 Objective-C++ failure and preserves legacy/new Camera checkbox ownership
+PASS: v7.602 themes FULL r1/r2 Returns owners and collapses the r3 fade/divider without flattening semantic colors
+PASS: v7.602 themes PUTB immersive, review form, and profile picker from VIEWPORT r1-r4 with semantic colors preserved
+PASS: legacy v7.483 book/Returns follow-up retained; current build preserves Amazon-authored ORC warning geometry
+PASS: v7.602 removes the probe-proven 48px PUTB card ::after gradient from both immersive book menus
+PASS: v7.602 owns the probe-proven AMI book transition root and ports the exact v6.0.185 Sign Out/Cancel visual contract
+PASS: v7.602 preserves authored ORC warning geometry/color and fixes Returns history headers + recommendation CTAs
+PASS: v7.602 whitens the exact Active Returns section and expands read-only AMI lifecycle/root diagnostics
+PASS: v7.602 synchronizes every active probe arm/status/state/export/package-gate identity
+PASS: v7.602 preserves CSS background artwork, evenly tames Prime surfaces, and seals the three remaining Orders filter white floors
+PASS: v7.602 restores authored Prime artwork placement while preserving v7.508 taming and filter-sheet fixes
+PASS: v7.602 uses Logos-safe WebKit traits hooks and preserves the established keyboard/core contracts
+PASS: v7.602 aligns only the global keyboard dictation glyph Y-center to the sibling dock control without changing button/icon size or X geometry
+PASS: v7.602 declares the shared keyboard mic geometry helper before UIKeyboardDockView hook compilation
+PASS: v7.519 exact Person deep scan + restored viewport boundary + paint-only Returns border geometry
+PASS: v7.602 restores legacy FULL route contract and exact Hamburger RCTCustomScrollView deep scan
+PASS: captured Returns inset plane clears through hydration without geometry writes; full probe retains coverage and yielding
+PASS: exact Returns text glyph alignment is horizontally centered, repeat-safe, and preserves card dimensions
+PASS: v7.523 clears only the exact 60pt left Returns paint plane across mount/layout/background rehydration and preserves authored geometry
+PASS: v7.524 keeps the Returns thumbnail lane real/tamed and suppresses the v7.522 text recenter when the thumbnail slot is present
+PASS: frozen existing-clone push workflow and FULL/VIEWPORT/TRANSITION handoff contract remain intact under v7.602
+PASS: v7.602 treats the Returns thumbnail as forced Person media so TWB applies while keeping the frozen handoff contract
+PASS: v7.602 preserves the v7.527 Interests/product-grid OLED family
+PASS: v7.602 explicitly whitens the probe-confirmed Interests plus glyph while preserving its gray ring and frozen handoff contract
+PASS: v7.602 finishes the exact Interests prompt/menu/plus/product-text/price owners without changing the frozen handoff contract
+PASS: current build preserves the v7.602 Interests prompt/overflow/plus/title/price visual contract with a JS-safe ellipsis and frozen handoff contract
+PASS: current build preserves Interests plus/heart/rating, OLED modal paint, top close-X whitening and WebKit dark keyboard traits without owning the stock inner clear control
+PASS: v7.602 synchronizes the source ZIP identity and preserves the frozen AmazonDark handoff contract
+PASS: v7.602 restores the omitted v7.529 historical regression and its exact Interests ownership contract
+PASS: current build preserves exact Interests visual owners, top close-X paint, and frozen handoff contract
+PASS: v7.533 reconstructs and parses the shipped ADNewMenus WebKit payload; malformed CSS escapes cannot blank the web theme
+PASS: v7.602 keeps modal geometry stock, themes only floor/header/top-X paint, and primes cached WebKit traits before first keyboard presentation
+PASS: modal fade/glow removed, stock geometry retained, one authored focus border, OLED Update and dark input scheme; emitted payload parses
+PASS: current build preserves v7.536 keyboard-rewrite intent using the exact WebKit extended-traits owner without modal geometry or recurring work
+PASS: v7.602 owns WebKit extended input traits so restoreDefaultValues cannot revert the remote keyboard to light
+PASS: keyboard evidence catches same-focus trait changes and focus replacement, deduplicates, expires, caps records and avoids input text
+PASS: bounded keyboard budget recovers after burst/background; legacy read/write tracing survives the successor dark-clamp policy and diagnostic recursion is guarded
+PASS: v7.602 clamps the actual legacy UITextInputTraits handoff to dark on both reads and writes without modal geometry or recurring work
+PASS: v7.602 keeps the legacy keyboard clamp but makes the getter Logos-safe by terminating bare %orig before the next declaration
+PASS: v7.602 expands transition evidence to the UIKit keyboard consumer boundary without changing production keyboard or modal behavior
+PASS: v7.602 clamps only the probe-proven Light UITextEffectsWindow while preserving the existing dark keyboard traits and modal geometry contract
+PASS: v7.602 expands the opt-in transition probe into responder styling, UIKeyboardImpl private state, and the remote keyboard window/scene boundary without changing production behavior
+PASS: v7.602 expands the transition probe across _UIKeyboardWindowScene and FBSKeyboardLayer without changing the frozen handoff contract
+PASS: v7.602 makes foreground Hamburger ownership win over retained Person surfaces and recognizes both menu root identities
+PASS: v7.602 still primes the WebKit editing trait dark before focus, reasserts it while editing, and restores authored style on resign without geometry or recurring work
+PASS: v7.602 preserves the retained WebKit editing-trait contract without regressing the FULL-menu route repair
+PASS: v7.553 uses the v7.548 FULL-probe exact Filters owners for gray option controls, one rail divider, divider-free footer, and OLED Show results
+PASS: current build themes the About You memory grid cards, pills, banner, and search controls while preserving dynamic link/selection accents
+PASS: v7.602 retires the obsolete Tweak.xm 856000-byte test gate while preserving the requested UI restorations and frozen handoff contract
+PASS: v7.602 retires the obsolete Tweak.xm size gate and freezes exact probe-derived Filters owners
+PASS: exact App Settings owner/text X restored; Interests survives head replacement, early header hydration and repeat delivery
+PASS: captured Filters/Search cascade, detached footer divider, glyph preservation and strength bounds
+PASS: v7.602 Filters selected/price/footer + universal FULL/VIEWPORT routing; Account paint intentionally deferred
+PASS: v7.602 order-item OLED cards/text/dividers, dynamic color preservation, TWB, and centered count geometry
+PASS: v7.602 OLEDs exact Returns success-alert planes, keeps copy white, and preserves authored green rail/border
+PASS: v7.602 OLEDs only the captured Refunds cs-help-note floor and preserves authored blue/white text plus stock border geometry
+PASS: v7.602 route-gated Seller Messaging OLED/gray controls, dynamic-color preservation, bounded product-media TWB, ObjC++ syntax, and emitted JS parse
+PASS: Pharmacy scoped cascade, semantic Prime banner, neutral text/buttons and large-image strength bounds
+PASS: exact native service-sheet helpers compile; raster color/alpha policy executes; finite hydration, image cache/taming, and countdown geometry contracts retained
+PASS: Store locator OLED/white/gray cascade, preserved semantic colors, pin shadow removal, whole-map strength bounds and untamed Health AI art
+PASS: Health raster pale/low-alpha edge cleanup, cyan contrast and alpha/bright-color preservation; map ring stroke and transparent attribution background
+PASS: grocery CSS cascade, semantic/logo exclusions, artwork strength bounds, dense visible inventory and capture-boundary contracts
+PASS: native address dropdown helper compiles; Prime floors/buttons/filter dialogs, neutral copy, semantic exclusions and artwork strengths match policy
+PASS: captured canvas hero artwork dims at preference bounds; overlay controls preserved; Search HVE text and image side floors corrected
+PASS: Search see-all button uses OLED/gray/white treatment and Interests welcome sheet is full OLED with white copy/close/header while orange sparkle artwork is preserved
+PASS: captured Prime Big Deals label is white without requiring the obsolete toolbar ancestor
+PASS: captured loaded Search video remains visible/unfiltered; no poster/playback behavior is rewritten
+PASS: PDP Customers-also-bought and FBT image families receive preference brightness without hiding images
+PASS: captured review-summary pills are gray with gray borders and white text
+PASS: lower video sponsored badge alone is inverted to 90% black; sponsored text, info glyph, and video are untouched
+PASS: captured bundle/chart/Prime imagery uses one preference-controlled leaf filter, survives legacy visibility reset, and preserves semantic paint; review buttons, Sponsored alpha, ad description and seller price corrected
+PASS: v7.574 inverts price-history charts and performs one-shot deals-page blue/gold taming, divider gray normalization, compact ad border gray, and small media toning without recurring observers
+PASS: current build preserves the v7.575 deals/interests family while the Prime Deals refinement sheets remain paint-only
+PASS: v7.602 repairs the v7.448 performance gate, v7.480 syntax-preflight dependency source, v7.535 Interests CSS boundary, and current AMI regression marker
+PASS: current build preserves the v7.578 capture-completion regression and production media/CSS contract without reopening recurring-work or performance regressions
+PASS: current Prime refinement sheets remain geometry-safe and explicitly suppress close/See-more border promotion
+PASS: v7.580 removes close/header/See-more border promotion while preserving only authored control/divider paint
+PASS: v7.602 removes synthetic Prime tab/refinement separators and recolors only Amazon-authored divider geometry
+PASS: v7.602 owns the captured Prime loading plate and SkeletonBox paint at document start and recolors the compact 320x50 ad border without creating new geometry
+PASS: v7.602 recolors only the three probe-proven authored Prime refinement divider sides without creating geometry
+PASS: v7.584 medical/chat cascade restores text and controls, preserves semantic paint, excludes glyphs from dimming
+PASS: One Medical media payload parses at disabled/0/45/100 strengths and only artwork leaves match
+PASS: v7.585 probe-shaped medical/auth follow-up fixes exact owners while preserving semantic colors and non-recurring runtime policy
+PASS: v7.586 colors Health AI send/control owners, visible glyphs/fade removal, auth footer/help copy, and One Medical continue button exact paint
+PASS: v7.587 exact One Medical bottom-sheet floors/logo inversion, ZIP floor, and auth Amazon logo strip ownership present
+PASS: v7.602 exact PDP coupon states, dynamic package info text, and native product-image thumbnail rail ownership present
+PASS: v7.602 exact compact Orders magnifier and Your Review OLED/text/button owners present
+PASS: v7.602 cumulative post-v7.585 UI and exact Shop the Show media ownership retained; broken FULL arbitration remains retired
+PASS: v7.602 restores v7.585 FULL dispatch and Person TWB, adds exact Order-results search ownership, and themes One Medical Shadow DOM owners
+PASS: v7.592 real owner cascade, semantic negatives, late shadow upgrade, thumbnail depth and additive media preservation
+PASS: v7.594 reviews semantic histogram/CTA/images and standalone guarded Prime Business Card colors
+PASS: v7.595 CSS and genuine probe owner/viewport contracts
+PASS: thank-you floors/buttons/neutral copy, semantic colors, featured border, gray dividers and artwork-only dimming at disabled/0/45/100; unrelated menus untouched
+PASS: bounded performance recorder, unsupported WebKit entries, reinjection, bfcache, cleanup, privacy, C++98 inactive gate, native syntax and one-session TAR export
+PASS: repeated Medical delivery/event bursts stay bounded, duplicate image calls and unreachable helpers removed
+PASS: every core module is emitted and both cache layers reuse unchanged preferences and refresh strength/toggle changes
+PASS: captured Live/thank-you floors, neutral copy, artwork, search contrast, orange rings/stars/deals and idempotent CSS: {'floors': 38, 'text': 29, 'images': 18, 'semantic': 8}
+PASS: v7.598 restores review-page media/header and PDP sponsored/FBT follow-up owners
+PASS: v7.602 migrated Alexa native ownership, exact card/pill/header/input and screenshot FULL route
+PASS: v7.600 add-to-cart sheet, IOU card, bundle divider and complementary plus buttons themed with preserved semantics and artwork-only dimming
+PASS: viewport probe completion no longer downgrades complete captures solely for deferred child-frame accounting, while FULL retains the strict cross-frame partial gate
+PASS: v7.601 exact captured owners: brand gradient, brand text/art isolation, Shop Aisles IMG, purple focus ring, pill meter/gray remainder, FBT untamed image, bundle white top border, complementary media/buttons
+PASS: v7.601 FULL faster bounded streaming, truthful background interruption classification and explicit abort diagnostics
+PASS: v7.602 real captured owners win against legacy CSS: FBT filter, transparent buy label/price and plus wrapper, multiply parent, OLED CTA, bare review h4; no layout/runtime scanning changes
+python-regressions: OK (259)
