@@ -23,8 +23,8 @@ assert 'objc_setAssociatedObject(self,kADUniversalProbeUS7433,nil' in S
 assert 'initWithSource:source?:@"" injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO' in INC
 assert 'addScriptMessageHandler:gADUniversalUIBridge7433 contentWorld:ADUIProbeWorld7453() name:@"adUniversalUI7433"' in INC
 assert 'removeScriptMessageHandlerForName:@"adUniversalUI7433"' in INC
-assert 'CROSS_FRAME_DOM' in INC and 'CROSS_FRAME_FLUSH_WAIT policy=viewport-200ms/full-900ms' in INC
-assert 'NSTimeInterval flushDelay=viewportOnly?0.20:0.90;' in INC
+assert 'CROSS_FRAME_DOM' in INC and 'CROSS_FRAME_FLUSH_WAIT policy=viewport-550ms/full-1150ms' in INC
+assert 'NSTimeInterval flushDelay=viewportOnly?0.55:1.15;' in INC
 
 main=''.join(json.loads(x) for x in MAIN_INC.splitlines())
 frame=''.join(json.loads(x) for x in FRAME_INC.splitlines())

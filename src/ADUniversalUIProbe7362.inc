@@ -910,7 +910,7 @@ static void ADCaptureUniversalUIProbe7362(BOOL viewportOnly,NSString *trigger);
 
 static void ADUIFinishCapture7364(BOOL viewportOnly,NSArray *webs,NSString *path,unsigned long long cap){
     void (^flush)(void)=^{
-        ADUIAppend7362(path,@"\nCROSS_FRAME_FLUSH_WAIT policy=viewport-200ms/full-900ms reason=allow final child/SafeFrame message chunks to complete\n",cap);
+        ADUIAppend7362(path,@"\nCROSS_FRAME_FLUSH_WAIT policy=viewport-550ms/full-1150ms reason=allow final child/SafeFrame message chunks to complete\n",cap);
         NSTimeInterval flushDelay=viewportOnly?0.55:1.15;
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(flushDelay*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
             if(!viewportOnly&&((gADUIExpectedFrames7446&&gADUIFramePayloads7446==0)||gADUIFrameBatches7446.count>0||gADUniversalUIBridge7433.pending.count>0))gADUIProbePartial7446=YES;

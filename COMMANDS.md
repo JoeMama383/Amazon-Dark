@@ -1,25 +1,27 @@
 # AmazonDark v7.600 commands
 
-Save the `AmazonDark-v7.600-pdp-overlay-probe-followup-source.zip` file in `/var/mobile` on your iPhone before pushing.
+The canonical artifact name is `AmazonDark-v7.600-pdp-overlay-probe-followup-source.zip`; the `-CI-FIX.zip` suffix identifies the validated repair. The matching family is `AmazonDark-v7.600-pdp-overlay-probe-followup-source*.zip`.
+
+Save the `AmazonDark-v7.600-pdp-overlay-probe-followup-source-CI-FIX.zip` file in `/var/mobile` on your iPhone before pushing.
 
 ## Push — v7.600 (existing clone)
 ```sh
 sh <<'SH'
 set -eu
 cd /var/mobile/Amazon-Dark-phone
-ZIP=$(find /var/mobile -type d -name '.Trash*' -prune -o -type f -name 'AmazonDark-v7.600-pdp-overlay-probe-followup-source*.zip' -print 2>/dev/null |
+ZIP=$(find /var/mobile -type d -name '.Trash*' -prune -o -type f -name 'AmazonDark-v7.600-pdp-overlay-probe-followup-source-CI-FIX.zip' -print 2>/dev/null |
 while IFS= read -r candidate; do
   if unzip -tq "$candidate" >/dev/null 2>&1; then printf '%s\n' "$candidate"; break; fi
 done)
 [ -n "$ZIP" ] || { echo "Save the source ZIP to the phone first."; exit 1; }
-STAGE=$(mktemp -d /var/mobile/ad7599.XXXXXX)
+STAGE=$(mktemp -d /var/mobile/ad7600.XXXXXX)
 unzip -q "$ZIP" -d "$STAGE"
-grep -qx 'Version: 7.600~alexa-owner-full-recovery' "$STAGE/layout/DEBIAN/control"
+grep -qx 'Version: 7.600~pdp-overlay-probe-followup' "$STAGE/layout/DEBIAN/control"
 cp -a "$STAGE/." .
 chmod 755 layout/DEBIAN/postinst
 AD_STRICT_VALIDATE=0 sh scripts/validate.sh
 git add -A
-if ! git diff --cached --quiet; then git commit -m "v7.600: restore updated Alexa shopping menu and FULL capture"; fi
+if ! git diff --cached --quiet; then git commit -m "v7.600: PDP overlay, IOU and probe follow-up"; fi
 git push origin main
 SH
 ```

@@ -28,9 +28,9 @@ assert 'if(viewportOnly&&!intersects(r))return;cs=getComputedStyle(el)' in U
 # FULL still owns the cooperative continuation machinery.
 assert 'window.__adUIProbeContinue7446=more?pump:null' in U
 
-# VIEWPORT terminal state is no longer delayed by FULL's 900 ms frame flush.
-assert 'NSTimeInterval flushDelay=viewportOnly?0.20:0.90;' in I
-assert 'CROSS_FRAME_FLUSH_WAIT policy=viewport-200ms/full-900ms' in I
+# VIEWPORT still has its own shorter flush window (550 ms vs FULL 1150 ms).
+assert 'NSTimeInterval flushDelay=viewportOnly?0.55:1.15;' in I
+assert 'CROSS_FRAME_FLUSH_WAIT policy=viewport-550ms/full-1150ms' in I
 
 # Export tolerates switching to NewTerm before the final state write.
 assert 'if [ "$mode" = viewport ]; then' in SH
