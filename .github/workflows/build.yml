@@ -53,8 +53,25 @@ jobs:
         run: |
           chmod 755 layout/DEBIAN/postinst
           make clean || true
-          make THEOS_PACKAGE_SCHEME=rootless package FINALPACKAGE=1
+          set +e
+          make THEOS_PACKAGE_SCHEME=rootless package FINALPACKAGE=1 2>&1 | tee "$RUNNER_TEMP/amazondark-build.log"
+          compile_rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$compile_rc" -ne 0 ]; then
+            echo "::group::Actual compiler errors (not trailing ARC warnings)"
+            grep -n -C 3 -E '(^|[[:space:]])(fatal )?error:' "$RUNNER_TEMP/amazondark-build.log" | tail -n 170 || true
+            echo "::endgroup::"
+            exit "$compile_rc"
+          fi
           ls -l packages/
+
+      - name: Upload failed compiler log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: AmazonDark-compiler-log
+          path: ${{ runner.temp }}/amazondark-build.log
+          if-no-files-found: ignore
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v7
