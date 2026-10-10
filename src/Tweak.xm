@@ -1,4 +1,4 @@
-/* AmazonDark v7.621 */
+/* AmazonDark v7.622 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.621-orders-recommendations-shipping-oled"
+#define AD_VERSION "v7.622-alexa-feedback-native-web"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2663,7 +2663,7 @@ static NSString *ADNewMenusJS7482(void){
     ;
     keepShopping7613=[keepShopping7613 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     base=[base stringByAppendingString:keepShopping7613];
-    // v7.621: probe-exact Order Details and Advertising Preferences; no Home/media changes.
+    // v7.622: probe-exact Order Details and Advertising Preferences; no Home/media changes.
     NSString *orderPrivacy7620=@""
 #include "ADOrderAdsPrivacy7620.js.inc"
     ;
@@ -2673,12 +2673,19 @@ static NSString *ADNewMenusJS7482(void){
     }
     orderPrivacy7620=[orderPrivacy7620 stringByReplacingOccurrencesOfString:@"__AD7620_ORDER_IMAGES__" withString:orderMedia7620];
     base=[base stringByAppendingString:orderPrivacy7620];
-    // v7.621: probe-confirmed Your Orders recommendation rail and
+    // v7.622: probe-confirmed Your Orders recommendation rail and
     // Change shipping address sheet; no Home/PDP raster changes.
     NSString *ordersShipping7621=@""
 #include "ADOrdersRecommendationsShipping7621.js.inc"
     ;
     base=[base stringByAppendingString:ordersShipping7621];
+    // v7.622: isolated ad-feedback + Alexa informational article WebKit repairs.
+    NSString *newMenus7622=@""
+#include "ADNewMenus7622.js.inc"
+    ;
+    newMenus7622=[newMenus7622 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
+    newMenus7622=[newMenus7622 stringByReplacingOccurrencesOfString:@"__TAME__" withString:(gP.whiteTame?@"true":@"false")];
+    base=[base stringByAppendingString:newMenus7622];
 
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
@@ -4092,7 +4099,7 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
 #include "ADAppSettingsSheet7547.h"
 static const void *kADPersonSavingsSheet7259=&kADPersonSavingsSheet7259;
 
-// v7.621: these implementations appear below the v7.612 Live owner block.
+// v7.622: these implementations appear below the v7.612 Live owner block.
 // ObjC++ needs typed declarations BEFORE the Live block uses them; Python-only
 // regression checks did not compile Tweak.xm in the iOS SDK.
 static UIColor *ADMenuButtonBorder7255(void);
@@ -9671,9 +9678,129 @@ static void ADPDPActionBarOwn7426(UIView *v){
 
 #include "ADServiceSheets7565.inc"
 
+// v7.622: two isolated native Alexa sheet owners from VIEWPORT r3/r4.
+// No generic sheet-view promotion: only the microphone sheet with both
+// r3's allowTitle and actionButton may be owned.
+static const void *kADAlexaVoiceRoot7622=&kADAlexaVoiceRoot7622;
+static BOOL ADAlexaHasAid7622(UIView *root,NSString *aid){
+    if(!root||!aid)return NO;
+    @try {
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root];
+        NSUInteger i=0;
+        while(i<q.count&&i<112){
+            UIView *v=q[i++];
+            if([v.accessibilityIdentifier isEqualToString:aid])return YES;
+            if(v.subviews.count&&q.count<112)[q addObjectsFromArray:v.subviews];
+        }
+    } @catch(...) {}
+    return NO;
+}
+static UIView *ADAlexaRootAid7622(UIView *v,NSString *aid){
+    @try {
+        NSUInteger depth=0;
+        for(UIView *p=v;p&&depth++<22;p=p.superview)
+            if([p.accessibilityIdentifier isEqualToString:aid])return p;
+    } @catch(...) {}
+    return nil;
+}
+static int ADAlexaSheetKind7622(UIView *v){
+    if(!gP.enabled||!v||!v.window)return 0;
+    UIView *plus=ADAlexaRootAid7622(v,@"plus-menu-modal-container");
+    if(plus)return 2;
+    UIView *sheet=ADAlexaRootAid7622(v,@"sheet-view");
+    if(!sheet)return 0;
+    if(objc_getAssociatedObject(sheet,kADAlexaVoiceRoot7622))return 1;
+    // A sheet-view on its own is not sufficient: other Amazon menus reuse it.
+    if(ADAlexaHasAid7622(sheet,@"allowTitle")&&ADAlexaHasAid7622(sheet,@"actionButton")){
+        objc_setAssociatedObject(sheet,kADAlexaVoiceRoot7622,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return 1;
+    }
+    return 0;
+}
+static BOOL ADAlexaDivider7622(UIView *v,int kind){
+    return kind==2 && [v.accessibilityIdentifier isEqualToString:@"plus-menu-modal-divider"];
+}
+static BOOL ADAlexaSpecialBadge7622(UIView *v,int kind){
+    return kind==2 && [v.accessibilityIdentifier isEqualToString:@"mode-button-new-badge"];
+}
+static BOOL ADAlexaButton7622(UIView *v,int kind){
+    NSString *a=v.accessibilityIdentifier?:@"";
+    if(kind==1)return [a isEqualToString:@"actionButton"];
+    return kind==2 && ([a isEqualToString:@"custom-guide-mode-button"]||[a isEqualToString:@"automations-mode-button"]);
+}
+static BOOL ADAlexaNeutralFloor7622(UIView *v,int kind){
+    if(kind==0||!v)return NO;
+    if(ADAlexaDivider7622(v,kind))return NO;
+    UIColor *c=v.backgroundColor;
+    if(!c)return NO; // Keep Apple's transparent inner wrapper geometry unchanged.
+    if(ADNeutralNearWhite7255(c))return YES;
+    CGFloat r=0,g=0,b=0,a=0;
+    if(![c getRed:&r green:&g blue:&b alpha:&a]||a<0.85)return NO;
+    return fabs(r-g)<.075&&fabs(g-b)<.075&&r>.24;
+}
+static UIColor *ADAlexaSheetFill7622(UIView *v,UIColor *original){
+    if(!v||!original)return nil;
+    int kind=ADAlexaSheetKind7622(v);
+    if(!kind)return nil;
+    if(ADAlexaDivider7622(v,kind))return [UIColor colorWithRed:73./255. green:77./255. blue:77./255. alpha:1.];
+    if(ADAlexaSpecialBadge7622(v,kind))return ADOLED(); // retain blue "New" text.
+    if(ADAlexaButton7622(v,kind))return ADOLED();
+    if(kind==2 && [v.accessibilityIdentifier isEqualToString:@"plus-menu-modal-overlay"])return nil;
+    if(ADNeutralNearWhite7255(original))return ADOLED();
+    CGFloat r=0,g=0,b=0,a=0;
+    if([original getRed:&r green:&g blue:&b alpha:&a]&&a>.85&&fabs(r-g)<.075&&fabs(g-b)<.075&&r>.23)return ADOLED();
+    return nil;
+}
+static BOOL ADAlexaOwnSheet7622(UIView *v){
+    if(!v||!v.window)return NO;
+    int kind=ADAlexaSheetKind7622(v);
+    if(!kind)return NO;
+    @try {
+        if(ADAlexaDivider7622(v,kind)){
+            ADSetViewBackground7226(v,[UIColor colorWithRed:73./255. green:77./255. blue:77./255. alpha:1.],YES);
+            return YES;
+        }
+        if(ADAlexaSpecialBadge7622(v,kind)||ADAlexaButton7622(v,kind)||ADAlexaNeutralFloor7622(v,kind)){
+            ADSetViewBackground7226(v,ADOLED(),YES);
+        }
+        if(ADAlexaButton7622(v,kind)){
+            // The r3 and r4 probes record an existing 1pt button border.
+            ADMenuSetSingleRCTBorder7258(v,1.0,ADMenuButtonBorder7255());
+        }
+        return YES;
+    } @catch(...) { return NO; }
+}
+static BOOL ADAlexaText7622(UIView *v,NSTextStorage *ts){
+    if(!ts||!gP.enabled||!ADAlexaSheetKind7622(v))return NO;
+    // Neutral black -> white. Authored blue and teal spans stay unchanged.
+    ADMenuLightStorage7255(ts);
+    return YES;
+}
+static void ADAlexaOwnVector7622(UIView *v){
+    if(!gP.enabled||!v||!v.window)return;
+    int kind=ADAlexaSheetKind7622(v);
+    if(kind!=2)return;
+    NSString *aid=v.accessibilityIdentifier?:@"";
+    if([aid isEqualToString:@"plus-menu-close-icon"]||[aid isEqualToString:@"cameraButtonIcon"]||[aid isEqualToString:@"mediaUploadButtonPlusMenuIcon"]||
+       ADAlexaRootAid7622(v,@"custom-guide-mode-button")||ADAlexaRootAid7622(v,@"automations-mode-button")){
+        // r4 SVG icons carry a separate 60-point neutral RNSVGCircle floor.
+        // Hide only that existing circle, not the glyph paths or geometry.
+        if([aid isEqualToString:@"cameraButtonIcon"]||[aid isEqualToString:@"mediaUploadButtonPlusMenuIcon"]){
+            NSMutableArray *q=[NSMutableArray arrayWithObject:v];NSUInteger i=0;
+            while(i<q.count&&i<16){
+                UIView *c=q[i++];
+                if(ADClassNameIs7183(c,"RNSVGCircle")&&c.bounds.size.width>=50.0)c.hidden=YES;
+                if(c.subviews.count&&q.count<16)[q addObjectsFromArray:c.subviews];
+            }
+        }
+        ADAlexaInvertVectorRoot7285(v);
+    }
+}
+
 static void ADOwnReactView7226(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
+        if(ADAlexaOwnSheet7622(v))return;
         ADServiceDiscover7565(v,nil);
         if(ADServiceScope7565(v)){ ADServicePaint7565(v); return; }
         if(ADLiveOwnView7612(v))return;
@@ -9769,6 +9896,12 @@ static void ADOwnReactView7226(UIView *v){
         return;
     }
     UIView *v=(UIView *)self;
+    UIColor *sheetFill=ADAlexaSheetFill7622(v,color);
+    if(sheetFill){
+        %orig(sheetFill);
+        ADAlexaOwnSheet7622(v);
+        return;
+    }
     if(ADServiceScope7565(v)){
         UIColor *paint=ADServiceFill7565(v,color);
         %orig(paint);
@@ -10162,11 +10295,12 @@ static void ADAlexaOwnVector7285(UIView *svg){
     ADAppSettingsOwnVector7548((UIView *)self);
     ADPaymentOwnVector7401((UIView *)self);
     ADLiveOwnVector7612((UIView *)self);
+    ADAlexaOwnVector7622((UIView *)self);
     ADAlexaResultsOwnVector7427((UIView *)self); ADPermissionOwnVector7480((UIView *)self);
 }
 - (void)didMoveToSuperview {
     %orig;
-    if(((UIView *)self).window){ ADAlexaOwnVector7285((UIView *)self); ADAppSettingsOwnVector7548((UIView *)self); ADPaymentOwnVector7401((UIView *)self); ADLiveOwnVector7612((UIView *)self); ADAlexaResultsOwnVector7427((UIView *)self); ADPermissionOwnVector7480((UIView *)self); }
+    if(((UIView *)self).window){ ADAlexaOwnVector7285((UIView *)self); ADAppSettingsOwnVector7548((UIView *)self); ADPaymentOwnVector7401((UIView *)self); ADLiveOwnVector7612((UIView *)self); ADAlexaOwnVector7622((UIView *)self); ADAlexaResultsOwnVector7427((UIView *)self); ADPermissionOwnVector7480((UIView *)self); }
 }
 - (void)layoutSubviews {
     %orig;
@@ -10174,6 +10308,7 @@ static void ADAlexaOwnVector7285(UIView *svg){
     ADAppSettingsOwnVector7548((UIView *)self);
     ADPaymentOwnVector7401((UIView *)self);
     ADLiveOwnVector7612((UIView *)self);
+    ADAlexaOwnVector7622((UIView *)self);
     ADAlexaResultsOwnVector7427((UIView *)self); ADPermissionOwnVector7480((UIView *)self);
 }
 %end
@@ -10215,6 +10350,7 @@ static BOOL ADPersonForgotCopy7599(UIView *v){
 }
 static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOOL includeBuyAgain){
     if(!gP.enabled)return NO;
+    if(ADAlexaText7622(v,textStorage))return YES;
     ADServiceDiscover7565(v,textStorage);
     if(ADServiceScope7565(v)){ ADMenuLightStorage7255(textStorage); return YES; }
     if(ADLiveThemeTextStorage7612(v,textStorage))return YES;
@@ -10281,7 +10417,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     NSAttributedString *r=nil;
     UIView *v=(UIView *)self;
-    if(gP.enabled&&ADLiveTextOwner7612(v)) r=ADMenuLightString7255(attributedText);
+    if(gP.enabled&&ADAlexaSheetKind7622(v)) r=ADMenuLightString7255(attributedText);
+    else if(gP.enabled&&ADLiveTextOwner7612(v)) r=ADMenuLightString7255(attributedText);
     else if(gP.enabled&&ADInLocationCanonical7416(v)) r=ADLocationSheetLightString7196(v,attributedText);
     else if(gP.enabled&&ADPermissionButtonText7409(v)) r=ADPermissionTextString7409(v,attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedText);
@@ -10298,7 +10435,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     NSAttributedString *r=nil;
     UIView *v=(UIView *)self;
-    if(gP.enabled&&ADLiveTextOwner7612(v)) r=ADMenuLightString7255(attributedString);
+    if(gP.enabled&&ADAlexaSheetKind7622(v)) r=ADMenuLightString7255(attributedString);
+    else if(gP.enabled&&ADLiveTextOwner7612(v)) r=ADMenuLightString7255(attributedString);
     else if(gP.enabled&&ADInLocationCanonical7416(v)) r=ADLocationSheetLightString7196(v,attributedString);
     else if(gP.enabled&&ADPermissionButtonText7409(v)) r=ADPermissionTextString7409(v,attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedString);
@@ -10343,6 +10481,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 - (void)setTextStorage:(NSTextStorage *)textStorage contentFrame:(CGRect)contentFrame descendantViews:(NSArray *)descendantViews {
     ADPerformanceScope7596 perf(ADPerfTextCommit);
     UIView *v=(UIView *)self;
+    if(gP.enabled)ADAlexaText7622(v,textStorage);
     ADServiceDiscover7565(v,textStorage);
     if(ADServiceScope7565(v))ADMenuLightStorage7255(textStorage);
     BOOL liveText=gP.enabled&&ADLiveTextOwner7612(v);
@@ -12860,6 +12999,16 @@ static BOOL ADReviewGalleryTameImage7594(UIImageView *iv){
     } @catch(...) { return NO; }
 }
 
+static void ADAlexaVoiceMicImage7622(UIImageView *iv){
+    if(!gP.enabled||!iv||!iv.window||!iv.image||!iv.superview)return;
+    if(!ADClassNameIs7183(iv.superview,"RCTImageView"))return;
+    if(fabs(iv.bounds.size.width-44.0)>3.0||fabs(iv.bounds.size.height-44.0)>3.0)return;
+    if(ADAlexaSheetKind7622(iv)!=1)return;
+    // The r3 44x44 black microphone glyph lives in an RCTUIImageViewAnimated.
+    // Apply a reversible layer inversion (not destructive image replacement).
+    ADAlexaInvertVectorRoot7285(iv);
+}
+
 %hook RCTUIImageViewAnimated
 - (void)setImage:(UIImage *)image {
     if(gADPersonOriginalImageWriting7218||gADMenuImageWrite7255||gADPaymentImageWrite7402){
@@ -12880,6 +13029,7 @@ static BOOL ADReviewGalleryTameImage7594(UIImageView *iv){
     ADPDPApplyThumbnailTWB7588((UIImageView *)self);
     ADShopShowApplyImage7590((UIImageView *)self);
     ADReviewGalleryTameImage7594((UIImageView *)self);
+    ADAlexaVoiceMicImage7622((UIImageView *)self);
 }
 - (void)didMoveToSuperview {
     objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -12897,6 +13047,7 @@ static BOOL ADReviewGalleryTameImage7594(UIImageView *iv){
         ADPDPApplyThumbnailTWB7588((UIImageView *)self);
     ADShopShowApplyImage7590((UIImageView *)self);
     ADReviewGalleryTameImage7594((UIImageView *)self);
+    ADAlexaVoiceMicImage7622((UIImageView *)self);
     }
 }
 - (void)didMoveToWindow {
@@ -12911,6 +13062,7 @@ static BOOL ADReviewGalleryTameImage7594(UIImageView *iv){
         ADPDPApplyThumbnailTWB7588((UIImageView *)self);
     ADShopShowApplyImage7590((UIImageView *)self);
     ADReviewGalleryTameImage7594((UIImageView *)self);
+    ADAlexaVoiceMicImage7622((UIImageView *)self);
     } else {
         objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -12931,6 +13083,7 @@ static BOOL ADReviewGalleryTameImage7594(UIImageView *iv){
     ADPDPApplyThumbnailTWB7588((UIImageView *)self);
     ADShopShowApplyImage7590((UIImageView *)self);
     ADReviewGalleryTameImage7594((UIImageView *)self);
+    ADAlexaVoiceMicImage7622((UIImageView *)self);
 }
 %end
 
@@ -13125,6 +13278,20 @@ static BOOL ADCXINeutralButton7597(UIButton *button){
     UIImageView *iv=button.imageView;
     if(iv.image&&iv.image.renderingMode!=UIImageRenderingModeAlwaysTemplate)iv.image=[iv.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     if(![iv.tintColor isEqual:color])iv.tintColor=color;
+}
+%end
+
+// v7.622 VIEWPORT r2: UIKit UIActivityViewController / SHSheetSceneViewController.
+// Request dark appearance in Amazon's presented iOS share controller. Remote
+// ShareSheetUI surfaces may not honor this; no remote UIKit override is claimed.
+%hook UIActivityViewController
+- (void)viewDidLoad {
+    %orig;
+    if(gP.enabled)self.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;
+}
+- (void)viewWillAppear:(BOOL)animated {
+    %orig(animated);
+    if(gP.enabled)self.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;
 }
 %end
 
