@@ -1,4 +1,4 @@
-/* AmazonDark v7.622 */
+/* AmazonDark v7.623 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.622-alexa-feedback-native-web"
+#define AD_VERSION "v7.623-alexa-ci-compile-repair"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2663,7 +2663,7 @@ static NSString *ADNewMenusJS7482(void){
     ;
     keepShopping7613=[keepShopping7613 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     base=[base stringByAppendingString:keepShopping7613];
-    // v7.622: probe-exact Order Details and Advertising Preferences; no Home/media changes.
+    // v7.623: probe-exact Order Details and Advertising Preferences; no Home/media changes.
     NSString *orderPrivacy7620=@""
 #include "ADOrderAdsPrivacy7620.js.inc"
     ;
@@ -2673,13 +2673,13 @@ static NSString *ADNewMenusJS7482(void){
     }
     orderPrivacy7620=[orderPrivacy7620 stringByReplacingOccurrencesOfString:@"__AD7620_ORDER_IMAGES__" withString:orderMedia7620];
     base=[base stringByAppendingString:orderPrivacy7620];
-    // v7.622: probe-confirmed Your Orders recommendation rail and
+    // v7.623: probe-confirmed Your Orders recommendation rail and
     // Change shipping address sheet; no Home/PDP raster changes.
     NSString *ordersShipping7621=@""
 #include "ADOrdersRecommendationsShipping7621.js.inc"
     ;
     base=[base stringByAppendingString:ordersShipping7621];
-    // v7.622: isolated ad-feedback + Alexa informational article WebKit repairs.
+    // v7.623: isolated ad-feedback + Alexa informational article WebKit repairs.
     NSString *newMenus7622=@""
 #include "ADNewMenus7622.js.inc"
     ;
@@ -4099,7 +4099,7 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
 #include "ADAppSettingsSheet7547.h"
 static const void *kADPersonSavingsSheet7259=&kADPersonSavingsSheet7259;
 
-// v7.622: these implementations appear below the v7.612 Live owner block.
+// v7.623: these implementations appear below the v7.612 Live owner block.
 // ObjC++ needs typed declarations BEFORE the Live block uses them; Python-only
 // regression checks did not compile Tweak.xm in the iOS SDK.
 static UIColor *ADMenuButtonBorder7255(void);
@@ -9678,7 +9678,7 @@ static void ADPDPActionBarOwn7426(UIView *v){
 
 #include "ADServiceSheets7565.inc"
 
-// v7.622: two isolated native Alexa sheet owners from VIEWPORT r3/r4.
+// v7.623: two isolated native Alexa sheet owners from VIEWPORT r3/r4.
 // No generic sheet-view promotion: only the microphone sheet with both
 // r3's allowTitle and actionButton may be owned.
 static const void *kADAlexaVoiceRoot7622=&kADAlexaVoiceRoot7622;
@@ -13255,6 +13255,21 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 }
 
 
+// v7.623 VIEWPORT r2: UIKit UIActivityViewController / SHSheetSceneViewController.
+// Request dark appearance in Amazon's presented iOS share controller. Remote
+// ShareSheetUI surfaces may not honor this; no remote UIKit override is claimed.
+%hook UIActivityViewController
+- (void)viewDidLoad {
+    %orig;
+    if(gP.enabled)self.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;
+}
+- (void)viewWillAppear:(BOOL)animated {
+    %orig(animated);
+    if(gP.enabled)self.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;
+}
+%end
+
+
 // v7.602 FULL r3: exact native CXI back/search buttons above the Amazon Live WebView.
 static BOOL ADCXINeutralButton7597(UIButton *button){
     if(!gP.enabled||!button)return NO;
@@ -13281,19 +13296,6 @@ static BOOL ADCXINeutralButton7597(UIButton *button){
 }
 %end
 
-// v7.622 VIEWPORT r2: UIKit UIActivityViewController / SHSheetSceneViewController.
-// Request dark appearance in Amazon's presented iOS share controller. Remote
-// ShareSheetUI surfaces may not honor this; no remote UIKit override is claimed.
-%hook UIActivityViewController
-- (void)viewDidLoad {
-    %orig;
-    if(gP.enabled)self.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;
-}
-- (void)viewWillAppear:(BOOL)animated {
-    %orig(animated);
-    if(gP.enabled)self.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;
-}
-%end
 
 %ctor {
     if(strcmp(__progname,"Amazon")!=0)return;
