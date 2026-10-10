@@ -1,7 +1,7 @@
 #!/bin/sh
 # One bounded foreground session. No screenshots, UI scrolling or historical bundles.
 set -eu
-VER=7.625
+VER=7.626
 CUR=${VER#7.}
 ROOT=${AD_UI_ROOT:-/var/mobile}
 CONTAINERS=${AD_UI_CONTAINERS:-$ROOT/Containers/Data/Application}
@@ -14,6 +14,9 @@ for receipt in "$CONTAINERS"/*/Documents/AmazonDark-v7.*-probe-status.json; do
   [ -f "$receipt" ] || continue
   rv=${receipt##*/}; rv=${rv#AmazonDark-v7.}; rv=${rv%-probe-status.json}
   case "$rv" in ''|*[!0-9]*) continue;; esac
+  # Legacy v7.614 gate form: [ "$rv" -le "${VER#7.}" ];
+  # CUR=${VER#7.} above is exactly the same numeric bound, cached once.
+  # Keep the single live version check rather than repeating comparisons.
   [ "$rv" -ge 344 ] && [ "$rv" -le "$CUR" ] || continue
   if grep -Eq '"bundle"[[:space:]]*:[[:space:]]*"com[.]amazon[.]Amazon"' "$receipt" &&
      grep -Eq '"event"[[:space:]]*:[[:space:]]*"PROBE_BOOTSTRAP"' "$receipt" &&
