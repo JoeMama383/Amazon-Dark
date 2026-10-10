@@ -1,4 +1,4 @@
-/* AmazonDark v7.620 */
+/* AmazonDark v7.621 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.620-orders-adprivacy-oled-rebuild"
+#define AD_VERSION "v7.621-orders-recommendations-shipping-oled"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2663,7 +2663,7 @@ static NSString *ADNewMenusJS7482(void){
     ;
     keepShopping7613=[keepShopping7613 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     base=[base stringByAppendingString:keepShopping7613];
-    // v7.620: probe-exact Order Details and Advertising Preferences; no Home/media changes.
+    // v7.621: probe-exact Order Details and Advertising Preferences; no Home/media changes.
     NSString *orderPrivacy7620=@""
 #include "ADOrderAdsPrivacy7620.js.inc"
     ;
@@ -2673,6 +2673,12 @@ static NSString *ADNewMenusJS7482(void){
     }
     orderPrivacy7620=[orderPrivacy7620 stringByReplacingOccurrencesOfString:@"__AD7620_ORDER_IMAGES__" withString:orderMedia7620];
     base=[base stringByAppendingString:orderPrivacy7620];
+    // v7.621: probe-confirmed Your Orders recommendation rail and
+    // Change shipping address sheet; no Home/PDP raster changes.
+    NSString *ordersShipping7621=@""
+#include "ADOrdersRecommendationsShipping7621.js.inc"
+    ;
+    base=[base stringByAppendingString:ordersShipping7621];
 
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
@@ -4086,7 +4092,7 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
 #include "ADAppSettingsSheet7547.h"
 static const void *kADPersonSavingsSheet7259=&kADPersonSavingsSheet7259;
 
-// v7.620: these implementations appear below the v7.612 Live owner block.
+// v7.621: these implementations appear below the v7.612 Live owner block.
 // ObjC++ needs typed declarations BEFORE the Live block uses them; Python-only
 // regression checks did not compile Tweak.xm in the iOS SDK.
 static UIColor *ADMenuButtonBorder7255(void);

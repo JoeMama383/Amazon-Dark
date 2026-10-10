@@ -1,0 +1,85 @@
+(function(){try{
+'use strict';
+var d=document,s=d.getElementById('ad7621-orders-recommendations-shipping');
+if(!s){s=d.createElement('style');s.id='ad7621-orders-recommendations-shipping';(d.head||d.documentElement).appendChild(s);}
+/* VIEWPORT v7.620 r2: actual dark-gray (rgb 24,26,27) is the
+   .a-carousel-container.p13n-sc-shoveler inside the Your Orders recommendations
+   widget.  Do NOT target the generic Home/PDP carousel family. */
+s.textContent=`
+#a-page .od-modernized [id^="mobile-yo-orderdetails_recommendations-widget-container"]
+  .a-carousel-container.p13n-sc-shoveler {
+ background-color:#000!important;background:#000!important;
+}
+#a-page .od-modernized [id^="mobile-yo-orderdetails_recommendations-widget-container"]
+  :is(.a-carousel-viewport,.a-carousel,.a-carousel-card,.p13n-uf,
+      .p13n-sc-uncoverable-faceout,.p13n-sc-mobile-section) {
+ background-color:#000!important;
+}
+/* The r2 probe explicitly reports rgb(15,17,17) for price symbols, whole,
+   fraction and FREE-delivery label even though the surrounding product title
+   is already blue and ratings/icons are authored orange/blue. */
+#a-page .od-modernized [id^="mobile-yo-orderdetails_recommendations-widget-container"]
+  .p13n-sc-uncoverable-faceout :is(.a-price,.a-price-symbol,.a-price-whole,
+       .a-price-fraction,.a-size-mini.a-color-base,.a-size-mini.a-color-base b) {
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+/* Keep recommendation title links blue, star icons orange, prime dynamic colors,
+   sponsored glyphs/sprites and image leaves unchanged. */
+/* VIEWPORT v7.620 r1: the shipping-address sheet is outside .od-container,
+   owned by .a-sheet-web with exact #changeShippingAddressPreloadContent. */
+.a-sheet-web:has(#changeShippingAddressPreloadContent),
+.a-sheet-web:has(#changeShippingAddressPreloadContent) .a-sheet-content-container,
+.a-sheet-web:has(#changeShippingAddressPreloadContent) .a-sheet-heading-container,
+.a-sheet-web:has(#changeShippingAddressPreloadContent) .a-sheet-web-container,
+#changeShippingAddressPreloadContent,
+#change-shipping-address-bottom-sheet-container,
+#address-selection-bottom-sheet,
+#address-options-scroller,
+#address-options-list,
+#change-shipping-address-bottom-sheet-buttons {
+ background-color:#000!important;
+}
+.a-sheet-web:has(#changeShippingAddressPreloadContent) .a-sheet-heading,
+#changeShippingAddressPreloadContent :is(span,li,strong,b,.shipping-address-option-texts,.a-list-item) {
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+/* Original 1px button/card border only; no geometry changes or synthetic
+   outlines.  Selected radio/address state keeps its Amazon-authored blue border. */
+#changeShippingAddressPreloadContent .shipping-address-option-bottom-sheet,
+#changeShippingAddressPreloadContent .shipping-address-option-bottom-sheet>.a-button-inner,
+#changeShippingAddressPreloadContent #ship-to-address-button,
+#changeShippingAddressPreloadContent #ship-to-address-button>.a-button-inner,
+#changeShippingAddressPreloadContent #manage-address-book-button,
+#changeShippingAddressPreloadContent #manage-address-book-button>.a-button-inner {
+ background:#000!important;background-color:#000!important;box-shadow:none!important;
+}
+#changeShippingAddressPreloadContent .shipping-address-option-bottom-sheet:not(.a-button-selected),
+#changeShippingAddressPreloadContent #ship-to-address-button,
+#changeShippingAddressPreloadContent #manage-address-book-button {
+ border-color:#747a7c!important;
+}
+#changeShippingAddressPreloadContent .shipping-address-option-bottom-sheet.a-button-selected {
+ /* Preserve original selected blue border and radius from Amazon. */
+ border-style:solid!important;
+}
+#changeShippingAddressPreloadContent .shipping-address-option-bottom-sheet .a-button-text,
+#changeShippingAddressPreloadContent .shipping-address-option-bottom-sheet .a-button-text :is(span,li,strong,b),
+#changeShippingAddressPreloadContent #ship-to-address-button .a-button-text {
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+/* The disabled CTA is still disabled; do not change pointer events or state. */
+#changeShippingAddressPreloadContent #ship-to-address-button.a-button-disabled .a-button-text {
+ color:#b7baba!important;-webkit-text-fill-color:#b7baba!important;
+}
+/* Manage address is an authored blue link.  Its color is intentionally not
+   touched by the neutral-copy override above. */
+#changeShippingAddressPreloadContent #manage-address-book-link {
+ -webkit-text-fill-color:currentColor!important;
+}
+/* Recolor existing divider geometry only. */
+.a-sheet-web:has(#changeShippingAddressPreloadContent) :is(hr,.a-divider),
+#changeShippingAddressPreloadContent .a-divider {
+ border-color:#494d4d!important;
+}
+`;
+}catch(_){}})();
