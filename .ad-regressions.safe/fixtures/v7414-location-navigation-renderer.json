@@ -1,0 +1,30 @@
+{
+  "bottom_sheet_root": {
+    "class": "SNPRootView",
+    "rect": [0.0, 878.0, 430.0, 763.0],
+    "ancestor_aids": ["AppCXBottomSheetContentView", "AppCXBottomSheet"],
+    "navigation_aids": ["WrappedNileFeatureContainer", "navigation-root", "MainStackNavigation"]
+  },
+  "zip": {
+    "header_rect": [18.0, 752.7, 394.0, 35.3],
+    "header_border_bottom": 1.0,
+    "input_class": "RCTSinglelineTextInputView",
+    "input_rect": [18.0, 794.0, 394.0, 44.0],
+    "input_background": [1.0, 1.0, 1.0, 1.0],
+    "apply_rect": [18.0, 856.0, 394.0, 45.0],
+    "apply_background": [0.941, 0.757, 0.294, 1.0],
+    "apply_border_width": 1.0,
+    "apply_border_radius": 2.0,
+    "apply_text_foreground": [0.067, 0.067, 0.067, 1.0]
+  },
+  "location_cards": [
+    {"rect": [18.0, 644.0, 140.0, 130.0], "model_background": [0.0, 0.0, 0.0, 1.0], "layer_contents": true, "border_width": 1.0},
+    {"rect": [170.0, 644.0, 140.0, 130.0], "model_background": [0.0, 0.0, 0.0, 1.0], "layer_contents": true, "border_width": 1.0},
+    {"rect": [322.0, 644.0, 140.0, 130.0], "model_background": [0.0, 0.0, 0.0, 1.0], "layer_contents": true, "border_width": 1.0}
+  ],
+  "required_preservation": {
+    "selected_orange_border": true,
+    "blue_links": true,
+    "back_chevron": true
+  }
+}

@@ -2660,6 +2660,7 @@ static NSString *ADNewMenusJS7482(void){
     // scoped by the rendered heading or existing authored keep-shopping IDs.
     NSString *keepShopping7613=@""
 #include "ADKeepShopping7613.js.inc"
+#include "ADMenuRepair7620.js.inc"
     ;
     keepShopping7613=[keepShopping7613 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     base=[base stringByAppendingString:keepShopping7613];

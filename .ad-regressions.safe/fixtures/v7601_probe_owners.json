@@ -1,0 +1,331 @@
+{
+  "brand_gradient": {
+    "tag": "div",
+    "attrs": {
+      "class": "_c2Itb_brandCard_8y1YJ"
+    },
+    "chain": "div._c2Itb_brandCard_8y1YJ<-div._c2Itb_content_24Xl5<-div._c2Itb_container_15nfj.sb-mobile.sb-no-js<-div<-div._c2Itb_carouselInner_HwOVB<-div._c2Itb_brandCarousel_12E58<-div#CardInstancefyrvZLDQ817pVbNYv0BYBw._c2Itb_cardContainer_2RjJs<-div.celwidget.pd_rd_w-Duzat.content-id-amzn1.sym.90ae9d68-f9d8-4cc2-8e75-ca40bca71d8d.pf_rd_p-90ae9d68-f9d8-4cc2-8e75-ca40bc\u2026#3a960004<-div#sims-discoveryAndInspiration_feature_div_0.a-section.a-spacing-none.celwidget.t-prnt.t-full<-div#WrapperDivToHideBTF",
+    "bg": "rgba(0, 0, 0, 0)",
+    "bgImage": "gradient",
+    "border": [
+      "1px",
+      "rgb(213, 217, 217)",
+      "1px",
+      "rgb(213, 217, 217)",
+      "1px",
+      "rgb(213, 217, 217)",
+      "1px",
+      "rgb(213, 217, 217)"
+    ],
+    "radius": "8px",
+    "outline": [
+      "0px",
+      "rgb(232, 230, 227)",
+      "none"
+    ],
+    "filter": "none"
+  },
+  "brand_price": {
+    "tag": "span",
+    "attrs": {
+      "class": "a-price-whole"
+    },
+    "chain": "span.a-price-whole<-span<-span.a-price._c2Itb_price_3jDlv<-div._c2Itb_priceRow_1pfa3<-div._c2Itb_productPrice_2ZvZ6<-div._c2Itb_productMeta_1mv7p<-div.a-section.a-spacing-none._c2Itb_container_1AABc._c2Itb_block_2h9ji._c2Itb_hFull_iOctn._c2Itb_wFull_1ElP1._c2Itb_col_3ivqM<-div._c2Itb_productItem_1qbM_<-div._c2Itb_productGrid_1H2Ud<-div._c2Itb_brandCard_8y1YJ",
+    "bg": "rgba(0, 0, 0, 0)",
+    "bgImage": "none",
+    "border": [
+      "0px",
+      "rgb(232, 230, 227)",
+      "0px",
+      "rgb(232, 230, 227)",
+      "0px",
+      "rgb(232, 230, 227)",
+      "0px",
+      "rgb(232, 230, 227)"
+    ],
+    "radius": "0px",
+    "outline": [
+      "0px",
+      "rgb(232, 230, 227)",
+      "none"
+    ],
+    "filter": "none"
+  },
+  "brand_logo": {
+    "tag": "img",
+    "attrs": {
+      "class": "_c2Itb_brandLogo_36zzR"
+    },
+    "chain": "img._c2Itb_brandLogo_36zzR<-a._c2Itb_brandLogoLink_11Mwt<-div._c2Itb_header_2QVlS<-div._c2Itb_brandCard_8y1YJ<-div._c2Itb_content_24Xl5<-div._c2Itb_container_15nfj.sb-mobile.sb-no-js<-div<-div._c2Itb_carouselInner_HwOVB<-div._c2Itb_brandCarousel_12E58<-div#CardInstancefyrvZLDQ817pVbNYv0BYBw._c2Itb_cardContainer_2RjJs",
+    "bg": "rgba(0, 0, 0, 0)",
+    "bgImage": "none",
+    "border": [
+      "0px",
+      "rgb(33, 98, 161)",
+      "0px",
+      "rgb(33, 98, 161)",
+      "0px",
+      "rgb(33, 98, 161)",
+      "0px",
+      "rgb(33, 98, 161)"
+    ],
+    "radius": "50%",
+    "outline": [
+      "0px",
+      "rgb(33, 98, 161)",
+      "none"
+    ],
+    "filter": "none"
+  },
+  "brand_stars": {
+    "tag": "i",
+    "attrs": {
+      "class": "a-icon a-icon-star-mini a-star-mini-4-5"
+    },
+    "chain": "i.a-icon.a-icon-star-mini.a-star-mini-4-5<-div.a-section.a-spacing-none._c2Itb_inline_kUFj9._c2Itb_row_3iYNo._c2Itb_itemsCenter_2hgEZ<-div.a-section.a-spacing-none._c2Itb_section_1o6mU<-div._c2Itb_compactRating_2_8HZ<-div._c2Itb_productMeta_1mv7p<-div.a-section.a-spacing-none._c2Itb_container_1AABc._c2Itb_block_2h9ji._c2Itb_hFull_iOctn._c2Itb_wFull_1ElP1._c2Itb_col_3ivqM<-div._c2Itb_productItem_1qbM_<-div._c2Itb_productGrid_1H2Ud<-div._c2Itb_brandCard_8y1YJ<-div._c2Itb_content_24Xl5",
+    "bg": "rgba(0, 0, 0, 0)",
+    "bgImage": "url",
+    "border": [
+      "0px",
+      "rgb(232, 230, 227)",
+      "0px",
+      "rgb(232, 230, 227)",
+      "0px",
+      "rgb(232, 230, 227)",
+      "0px",
+      "rgb(232, 230, 227)"
+    ],
+    "radius": "0px",
+    "outline": [
+      "0px",
+      "rgb(232, 230, 227)",
+      "none"
+    ],
+    "filter": "none"
+  },
+  "aisle_image": {
+    "tag": "img",
+    "attrs": {},
+    "chain": "img<-div.a-section._everyday-essentials-aisles_AisleImage_eeAisleImageContainer__1a4-t<-a#ee-aisles-on-uss-link-skin-care.a-link-normal._everyday-essentials-aisles_AisleImage_eeAisleImageLink__3uVt0<-div.a-row._everyday-essentials-aisles_AisleTile_eeAisleTileCenter__2gJ2w<-div.a-box-group._everyday-essentials-aisles_AisleTile_eeAisleTileBox__7i5Ut<-div.a-section._everyday-essentials-aisles_AisleFaceout_eeAisles__2aJNX<-div.a-section._everyday-essentials-aisles_AisleFaceout_eeAislesSection__3MFhB<-div.a-column.a-span12.a-ws-span6._everyday-essentials-aisles_AisleFaceout_eeAislesColumn__2LW-V<-div.a-row._everyday-essentials-aisles_AisleFaceout_eeAislesRow__3ACBx.a-ws-row<-div#ee-aisles-on-uss-widget-body",
+    "bg": "rgba(0, 0, 0, 0)",
+    "bgImage": "none",
+    "border": [
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)"
+    ],
+    "radius": "0px",
+    "outline": [
+      "0px",
+      "rgb(255, 255, 255)",
+      "none"
+    ],
+    "filter": "none"
+  },
+  "close_outline": {
+    "tag": "button",
+    "attrs": {
+      "data-cel-widget": "ax-mbs-close-white",
+      "id": "ax-mbs-close-white",
+      "class": "celwidget a-sheet-close a-focus-hidden"
+    },
+    "chain": "button#ax-mbs-close-white.celwidget.a-sheet-close.a-focus-hidden<-div#ax-mbs-actions<-div#ax-mbs.only-recs-scrolling<-div.a-sheet-content-container<-div.a-sheet-web.a-declarative<-div.a-sheet-web-container.ax-sheet-web-container.a-experimental-ios-scrolling<-body.a-m-us.a-aui_72554-c.a-aui_template_weblab_cache_333406-c.a-bw_aui_dark_mode_mshop_ios_1390013-t1.ax-disable-scroll<-html.a-touch.a-mobile.a-js.a-audio.a-video.a-canvas.a-svg.a-drag-drop.a-geolocation.a-history.a-webworker.a-autofocus.a-input\u2026#98cb144c",
+    "bg": "rgba(0, 0, 0, 0)",
+    "bgImage": "none",
+    "border": [
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)"
+    ],
+    "radius": "7px",
+    "outline": [
+      "3px",
+      "rgb(0, 113, 133)",
+      "auto"
+    ],
+    "filter": "none"
+  },
+  "progress_track": {
+    "tag": "div",
+    "attrs": {
+      "role": "progressbar",
+      "class": "a-meter"
+    },
+    "chain": "div.a-meter<-div.a-progress-bar.a-js-progress-bar<-div.tpb-progress-bar-meter<-div.a-row.a-spacing-none.tpb-progress-bar-container<-div<-div#shippingThresholdTrackerContainer.a-section<-div.a-section.a-spacing-small._ccs-ssd-fst-indicator-card_style_css-ssd-fst-indicator-container__3f70e._ccs-ssd-fst-indicator-card_style_fst-border-bottom__3lJxP<-div#CardInstanceDKOCtC_-WzJ-HqKFjH1RWw<-div.celwidget.pd_rd_w-2hssu.content-id-amzn1.sym.686c6945-4bd5-4cc0-8c03-12dbad009e37.pf_rd_p-686c6945-4bd5-4cc0-8c03-12dbad\u2026#fe1f16b9<-div.a-section",
+    "bg": "rgb(255, 255, 255)",
+    "bgImage": "none",
+    "border": [
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)"
+    ],
+    "radius": "8px",
+    "outline": [
+      "0px",
+      "rgb(255, 255, 255)",
+      "none"
+    ],
+    "filter": "none"
+  },
+  "progress_fill": {
+    "tag": "div",
+    "attrs": {
+      "class": "a-meter-bar"
+    },
+    "chain": "div.a-meter-bar<-div.a-meter<-div.a-progress-bar.a-js-progress-bar<-div.tpb-progress-bar-meter<-div.a-row.a-spacing-none.tpb-progress-bar-container<-div<-div#shippingThresholdTrackerContainer.a-section<-div.a-section.a-spacing-small._ccs-ssd-fst-indicator-card_style_css-ssd-fst-indicator-container__3f70e._ccs-ssd-fst-indicator-card_style_fst-border-bottom__3lJxP<-div#CardInstanceDKOCtC_-WzJ-HqKFjH1RWw<-div.celwidget.pd_rd_w-2hssu.content-id-amzn1.sym.686c6945-4bd5-4cc0-8c03-12dbad009e37.pf_rd_p-686c6945-4bd5-4cc0-8c03-12dbad\u2026#fe1f16b9",
+    "bg": "rgb(11, 123, 60)",
+    "bgImage": "none",
+    "border": [
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)"
+    ],
+    "radius": "8px 0px 0px 8px",
+    "outline": [
+      "0px",
+      "rgb(255, 255, 255)",
+      "none"
+    ],
+    "filter": "none"
+  },
+  "progress_outer": {
+    "tag": "div",
+    "attrs": {
+      "class": "tpb-progress-bar-meter"
+    },
+    "chain": "div.tpb-progress-bar-meter<-div.a-row.a-spacing-none.tpb-progress-bar-container<-div<-div#shippingThresholdTrackerContainer.a-section<-div.a-section.a-spacing-small._ccs-ssd-fst-indicator-card_style_css-ssd-fst-indicator-container__3f70e._ccs-ssd-fst-indicator-card_style_fst-border-bottom__3lJxP<-div#CardInstanceDKOCtC_-WzJ-HqKFjH1RWw<-div.celwidget.pd_rd_w-2hssu.content-id-amzn1.sym.686c6945-4bd5-4cc0-8c03-12dbad009e37.pf_rd_p-686c6945-4bd5-4cc0-8c03-12dbad\u2026#fe1f16b9<-div.a-section<-div.a-section.sw-recommendations-row.sw-card-container.celwidget<-div#mace_carousel_0.a-section.a-spacing-none.celwidget",
+    "bg": "rgb(15, 143, 77)",
+    "bgImage": "none",
+    "border": [
+      "0px",
+      "rgb(15, 143, 77)",
+      "0px",
+      "rgb(15, 143, 77)",
+      "0px",
+      "rgb(15, 143, 77)",
+      "0px",
+      "rgb(15, 143, 77)"
+    ],
+    "radius": "0px",
+    "outline": [
+      "0px",
+      "rgb(255, 255, 255)",
+      "none"
+    ],
+    "filter": "none"
+  },
+  "fbt_untamed": {
+    "tag": "img",
+    "attrs": {
+      "class": "a-dynamic-image p13n-sc-dynamic-image p13n-product-image"
+    },
+    "chain": "img.a-dynamic-image.p13n-sc-dynamic-image.p13n-product-image<-div.a-section._p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display__toQZS<-a.a-link-normal._p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-link__1QuKM<-div.a-section._p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-background__3KUZl<-div._p13n-mobile-sims-multi-bundle_multi-bundle-mobile_thumbnail-product__1btZ4<-div.a-cardui._p13n-mobile-sims-multi-bundle_multi-bundle-mobile_v3-thumbnail-box__uTP2j<-div.a-cardui._p13n-mobile-sims-multi-bundle_multi-bundle-mobile_multi-bundle-card__3QjcY<-div.cardRoot",
+    "bg": "rgba(0, 0, 0, 0)",
+    "bgImage": "none",
+    "border": [
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)",
+      "0px",
+      "rgb(255, 255, 255)"
+    ],
+    "radius": "0px",
+    "outline": null,
+    "filter": "none"
+  },
+  "complement_image": {
+    "tag": "img",
+    "attrs": {
+      "class": "a-dynamic-image p13n-sc-dynamic-image p13n-product-image _c3Atb_autoScale_3FVNQ"
+    },
+    "chain": "img.a-dynamic-image.p13n-sc-dynamic-image.p13n-product-image._c3Atb_autoScale_3FVNQ<-div._c3Atb_image-display-small_3Hzcj<-a.a-link-normal.a-text-normal<-div.a-section.a-spacing-none._c3Atb_detail-image-section_2UxLi<-div#faceoutContainer._c3Atb_faceout-container_hRuhF<-div.a-section.a-spacing-none.a-spacing-top-small._c3Atb_mosaic-section-selector_wQJ4S._c3Atb_mosaic-grid-section_3IMcF<-div.a-section.a-spacing-none.a-padding-base<-div.a-cardui._c3Atb_mosaic-card_32LBR",
+    "bg": "rgba(0, 0, 0, 0)",
+    "bgImage": "none",
+    "border": [
+      "0px",
+      "rgb(33, 98, 161)",
+      "0px",
+      "rgb(33, 98, 161)",
+      "0px",
+      "rgb(33, 98, 161)",
+      "0px",
+      "rgb(33, 98, 161)"
+    ],
+    "radius": "0px",
+    "outline": null,
+    "filter": "brightness(0.42)"
+  },
+  "complement_plus": {
+    "tag": "button",
+    "attrs": {
+      "id": "mosaic-atc-spot-button-B0C6MXYJ9F",
+      "class": "add-to-cart-button"
+    },
+    "chain": "button#mosaic-atc-spot-button-B0C6MXYJ9F.add-to-cart-button<-div.atc-spot-button-container<-div#sp-mobile-dp-mosaic-atc-button-DP_Thematic.celwidget<-form.add-to-cart-data.a-spacing-none<-div.a-section.a-spacing-none.add-to-cart-section<-div.mosaic-atc-container._c3Atb_atcContainerSpot_3VCbI<-div._c3Atb_mosaic-atc-section_2NgqJ<-div.a-section.a-spacing-none._c3Atb_detail-image-section_2UxLi",
+    "bg": "rgb(48, 51, 53)",
+    "bgImage": "none",
+    "border": [
+      "2px",
+      "rgb(32, 35, 36)",
+      "2px",
+      "rgb(32, 35, 36)",
+      "2px",
+      "rgb(32, 35, 36)",
+      "2px",
+      "rgb(32, 35, 36)"
+    ],
+    "radius": "999px",
+    "outline": null,
+    "filter": "none"
+  },
+  "bundle_white_border": {
+    "tag": "hr",
+    "attrs": {
+      "aria-hidden": "true",
+      "class": "a-divider-normal bundles-bottom-divider"
+    },
+    "chain": "hr.a-divider-normal.bundles-bottom-divider<-div#bundles-feature.a-section.a-padding-none.askFullWidthCardDeck<-div#bundles_feature_div.a-section.a-spacing-none.celwidget.t-prnt.t-full<-div#productTitleGroupAnchor<-div#ppd.a-row<-div.a-container<-div#dp.health_and_beauty.en_US<-div#a-page<-body.a-m-us.a-aui_72554-c.a-aui_template_weblab_cache_333406-c.a-bw_aui_dark_mode_mshop_ios_1390013-t1<-html.a-touch.a-mobile.a-js.a-audio.a-video.a-canvas.a-svg.a-drag-drop.a-geolocation.a-history.a-webworker.a-autofocus.a-input\u2026#98cb144c",
+    "bg": "rgb(73, 77, 77)",
+    "bgImage": "none",
+    "border": [
+      "2px",
+      "rgb(216, 220, 220)",
+      "0px",
+      "rgb(73, 77, 77)",
+      "0px",
+      "rgb(73, 77, 77)",
+      "0px",
+      "rgb(73, 77, 77)"
+    ],
+    "radius": "0px",
+    "outline": [
+      "0px",
+      "rgb(232, 230, 227)",
+      "none"
+    ],
+    "filter": "none"
+  }
+}
