@@ -1,4 +1,4 @@
-/* AmazonDark v7.619 */
+/* AmazonDark v7.620 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.619-handoff-regression-repair"
+#define AD_VERSION "v7.620-orders-adprivacy-oled-rebuild"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2660,10 +2660,19 @@ static NSString *ADNewMenusJS7482(void){
     // scoped by the rendered heading or existing authored keep-shopping IDs.
     NSString *keepShopping7613=@""
 #include "ADKeepShopping7613.js.inc"
-#include "ADMenuRepair7620.js.inc"
     ;
     keepShopping7613=[keepShopping7613 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     base=[base stringByAppendingString:keepShopping7613];
+    // v7.620: probe-exact Order Details and Advertising Preferences; no Home/media changes.
+    NSString *orderPrivacy7620=@""
+#include "ADOrderAdsPrivacy7620.js.inc"
+    ;
+    NSString *orderMedia7620=@"";
+    if(gP.whiteTame){
+        orderMedia7620=[NSString stringWithFormat:@"#a-page .od-modernized .od-container :is(.od-product-image,.od-modernized-item-image-container,.od-active-delivery__image-container-image) img:not([class*=icon]):not([class*=sprite]){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;}",ad7593Factor];
+    }
+    orderPrivacy7620=[orderPrivacy7620 stringByReplacingOccurrencesOfString:@"__AD7620_ORDER_IMAGES__" withString:orderMedia7620];
+    base=[base stringByAppendingString:orderPrivacy7620];
 
     return [base stringByAppendingString:ADSellerMessagingThemeJS7562()];
 }
@@ -4077,7 +4086,7 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
 #include "ADAppSettingsSheet7547.h"
 static const void *kADPersonSavingsSheet7259=&kADPersonSavingsSheet7259;
 
-// v7.619: these implementations appear below the v7.612 Live owner block.
+// v7.620: these implementations appear below the v7.612 Live owner block.
 // ObjC++ needs typed declarations BEFORE the Live block uses them; Python-only
 // regression checks did not compile Tweak.xm in the iOS SDK.
 static UIColor *ADMenuButtonBorder7255(void);
