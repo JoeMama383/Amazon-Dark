@@ -1,0 +1,91 @@
+{
+  "source_613_to_619_module_parity": [
+    {
+      "module": "ADSustainabilityBorder7605",
+      "original_v7_613_sha256": "fa246aa7df9e697a7f6150f6cbd32cea8ae047a615e5b1a6a98e7adb80d9f3ea",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADClimatePledge7606",
+      "original_v7_613_sha256": "15127ac1687fda9fb84c78612d512bb275af91fd40d2830e9bc54fdf04c84e71",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADPDPLastMile7607",
+      "original_v7_613_sha256": "2a74d9ad2ac7cd4dcb671e6b81d1765f69ef5f5cf74877f163e16feba086a848",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADReviewFilterMenu7608",
+      "original_v7_613_sha256": "8b31d921c6074c0164a53c503dcd559dcbf578df9cae528457b061db7e00497a",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADReviewSortPopover7609",
+      "original_v7_613_sha256": "1009321c67e9d529ee2e0f261e92bbdc67367611dc557ff4079d2a2186b60f92",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADYourSaves7611",
+      "original_v7_613_sha256": "0f290f1873d5fd4725d90ca86555d4a755c1b30692911bb9d306d210bc8a944c",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADKeepShopping7613",
+      "original_v7_613_sha256": "0222b16d3c349b2e005d5cf33dc9e52781628c6f15b323991fcde051f7a7bd7e",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADPDPMenuFollowup7600",
+      "original_v7_613_sha256": "438012c98fd48724a97a3dd418115c7f2ca145a996f25017901457f05ab1dded",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADPDPProbeOwners7601",
+      "original_v7_613_sha256": "16ec809bccd0c8747ee082b161232ed2515e1feb5043a0924b8214ddfc6290b5",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADPDPVisualRepair7602",
+      "original_v7_613_sha256": "b205a891472b01e4fb6aefdda5e8f50556a032efb2658c4aac125c0e510b3aae",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADPDPMicroFix7603",
+      "original_v7_613_sha256": "23902c4728fe4053d8895e25abffe4a893d1260c5070d45b34680ad86b68576d",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADPDPViewportFinish7604",
+      "original_v7_613_sha256": "57aa86211ff196ba8619a67764090f9450d2aa180f99b7a74520e9c52d23e21c",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADLiveTheme7597",
+      "original_v7_613_sha256": "2d84bdb5f9d6c4289c9fa4f61b6aff06db41384abe5107e74b5ba310fe9d7ccb",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADOrderConfirmation7596",
+      "original_v7_613_sha256": "1a6f917f664a5657af6f229fe704634d067f11eb52a25b79b7ee80592e7d6ddd",
+      "identical_to_v7_613": true
+    },
+    {
+      "module": "ADPerformance7596",
+      "original_v7_613_sha256": "d78ee68be7d5199dc5da3a3d38e9db61c3f484564a2eefb1e8fcb054dcf675e5",
+      "identical_to_v7_613": true
+    }
+  ],
+  "removed_since_613": [],
+  "ui_include_order": [
+    "ADSustainabilityBorder7605",
+    "ADClimatePledge7606",
+    "ADPDPLastMile7607",
+    "ADReviewFilterMenu7608",
+    "ADReviewSortPopover7609",
+    "ADYourSaves7611",
+    "ADKeepShopping7613"
+  ],
+  "native_610_612_retained": true,
+  "test_status": "static source preservation; device rendering unverified"
+}

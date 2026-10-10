@@ -1,3 +1,7 @@
+# AmazonDark v7.619~handoff-regression-repair
+
+Fixes GitHub strict-CI handoff headings, retains v7.605–v7.613 UI modules, and adds source-delivery audit coverage. See `DIFF-v7.619.md`, `VALIDATION-v7.619.md`, `COMMANDS.md`. Device painting and a successful Theos build still require verification.
+
 # AmazonDark v7.618~native-compiler-error-repair
 
 Fixes the exact two compiler errors diagnosed from the v7.617 GitHub build artifact and the independent format-string warning. No UI/probe algorithm changes. Read `DIFF-v7.618.md`, `VALIDATION-v7.618.md`, and `COMMANDS.md`; GitHub Theos package verification remains required.

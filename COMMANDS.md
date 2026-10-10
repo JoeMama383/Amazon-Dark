@@ -1,6 +1,6 @@
-# AmazonDark v7.618 — verified CI diagnostics repair
+# AmazonDark v7.619 — handoff regression and CI validation repair
 
-Save `AmazonDark-v7.618-native-compiler-error-repair-source.zip` to Files on your iPhone before running PUSH. Valid source wildcard: `AmazonDark-v7.618-native-compiler-error-repair-source*.zip`.
+Save `AmazonDark-v7.619-handoff-regression-repair-source.zip` to Files on your iPhone before PUSH. Expected archive wildcard: `AmazonDark-v7.619-handoff-regression-repair-source*.zip`.
 
 ## PUSH — existing clone
 
@@ -8,58 +8,60 @@ Save `AmazonDark-v7.618-native-compiler-error-repair-source.zip` to Files on you
 sh <<'SH'
 set -eu
 cd /var/mobile/Amazon-Dark-phone
-ZIP=$(find /var/mobile -type d -name '.Trash*' -prune -o -type f -name 'AmazonDark-v7.618-native-compiler-error-repair-source.zip' -print 2>/dev/null | head -n 1)
-[ -n "$ZIP" ] || { echo 'Save the v7.618 ZIP to Files on the phone first.'; exit 1; }
+ZIP=$(find /var/mobile -type d -name '.Trash*' -prune -o -type f -name 'AmazonDark-v7.619-handoff-regression-repair-source.zip' -print 2>/dev/null | head -n 1)
+[ -n "$ZIP" ] || { echo 'Save the v7.619 source ZIP to Files on the phone first.'; exit 1; }
 unzip -tq "$ZIP"
-TMP=$(mktemp -d /var/mobile/ad7618.XXXXXX)
+TMP=$(mktemp -d /var/mobile/ad7619.XXXXXX)
 unzip -q "$ZIP" -d "$TMP"
-STAGE="$TMP/ad7618"
-grep -qx 'Version: 7.618~native-compiler-error-repair' "$STAGE/layout/DEBIAN/control"
-grep -Fqx '#define AD_VERSION "v7.618-native-compiler-error-repair"' "$STAGE/src/Tweak.xm"
+STAGE="$TMP/ad7619"
+grep -qx 'Version: 7.619~handoff-regression-repair' "$STAGE/layout/DEBIAN/control"
+grep -Fqx '#define AD_VERSION "v7.619-handoff-regression-repair"' "$STAGE/src/Tweak.xm"
 cp -a "$STAGE/." .
 chmod 755 layout/DEBIAN/postinst
 AD_STRICT_VALIDATE=0 sh scripts/validate.sh
 git add -A
-if ! git diff --cached --quiet; then git commit -m 'v7.618: fix exact Objective-C++ compiler failures and format argument mismatch'; fi
+if ! git diff --cached --quiet; then git commit -m 'v7.619: repair legacy probe handoff headings and strict regressions'; fi
 git push origin main
 SH
 ```
 
-## FULL — v7.618
+## FULL — v7.619
 
-Screenshot-trigger while Amazon is foregrounded; let scan complete before export.
+Screenshot inside Amazon to trigger FULL, remain in the foreground until complete, then export current-session TAR:
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export full
 ```
 
-Optional universal foreground arm for cases where screenshot notification is missed:
+Optional FULL screenshot-notification fallback (return to Amazon to start scanning):
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh arm full
 ```
 
-Return to Amazon, then export FULL normally when done.
-
-## VIEWPORT — v7.618
-
-Arm while on the intended menu, background Amazon once, then export.
+## VIEWPORT — v7.619 ARM
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh arm
 ```
 
+## VIEWPORT — v7.619 EXPORT
+
+After backgrounding Amazon once:
+
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/ui-probe.sh export viewport
 ```
 
-## TRANSITION — v7.618
-
-Arm, perform one transition, then export.
+## TRANSITION — v7.619 ARM
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh arm transition
 ```
+
+## TRANSITION — v7.619 EXPORT
+
+After performing a transition:
 
 ```sh
 sh /var/mobile/Amazon-Dark-phone/scripts/skeleton-probe.sh export
