@@ -12,7 +12,7 @@ var css='';
 css+=owners+' :is(h1,h2,h3,h4,h5,h6,p,span,div,a,strong,b,small,label):not([class*="prime" i]):not([class*="star" i]):not([class*="badge" i]):not([class*="price" i]):not(.a-color-link):not(:where(.a-color-link *)){color:#fff!important;-webkit-text-fill-color:#fff!important;}';
 css+=owners+' :is(.a-color-secondary,.a-color-tertiary,.a-color-base,.a-text-normal,[class*="viewed" i],[class*="subtitle" i],[class*="count" i]){color:#fff!important;-webkit-text-fill-color:#fff!important;}';
 css+=owners+' :is([class*="header" i],[class*="title" i]) :is(svg,svg *,i[class*="chevron" i],i[class*="arrow" i]){color:#fff!important;fill:#fff!important;stroke:#fff!important;}';
-css+=owners+' :is(img,picture img,canvas){visibility:visible!important;opacity:1!important;mix-blend-mode:normal!important;filter:'+tone+'!important;-webkit-filter:'+tone+'!important;}';
+css+=owners+' :is(img,canvas){visibility:visible!important;opacity:1!important;mix-blend-mode:normal!important;filter:'+tone+'!important;-webkit-filter:'+tone+'!important;}';
 css+=owners+' :is([class*="image-container" i],[class*="image-wrapper" i],[class*="imageContainer"],[class*="imageWrapper"],[class*="thumbnail-container" i]){background-color:transparent!important;}';
 css+=owners+' :is([style*="background-image" i],[data-background-image],[class*="background-image" i]):not(:has(img,p,span,a,h1,h2,h3,h4)){visibility:visible!important;opacity:1!important;mix-blend-mode:normal!important;filter:'+tone+'!important;-webkit-filter:'+tone+'!important;}';
 s.textContent=css;
@@ -38,7 +38,7 @@ function markKeepShopping(){
    target.setAttribute('data-ad7613-keep-shopping-for','1');
    /* An inline image declaration can have been masked by an earlier
       high-priority background shorthand. Reassert only the same authored URL. */
-   var pics=target.querySelectorAll('img,picture img');
+   var pics=target.querySelectorAll('img');
    for(var k=0;k<pics.length&&k<75;k++){
     var photo=pics[k];
     if(window.getComputedStyle&&window.getComputedStyle(photo).display==='none'&&
