@@ -1,4 +1,4 @@
-/* AmazonDark v7.623 */
+/* AmazonDark v7.624 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.623-alexa-ci-compile-repair"
+#define AD_VERSION "v7.624-alexa-plus-text-finalpaint"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2663,7 +2663,7 @@ static NSString *ADNewMenusJS7482(void){
     ;
     keepShopping7613=[keepShopping7613 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     base=[base stringByAppendingString:keepShopping7613];
-    // v7.623: probe-exact Order Details and Advertising Preferences; no Home/media changes.
+    // v7.624: probe-exact Order Details and Advertising Preferences; no Home/media changes.
     NSString *orderPrivacy7620=@""
 #include "ADOrderAdsPrivacy7620.js.inc"
     ;
@@ -2673,13 +2673,13 @@ static NSString *ADNewMenusJS7482(void){
     }
     orderPrivacy7620=[orderPrivacy7620 stringByReplacingOccurrencesOfString:@"__AD7620_ORDER_IMAGES__" withString:orderMedia7620];
     base=[base stringByAppendingString:orderPrivacy7620];
-    // v7.623: probe-confirmed Your Orders recommendation rail and
+    // v7.624: probe-confirmed Your Orders recommendation rail and
     // Change shipping address sheet; no Home/PDP raster changes.
     NSString *ordersShipping7621=@""
 #include "ADOrdersRecommendationsShipping7621.js.inc"
     ;
     base=[base stringByAppendingString:ordersShipping7621];
-    // v7.623: isolated ad-feedback + Alexa informational article WebKit repairs.
+    // v7.624: isolated ad-feedback + Alexa informational article WebKit repairs.
     NSString *newMenus7622=@""
 #include "ADNewMenus7622.js.inc"
     ;
@@ -4099,7 +4099,7 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
 #include "ADAppSettingsSheet7547.h"
 static const void *kADPersonSavingsSheet7259=&kADPersonSavingsSheet7259;
 
-// v7.623: these implementations appear below the v7.612 Live owner block.
+// v7.624: these implementations appear below the v7.612 Live owner block.
 // ObjC++ needs typed declarations BEFORE the Live block uses them; Python-only
 // regression checks did not compile Tweak.xm in the iOS SDK.
 static UIColor *ADMenuButtonBorder7255(void);
@@ -9678,7 +9678,7 @@ static void ADPDPActionBarOwn7426(UIView *v){
 
 #include "ADServiceSheets7565.inc"
 
-// v7.623: two isolated native Alexa sheet owners from VIEWPORT r3/r4.
+// v7.624: two isolated native Alexa sheet owners from VIEWPORT r3/r4.
 // No generic sheet-view promotion: only the microphone sheet with both
 // r3's allowTitle and actionButton may be owned.
 static const void *kADAlexaVoiceRoot7622=&kADAlexaVoiceRoot7622;
@@ -9770,9 +9770,23 @@ static BOOL ADAlexaOwnSheet7622(UIView *v){
         return YES;
     } @catch(...) { return NO; }
 }
+// v7.624: Run the probe-owned neutral-text correction at the *final paint*,
+// not only while React initially assigns its storage. In r4, the title leaves
+// under custom-guide-mode-button / automations-mode-button mount before the
+// sheet has a window; Amazon commits their black foreground afterward.
+// The saturated blue New badge remains untouched by the neutral predicate.
 static BOOL ADAlexaText7622(UIView *v,NSTextStorage *ts){
     if(!ts||!gP.enabled||!ADAlexaSheetKind7622(v))return NO;
-    // Neutral black -> white. Authored blue and teal spans stay unchanged.
+    ADMenuLightStorage7255(ts); // Black -> white; colored spans are preserved.
+    return YES;
+}
+static BOOL ADAlexaRepaintMountedText7624(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v,"RCTTextView"))return NO;
+    if(!ADAlexaSheetKind7622(v))return NO;
+    NSTextStorage *ts=ADPersonTextStorage7206(v);
+    if(!ts||!ts.length)return NO;
+    // The NEW badge is blue, not an unthemed black title. Leave its text as-is.
+    if(ADAlexaRootAid7622(v,@"mode-button-new-badge"))return YES;
     ADMenuLightStorage7255(ts);
     return YES;
 }
@@ -10385,6 +10399,7 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
 }
 static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(!gP.enabled||!v.window)return;
+    if(ADAlexaRepaintMountedText7624(v))return;
     ADServiceDiscover7565(v,nil);
     if(ADServiceScope7565(v)){ ADServicePaint7565(v); return; }
     if(ADLiveTextOwner7612(v)){ ADLiveOwnText7612(v); return; }
@@ -10454,6 +10469,12 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     if(!gP.enabled||!((UIView *)self).window)return;
     UIView *v=(UIView *)self;
+    // v7.624: React can hydrate paragraph text before the plus sheet mounts.
+    if(ADAlexaSheetKind7622(v)){
+        NSTextStorage *ts=ADPersonTextStorage7206(v);
+        if(ts)ADMenuLightStorage7255(ts);
+        return;
+    }
     if(ADLiveTextOwner7612(v))ADLiveOwnText7612(v);
     else if(ADInLocationCanonical7416(v))ADLocationSheetOwnText7196(v);
     else if(ADPermissionButtonText7409(v)||ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
@@ -10468,6 +10489,11 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
+        if(ADAlexaSheetKind7622(v)){
+            NSTextStorage *ts=ADPersonTextStorage7206(v);
+            if(ts)ADMenuLightStorage7255(ts);
+            return;
+        }
         if(ADLiveTextOwner7612(v))ADLiveOwnText7612(v);
         else if(ADInLocationCanonical7416(v))ADLocationSheetOwnText7196(v);
         else if(ADPermissionButtonText7409(v)||ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
@@ -10502,6 +10528,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     }
     if(gP.enabled&&ADPersonForgotCopy7599(v))ADPersonLightStorage7206(textStorage);
     %orig(textStorage,contentFrame,descendantViews);
+    // v7.624: text mount can follow storage assignment; recheck the exact owner.
+    ADAlexaRepaintMountedText7624(v);
     ADPersonCenterReturnsText7522(v);
     if(liveText)ADLiveOwnText7612(v);
     if(reviewMenu)ADMenuLightStorage7255(ADPersonTextStorage7206(v));
@@ -10529,6 +10557,12 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
 }
 - (void)drawRect:(CGRect)rect {
+    // v7.624: final-paint guarantee for the exact native Alexa sheet. The
+    // underlying React text can be recommitted black *after* its first paint.
+    if(ADAlexaRepaintMountedText7624((UIView *)self)){
+        %orig(rect);
+        return;
+    }
     // v7.222 heading final-paint gate plus v7.228's exact Highlights tile gate.
     // React can rewrite body-copy storage after assignment; repair only text below
     // tile-widget/iconSection ancestry immediately before draw. Existing accent
@@ -13255,7 +13289,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 }
 
 
-// v7.623 VIEWPORT r2: UIKit UIActivityViewController / SHSheetSceneViewController.
+// v7.624 VIEWPORT r2: UIKit UIActivityViewController / SHSheetSceneViewController.
 // Request dark appearance in Amazon's presented iOS share controller. Remote
 // ShareSheetUI surfaces may not honor this; no remote UIKit override is claimed.
 %hook UIActivityViewController

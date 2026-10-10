@@ -1,0 +1,8 @@
+{
+  "source": "AmazonDark-v7.620-ui-viewport-probe-20261010-131637-612-r4.tar",
+  "root": "plus-menu-modal-container",
+  "primary": {"owner": "automations-mode-button", "class": "RCTTextView", "rgb": [15, 17, 17], "font_pt": 17},
+  "secondary": {"owner": "custom-guide-mode-button", "class": "RCTTextView", "rgb": [86, 89, 89], "font_pt": 15},
+  "badge": {"owner": "mode-button-new-badge", "class": "RCTTextView", "rgb": [12, 88, 209], "font_pt": 12},
+  "note": "Sanitized numeric samples; no visible user data or on-device identifiers."
+}
