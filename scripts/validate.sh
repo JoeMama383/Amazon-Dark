@@ -9,6 +9,20 @@ case "$mode" in 5??|7??) ;; *) echo "validate: layout/DEBIAN/postinst must be ex
 
 bash scripts/lint-logos.sh
 
+# v7.627: old v7.619 follow-up was deliberately abandoned because its Home
+# raster repair changed unrelated image visibility/taming. cp -a overlays old
+# clones without deleting dropped files, so these two orphaned modules can
+# survive in the Git commit and silently inflate the production scanner gate
+# from 8 to 10 even though the clean v7.626 archive contains neither.
+# Never exclude them from the census: require the dead files to be removed.
+for stale in src/ADMenuRepair7620.js src/ADMenuRepair7620.js.inc; do
+  if [ -e "$stale" ]; then
+    echo "validate: obsolete v7.619 Home-raster module retained: $stale" >&2
+    echo "validate: remove ONLY src/ADMenuRepair7620.js and src/ADMenuRepair7620.js.inc, then retry" >&2
+    exit 1
+  fi
+done
+
 # Source regression set is tests/test_*.py; execution uses a normalized temporary copy.
 # Current-version synchronization is checked once here instead of rewriting every
 # historical regression file on each build. Historical tests are frozen at the
