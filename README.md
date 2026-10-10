@@ -1,3 +1,7 @@
+# AmazonDark v7.618~native-compiler-error-repair
+
+Fixes the exact two compiler errors diagnosed from the v7.617 GitHub build artifact and the independent format-string warning. No UI/probe algorithm changes. Read `DIFF-v7.618.md`, `VALIDATION-v7.618.md`, and `COMMANDS.md`; GitHub Theos package verification remains required.
+
 # AmazonDark v7.617~probe-handoff-contract-repair
 
 Repairs the frozen v7.392 probe-helper contract without discarding v7.616 installed-runtime capture discovery. Synchronizes versioned probe/CI handoff markers and adds a current/older-installed FULL TAR regression. See `DIFF-v7.617.md`, `VALIDATION-v7.617.md`, and `COMMANDS.md`. Full strict CI and Theos compile remain to be confirmed by GitHub Actions.

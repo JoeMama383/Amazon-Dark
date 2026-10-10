@@ -22,7 +22,7 @@ cur_tag="v${cur_version}-${cur_slug}"
 require_literal(){ grep -Fq "$2" "$1" || { echo "validate: version sync missing '$2' in $1" >&2; exit 1; }; }
 require_literal src/Tweak.xm "#define AD_VERSION \"$cur_tag\""
 require_literal scripts/ui-probe.sh "VER=$cur_version"
-# v7.617: keep the inherited handoff token AND the installed-version override.
+# v7.618: keep the inherited handoff token AND the installed-version override.
 # Earlier v7.616 broke the frozen v7.392 contract by replacing CUR outright.
 require_literal scripts/ui-probe.sh 'CUR=${VER#7.}'
 require_literal scripts/ui-probe.sh 'CUR=${RUNTIME_VER#7.}'
