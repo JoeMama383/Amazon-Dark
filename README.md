@@ -1,3 +1,7 @@
+# AmazonDark v7.617~probe-handoff-contract-repair
+
+Repairs the frozen v7.392 probe-helper contract without discarding v7.616 installed-runtime capture discovery. Synchronizes versioned probe/CI handoff markers and adds a current/older-installed FULL TAR regression. See `DIFF-v7.617.md`, `VALIDATION-v7.617.md`, and `COMMANDS.md`. Full strict CI and Theos compile remain to be confirmed by GitHub Actions.
+
 # AmazonDark v7.615~native-live-compile-repair
 
 Fixes the v7.612 Amazon Live Objective-C++ forward-declaration and C-string class argument errors discovered at the first full Theos compile after multiple UI source changes. No runtime UI styling changes. v7.614 probe-sync and all source UI work are preserved. See `DIFF-v7.615.md`, `VALIDATION-v7.615.md`, and `COMMANDS.md`. On-device build verification remains pending.

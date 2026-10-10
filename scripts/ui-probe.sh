@@ -1,11 +1,11 @@
 #!/bin/sh
-# AmazonDark v7.616 universal UI probe helper.
+# AmazonDark v7.617 universal UI probe helper.
 # FULL: screenshot-triggered while Amazon stays foregrounded.
 # VIEWPORT: arm once, show the target in Amazon, then background Amazon once.
 # The app captures the last foreground scene at WillResignActive; export runs afterward.
 # FULL, VIEWPORT, and TRANSITION all export one current capture as plain .tar.
 set -eu
-VER=7.616
+VER=7.617
 # Use the package installed in Amazon, not an uninstalled checkout/helper version.
 # This is essential while a newer CI build has failed compilation: the older
 # installed tweak can still produce perfectly valid FULL/VIEWPORT captures.
@@ -17,7 +17,13 @@ if ! printf '%s\n' "$RUNTIME_VER" | grep -Eq '^7[.][0-9]+$'; then
 else
   RUNTIME_UNKNOWN=0
 fi
-CUR=${RUNTIME_VER#7.}
+# Preserve the historical helper-version contract used by probe handoff tests.
+# If Amazon runs a different installed build (e.g. after a failed CI package),
+# use the INSTALLED version for actual receipt discovery and exports.
+CUR=${VER#7.}
+if [ "$RUNTIME_VER" != "$VER" ]; then
+  CUR=${RUNTIME_VER#7.}
+fi
 NAME=AmazonDark-v$RUNTIME_VER
 ROOT=${AD_UI_ROOT:-/var/mobile}
 CONTAINERS=${AD_UI_CONTAINERS:-$ROOT/Containers/Data/Application}

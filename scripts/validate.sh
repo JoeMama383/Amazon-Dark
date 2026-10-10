@@ -22,6 +22,10 @@ cur_tag="v${cur_version}-${cur_slug}"
 require_literal(){ grep -Fq "$2" "$1" || { echo "validate: version sync missing '$2' in $1" >&2; exit 1; }; }
 require_literal src/Tweak.xm "#define AD_VERSION \"$cur_tag\""
 require_literal scripts/ui-probe.sh "VER=$cur_version"
+# v7.617: keep the inherited handoff token AND the installed-version override.
+# Earlier v7.616 broke the frozen v7.392 contract by replacing CUR outright.
+require_literal scripts/ui-probe.sh 'CUR=${VER#7.}'
+require_literal scripts/ui-probe.sh 'CUR=${RUNTIME_VER#7.}'
 require_literal scripts/performance-probe.sh "VER=$cur_version"
 require_literal scripts/skeleton-probe.sh "AD_PROBE_VERSION=$cur_version"
 require_literal scripts/skeleton-probe.sh "AD_PROBE_NAME=AmazonDark-v$cur_version"
@@ -31,6 +35,10 @@ require_literal src/ADUniversalUIProbe7362.frame.js.inc "version:'$cur_version'"
 require_literal src/ADUIProbeViewportSample7449.js.inc "version:'$cur_version'"
 require_literal src/ADPDPMainStream7451.js.inc "version:'$cur_version'"
 require_literal src/AmazonDarkSB.xm "AmazonDark-v$cur_version-launch-sb-probe.txt"
+# Handoff docs are versioned outputs consumed by multiple historical tests.
+require_literal COMMANDS.md "AmazonDark-v$cur_version-$cur_slug-source.zip"
+require_literal COMMANDS.md "AmazonDark-v$cur_version-$cur_slug-source*.zip"
+for mode in FULL VIEWPORT TRANSITION; do require_literal COMMANDS.md "## $mode — v$cur_version"; done
 
 # Superseded handoff tests must not survive an overlay copy from an older build.
 # They encode mutually exclusive assertions for the same evolving Your Orders owner

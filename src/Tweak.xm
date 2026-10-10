@@ -1,4 +1,4 @@
-/* AmazonDark v7.616 */
+/* AmazonDark v7.617 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.616-universal-probe-transport"
+#define AD_VERSION "v7.617-probe-handoff-contract-repair"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -4076,7 +4076,7 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
 #include "ADAppSettingsSheet7547.h"
 static const void *kADPersonSavingsSheet7259=&kADPersonSavingsSheet7259;
 
-// v7.616: these implementations appear below the v7.612 Live owner block.
+// v7.617: these implementations appear below the v7.612 Live owner block.
 // ObjC++ needs typed declarations BEFORE the Live block uses them; Python-only
 // regression checks did not compile Tweak.xm in the iOS SDK.
 static UIColor *ADMenuButtonBorder7255(void);
