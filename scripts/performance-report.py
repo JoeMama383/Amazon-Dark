@@ -77,6 +77,19 @@ def get_top_value(doc,key):
     return v if isinstance(v,dict) else None
 
 
+def latest_documents(data):
+    # Diagnostic reports are cumulative: count only the latest aggregate for each
+    # opaque document ID, not every 5-second snapshot of the same page.
+    latest={}; unknown=[]
+    for doc in data.get('webDocuments') or []:
+        if not isinstance(doc,dict): continue
+        ident=doc.get('documentId')
+        if isinstance(ident,(int,float)) and not isinstance(ident,bool):
+            latest[ident]=doc
+        else: unknown.append(doc)
+    return unknown+list(latest.values())
+
+
 def brief_report(data,label='Current'):
     duration=(numeric(data.get('durationMs')) or 0)/1000
     native=data.get('nativeFrames') or {}
@@ -84,13 +97,14 @@ def brief_report(data,label='Current'):
     nframes=int(native.get('count') or 0)
     gapover50=sum(int(v) for v in gaps[6:]) if len(gaps)==8 else None # index 6 = (50,100]
     observed=int(sum(data.get('frameGapsOver50MsBySecond') or []))
-    docs=data.get('webDocuments') or []
+    rawdocs=data.get('webDocuments') or []
+    docs=latest_documents(data)
     navs=[flattened(x) for x in docs if isinstance(x,dict)]
     cover={key: [x[key] for x in navs if x.get(key) is not None] for key in
            ['responseStart','responseEnd','domInteractive','domContentLoadedEventEnd','loadEventEnd']}
     lines=[f'## {label}: {data.get("version","unknown")}',
        f'- Session duration: **{duration:.1f}s**, end reason: **{data.get("endReason","unknown")}**.',
-       f'- WebKit coverage: **{len(docs)} documents**, **{data.get("enrolledWebViews",0)} enrolled views**, **{data.get("injectionErrors",0)} JS injection errors**.',
+       f'- WebKit coverage: **{len(docs)} document instances** from **{len(rawdocs)} cumulative snapshots/reports**, **{data.get("enrolledWebViews",0)} enrolled views**, **{data.get("injectionErrors",0)} JS injection errors**.',
        f'- Recorder quality: **{data.get("droppedRecords",0)} dropped records**, other probe overlapping: **{data.get("otherDiagnosticObserved", "unknown")}**.',
        f'- Main-runloop callback gaps >50ms: **{observed}** ({(100*observed/nframes):.2f}% of {nframes:,} intervals)' if nframes else '- Main-runloop callback gaps: **no valid samples**.',
        '', '| Native measurement (inclusive; overlapping) | Calls | Mean | P95 bucket upper bound | Max |',
@@ -113,9 +127,15 @@ def brief_report(data,label='Current'):
         return {'count':sum(int(x.get('count') or 0) for x in vals),
                 'maxMs':max([numeric(x.get('maxMs')) or 0 for x in vals]+[0]),
                 'totalMs':sum(numeric(x.get('totalMs')) or 0 for x in vals)}
-    for name in ['frames','inputToNextRAF','eventTiming','longTasks','resources']:
+    for name in ['frames','inputToNextRAF','eventTiming','longTasks','resources','scrollFromMove','scrollFromTouch']:
         m=aggregate(name)
         lines.append(f'- Web `{name}`: **{m["count"]:,} samples**, mean **{fmt(m["totalMs"]/m["count"] if m["count"] else None)}**, max **{fmt(m["maxMs"] if m["count"] else None)}**.')
+    started=sum(int(d.get('scrollStarted') or 0) for d in docs if isinstance(d,dict))
+    gestures=sum(int(d.get('scrollGestures') or 0) for d in docs if isinstance(d,dict))
+    lines.append(f'- Web scroll gestures observed: **{gestures}**; gestures followed by observed scroll: **{started}**. These are proxies, not proof of scrolling intent.')
+    loading=[numeric(d.get('loadingMs')) for d in (data.get('webLoadingIntervals') or []) if isinstance(d,dict)]
+    loading=[v for v in loading if v is not None]
+    if loading:lines.append(f'- Native WebView `loading==YES` intervals: **{len(loading)}**, longest **{fmt(max(loading))}**, median **{fmt(sorted(loading)[len(loading)//2])}**. A loading flag is NOT an input-blocking duration.')
     supported=set(t for d in docs if isinstance(d,dict) for t in d.get('supported',[]))
     lines.append('- Web observer types supported during capture: **'+(', '.join(sorted(supported)) or 'none reported')+'**.')
     if not docs:lines.append('- **Warning:** no WebKit document report. Web metrics are unavailable, NOT zero.')

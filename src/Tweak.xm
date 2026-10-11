@@ -1,4 +1,4 @@
-/* AmazonDark v7.627 */
+/* AmazonDark v7.628 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.627-stale-scanner-cleanup"
+#define AD_VERSION "v7.628-web-scroll-latency-diagnostics"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -9770,7 +9770,7 @@ static BOOL ADAlexaOwnSheet7622(UIView *v){
         return YES;
     } @catch(...) { return NO; }
 }
-// v7.627: Run the probe-owned neutral-text correction at the *final paint*,
+// v7.628: Run the probe-owned neutral-text correction at the *final paint*,
 // not only while React initially assigns its storage. In r4, the title leaves
 // under custom-guide-mode-button / automations-mode-button mount before the
 // sheet has a window; Amazon commits their black foreground afterward.

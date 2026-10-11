@@ -9,7 +9,7 @@ case "$mode" in 5??|7??) ;; *) echo "validate: layout/DEBIAN/postinst must be ex
 
 bash scripts/lint-logos.sh
 
-# v7.627: old v7.619 follow-up was deliberately abandoned because its Home
+# v7.628: old v7.619 follow-up was deliberately abandoned because its Home
 # raster repair changed unrelated image visibility/taming. cp -a overlays old
 # clones without deleting dropped files, so these two orphaned modules can
 # survive in the Git commit and silently inflate the production scanner gate
