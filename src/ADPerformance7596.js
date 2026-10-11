@@ -13,7 +13,7 @@
   var scrollFromMove=metric(), scrollFromTouch=metric();
   var scrollGestures=0, scrollStarted=0, touchAt=-1, movedAt=-1;
   // Opaque session-local document key; no page URL or content is recorded.
-  var documentId=Math.floor(Math.random()*1000000000);
+  var documentId=Math.floor(Math.random()*1000000000), initialSent=false;
   var types=[], supported=(window.PerformanceObserver && PerformanceObserver.supportedEntryTypes)||[];
   var resourceKinds={}, inputDropped=0;
   function add(m,v) {
@@ -79,6 +79,10 @@
     try{window.webkit.messageHandlers.adPerformance7596.postMessage(result);}catch(_){}
     return result;
   }
+  function snapshotInitial() {
+    if(stopped||initialSent)return;
+    initialSent=true;report('snapshot');
+  }
   function snapshot() {
     if(stopped)return;
     if(Date.now()>=deadline){stop('deadline');return;}
@@ -95,7 +99,7 @@
     return report(reason);
   }
   on('pagehide',function(){stop('pagehide');});
-  window.__adPerformance7596={session:session,stop:stop};
+  window.__adPerformance7596={session:session,stop:stop,snapshotInitial:snapshotInitial};
   timer=setTimeout(function(){stop('deadline');},Math.max(0,deadline-Date.now()));
   raf=requestAnimationFrame(tick);
   snapshotTimer=setTimeout(snapshot,5000);

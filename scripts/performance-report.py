@@ -137,6 +137,33 @@ def brief_report(data,label='Current'):
     loading=[v for v in loading if v is not None]
     if loading:lines.append(f'- Native WebView `loading==YES` intervals: **{len(loading)}**, longest **{fmt(max(loading))}**, median **{fmt(sorted(loading)[len(loading)//2])}**. A loading flag is NOT an input-blocking duration.')
     supported=set(t for d in docs if isinstance(d,dict) for t in d.get('supported',[]))
+    # v7.629: measure evaluation wait time even when WebKit never sends a
+    # document callback; identify attempts made during an active load.
+    attempts=[x for x in data.get('injectionTimings',[]) if isinstance(x,dict)]
+    a_loading=[x for x in attempts if x.get('wasLoading') is True]
+    elapsed=[numeric(x.get('evalMs')) for x in attempts]
+    elapsed=[x for x in elapsed if x is not None]
+    failed=sum(x.get('success') is False for x in attempts)
+    lines.append(f'- JS install/evaluation callbacks: **{len(attempts)}**; requested while loading: **{len(a_loading)}**; failures: **{failed}**; slowest callback: **{fmt(max(elapsed) if elapsed else None)}**.')
+    lines.append(f'- Theme preference enabled when armed: **{data.get("themeEnabledAtArm", "unknown")}** (same phone, same network and menu required for an A/B comparison).')
+    # Link navigation controller appearances to adjacent WebView loading starts.
+    # The heuristic is never presented as a definitive ownership mapping.
+    events=[(numeric(x.get('atMs')),str(x.get('controllerClass',''))) for x in (data.get('controllerTransitions') or []) if isinstance(x,dict)]
+    events=[x for x in events if x[0] is not None]
+    intervals=[]
+    for entry in (data.get('webLoadingIntervals') or []):
+        if not isinstance(entry,dict):continue
+        at=numeric(entry.get('atMs'));dur=numeric(entry.get('loadingMs'))
+        if at is None or dur is None:continue
+        candidates=[(abs(t-at),name) for t,name in events if abs(t-at)<=3000]
+        source=min(candidates)[1] if candidates else 'unattributed'
+        if 'SXWebResultsViewController' in source:source='Search Results'
+        elif 'AMIWebViewController' in source:source='Product Detail'
+        intervals.append((source,at,dur))
+    if intervals:
+        lines.append('')
+        lines+=['| WebKit loading timeline (controller correlation is approximate) | Began at | loading-state duration |', '| --- | ---: | ---: |']
+        for name,at,dur in intervals[:20]:lines.append(f'| {name} | {fmt(at)} | {fmt(dur)} |')
     lines.append('- Web observer types supported during capture: **'+(', '.join(sorted(supported)) or 'none reported')+'**.')
     if not docs:lines.append('- **Warning:** no WebKit document report. Web metrics are unavailable, NOT zero.')
     if data.get('otherDiagnosticObserved'):lines.append('- **Warning:** Another diagnostic overlapped this capture; comparisons may be distorted.')
