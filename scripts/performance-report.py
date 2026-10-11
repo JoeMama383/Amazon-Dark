@@ -85,7 +85,11 @@ def latest_documents(data):
         if not isinstance(doc,dict): continue
         ident=doc.get('documentId')
         if isinstance(ident,(int,float)) and not isinstance(ident,bool):
-            latest[ident]=doc
+            prior=latest.get(ident)
+            # A WKScriptMessage report and evaluateJavaScript fallback may arrive
+            # out of order. Keep the largest cumulative duration, not last arrival.
+            if prior is None or (numeric(doc.get('durationMs')) or 0)>=(numeric(prior.get('durationMs')) or 0):
+                latest[ident]=doc
         else: unknown.append(doc)
     return unknown+list(latest.values())
 
@@ -145,6 +149,10 @@ def brief_report(data,label='Current'):
     elapsed=[x for x in elapsed if x is not None]
     failed=sum(x.get('success') is False for x in attempts)
     lines.append(f'- JS install/evaluation callbacks: **{len(attempts)}**; requested while loading: **{len(a_loading)}**; failures: **{failed}**; slowest callback: **{fmt(max(elapsed) if elapsed else None)}**.')
+    if any(key in data for key in ('webEvalAcks','webEvalMissing','webBridgeReports')):
+        lines.append(f'- WebKit telemetry handshake: **{data.get("webEvalAcks",0)} returned eval snapshots**, **{data.get("webBridgeReports",0)} bridge messages**, **{data.get("webEvalMissing",0)} evals without usable snapshots**. The eval return path works independently of the message bridge.')
+        badbridge=sum((numeric(d.get('bridgeFailed')) or 0)>0 for d in rawdocs if isinstance(d,dict))
+        if badbridge: lines.append(f'- **Warning:** {badbridge} reports signaled a WebKit message-bridge failure; eval-returned snapshots may still retain timing aggregates.')
     lines.append(f'- Theme preference enabled when armed: **{data.get("themeEnabledAtArm", "unknown")}** (same phone, same network and menu required for an A/B comparison).')
     # Link navigation controller appearances to adjacent WebView loading starts.
     # The heuristic is never presented as a definitive ownership mapping.

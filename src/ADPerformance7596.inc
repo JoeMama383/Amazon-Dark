@@ -20,7 +20,7 @@ static NSDictionary *ADPerfMetricJSON7596(ADPerfMetric7596 m){
 }
 static NSString *ADPerfPath7596(NSString *suffix){
     NSString *d=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES).firstObject;
-    return [d stringByAppendingPathComponent:[@"AmazonDark-v7.629-performance" stringByAppendingString:suffix]];
+    return [d stringByAppendingPathComponent:[@"AmazonDark-v7.630-performance" stringByAppendingString:suffix]];
 }
 static void *kADPerfLoading7596=&kADPerfLoading7596;
 @interface ADPerformance7596 : NSObject <WKScriptMessageHandler>
@@ -34,6 +34,7 @@ static void *kADPerfLoading7596=&kADPerfLoading7596;
 @property(nonatomic,strong) NSMutableArray *documents;
 @property(nonatomic,strong) NSMutableArray *navigations;
 @property(nonatomic,strong) NSMutableArray *injectionTimings;
+@property(nonatomic) NSUInteger webEvalAcks,webBridgeReports,webEvalMissing;
 @property(nonatomic,copy) NSString *session;
 @property(nonatomic,copy) NSString *program;
 @property(nonatomic) double deadline,lastFrame;
@@ -44,6 +45,7 @@ static void *kADPerfLoading7596=&kADPerfLoading7596;
 - (void)background:(NSNotification *)notification;
 - (void)enroll:(WKWebView *)web;
 - (void)finish:(NSString *)reason;
+- (void)acceptWebBody:(NSDictionary *)body origin:(NSString *)origin;
 - (void)navigation:(UIViewController *)controller begin:(BOOL)begin;
 @end
 static ADPerformance7596 *gADPerformance7596=nil;
@@ -61,7 +63,7 @@ static ADPerformance7596 *gADPerformance7596=nil;
     self.controllerStarts=[NSMapTable weakToStrongObjectsMapTable];self.controllerTransitions=[NSMutableArray array];
     self.navigationStarts=[NSMapTable weakToStrongObjectsMapTable];self.documents=[NSMutableArray array];self.navigations=[NSMutableArray array];self.injectionTimings=[NSMutableArray array];
     self.otherProbeObserved=gADUIProbeBusy7362||ADSkelActive7339();self.themeEnabledAtArm=gP.enabled;
-    self.session=NSUUID.UUID.UUIDString;self.deadline=(now+90)*1000;self.lastFrame=0;self.injected=0;self.failed=0;self.dropped=0;self.enrolled=0;self.backgroundTask=UIBackgroundTaskInvalid;
+    self.session=NSUUID.UUID.UUIDString;self.deadline=(now+90)*1000;self.lastFrame=0;self.injected=0;self.failed=0;self.dropped=0;self.enrolled=0;self.webEvalAcks=0;self.webBridgeReports=0;self.webEvalMissing=0;self.backgroundTask=UIBackgroundTaskInvalid;
     NSString *source=@""
 #include "ADPerformance7596.js.inc"
     ;
@@ -100,10 +102,17 @@ static ADPerformance7596 *gADPerformance7596=nil;
     [web evaluateJavaScript:script completionHandler:^(id value,NSError *error){
         if(![self.session isEqual:session]||self.writing)return;
         if(error)self.failed++;
+        // An eval completion is not an acknowledgement of WebKit telemetry.
+        // Preserve the returned bounded numeric snapshot even if postMessage
+        // failed, the page navigated or its bridge was not installed.
+        NSDictionary *snapshot=([value isKindOfClass:NSDictionary.class])?(NSDictionary *)value:nil;
+        BOOL acknowledged=!error&&[snapshot[@"session"] isEqual:session];
+        if(acknowledged){self.webEvalAcks++;[self acceptWebBody:snapshot origin:@"eval"];}
+        else self.webEvalMissing++;
         if(self.injectionTimings.count<128)[self.injectionTimings addObject:@{
             @"atMs":@((began-gADPerfStart7596)*1000),
             @"evalMs":@((CACurrentMediaTime()-began)*1000),
-            @"wasLoading":@(wasLoading),@"success":@(!error)
+            @"wasLoading":@(wasLoading),@"success":@(!error),@"snapshotAck":@(acknowledged)
         }];else self.dropped++;
     }];
 }
@@ -132,9 +141,14 @@ static ADPerformance7596 *gADPerformance7596=nil;
     if((!gADPerformanceActive7596&&!self.finishing)||self.writing||![message.name isEqual:@"adPerformance7596"]||!message.frameInfo.mainFrame)return;
     NSDictionary *body=[message.body isKindOfClass:NSDictionary.class]?message.body:nil;
     if(![body[@"session"] isEqual:self.session])return;
+    self.webBridgeReports++;
+    [self acceptWebBody:body origin:@"message"];
+}
+- (void)acceptWebBody:(NSDictionary *)body origin:(NSString *)origin {
+    if(!body||self.writing||![body[@"session"] isEqual:self.session])return;
     // Whitelist numeric aggregates; never persist arbitrary page message strings/content.
     NSMutableDictionary *safe=[NSMutableDictionary dictionary];
-    for(NSString *key in @[@"durationMs",@"resourceEntriesDropped",@"pendingInputs",@"inputDropped",@"scrollGestures",@"scrollStarted"]){id value=body[key];if([value isKindOfClass:NSNumber.class]&&isfinite([value doubleValue]))safe[key]=value;}
+    for(NSString *key in @[@"durationMs",@"resourceEntriesDropped",@"pendingInputs",@"inputDropped",@"scrollGestures",@"scrollStarted",@"bridgeAttempted",@"bridgeFailed"]){id value=body[key];if([value isKindOfClass:NSNumber.class]&&isfinite([value doubleValue]))safe[key]=value;}
     for(NSString *key in @[@"frames",@"inputToNextRAF",@"eventTiming",@"longTasks",@"resources",@"scrollFromMove",@"scrollFromTouch"]){
         NSDictionary *m=[body[key] isKindOfClass:NSDictionary.class]?body[key]:nil;NSMutableDictionary *out=[NSMutableDictionary dictionary];
         for(NSString *field in @[@"count",@"totalMs",@"maxMs"]){id value=m[field];if([value isKindOfClass:NSNumber.class]&&isfinite([value doubleValue]))out[field]=value;}
@@ -148,6 +162,7 @@ static ADPerformance7596 *gADPerformance7596=nil;
     NSMutableArray *supported=[NSMutableArray array];for(NSString *t in @[@"event",@"resource",@"longtask"])if([body[@"supported"] isKindOfClass:NSArray.class]&&[body[@"supported"] containsObject:t])[supported addObject:t];safe[@"supported"]=supported;
     NSString *reason=body[@"reason"];safe[@"reason"]=[@[@"deadline",@"pagehide",@"native-stop",@"replaced",@"snapshot"] containsObject:reason?:@""]?reason:@"unknown";
     safe[@"receivedAtMs"]=@((CACurrentMediaTime()-gADPerfStart7596)*1000);
+    safe[@"origin"]=[origin isEqual:@"eval"]?@"eval":@"message";
     // Report carries only an opaque numeric page-instance key (never URLs/content).
     // Diagnostics are capped; the report consolidates each page's latest snapshot.
     id docId=body[@"documentId"];
@@ -181,7 +196,7 @@ static ADPerformance7596 *gADPerformance7596=nil;
     NSArray *names=@[@"eventDispatchInclusive",@"reactLayoutTheme",@"imageLayoutTheme",@"imageCommitInclusive",@"reactTextCommitInclusive",@"viewBackgroundInclusive",@"labelAttributedCommitInclusive"];
     NSMutableDictionary *lanes=[NSMutableDictionary dictionary];for(unsigned i=0;i<ADPerfLaneCount;i++)lanes[names[i]]=ADPerfMetricJSON7596(gADPerfLanes7596[i]);
     NSMutableArray *seconds=[NSMutableArray array];for(unsigned i=0;i<90;i++)[seconds addObject:@(gADPerfFrameSeconds7596[i])];
-    NSDictionary *report=@{ @"version":@AD_VERSION,@"schema":@1,@"session":self.session,@"endReason":reason,@"durationMs":@(duration),@"nativeFrames":ADPerfMetricJSON7596(gADPerfFrames7596),@"touchEventAge":ADPerfMetricJSON7596(gADPerfInputAge7596),@"frameGapsOver50MsBySecond":seconds,@"lanes":lanes,@"webDocuments":[self.documents copy],@"webLoadingIntervals":[self.navigations copy],@"controllerTransitions":[self.controllerTransitions copy],@"otherDiagnosticObserved":@(self.otherProbeObserved),@"themeEnabledAtArm":@(self.themeEnabledAtArm),@"enrolledWebViews":@(self.enrolled),@"injectionAttempts":@(self.injected),@"injectionErrors":@(self.failed),@"injectionTimings":[self.injectionTimings copy],@"droppedRecords":@(self.dropped),@"unfinishedLoadingIntervals":@(self.navigationStarts.count),@"coverage":@"Native foreground only. Web aggregates emit an initial snapshot when installed and recur every five seconds while armed; no cross-origin frames, cold-start or server attribution. Missing Web reports are not zero latency. Inclusive lanes overlap; do not sum. RAF is not presentation latency. Controller appearance intervals include animations. Diagnostic overhead is included." };
+    NSDictionary *report=@{ @"version":@AD_VERSION,@"schema":@1,@"session":self.session,@"endReason":reason,@"durationMs":@(duration),@"nativeFrames":ADPerfMetricJSON7596(gADPerfFrames7596),@"touchEventAge":ADPerfMetricJSON7596(gADPerfInputAge7596),@"frameGapsOver50MsBySecond":seconds,@"lanes":lanes,@"webDocuments":[self.documents copy],@"webLoadingIntervals":[self.navigations copy],@"controllerTransitions":[self.controllerTransitions copy],@"otherDiagnosticObserved":@(self.otherProbeObserved),@"themeEnabledAtArm":@(self.themeEnabledAtArm),@"enrolledWebViews":@(self.enrolled),@"injectionAttempts":@(self.injected),@"injectionErrors":@(self.failed),@"injectionTimings":[self.injectionTimings copy],@"webEvalAcks":@(self.webEvalAcks),@"webEvalMissing":@(self.webEvalMissing),@"webBridgeReports":@(self.webBridgeReports),@"droppedRecords":@(self.dropped),@"unfinishedLoadingIntervals":@(self.navigationStarts.count),@"coverage":@"Native foreground only. Web aggregates are returned by eval as a fallback if the message bridge fails, and recur every five seconds while armed; no cross-origin frames, cold-start or server attribution. Missing Web reports are not zero latency. Inclusive lanes overlap; do not sum. RAF is not presentation latency. Controller appearance intervals include animations. Diagnostic overhead is included." };
     NSString *path=ADPerfPath7596(@".json"),*state=ADPerfPath7596(@".state");
     UIBackgroundTaskIdentifier task=self.backgroundTask;self.backgroundTask=UIBackgroundTaskInvalid;
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0),^{

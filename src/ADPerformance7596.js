@@ -66,7 +66,7 @@
     if(!document.hidden){pending.forEach(function(p){add(inputFrame,t-p);});pending=[];}
     raf=requestAnimationFrame(tick);
   }
-  function report(reason) {
+  function report(reason, sendToBridge) {
     var nav={};
     try{var e=performance.getEntriesByType('navigation')[0]; if(e)['responseStart','responseEnd','domInteractive','domContentLoadedEventEnd','loadEventEnd'].forEach(function(k){if(Number.isFinite(e[k]))nav[k]=e[k];});}catch(_){}
     var result={session:session,documentId:documentId,reason:reason,durationMs:now()-started,
@@ -76,12 +76,21 @@
       scrollGestures:scrollGestures,scrollStarted:scrollStarted,
       resourceEntriesDropped:Math.max(0,resourceSeen-4096),pendingInputs:pending.length,
       inputDropped:inputDropped,navigationMs:nav};
-    try{window.webkit.messageHandlers.adPerformance7596.postMessage(result);}catch(_){}
+    // The evaluateJavaScript completion returns this very same bounded data
+    // even if WKScriptMessageHandler fails or is unavailable in the document.
+    // Do not treat a successful eval callback as successful bridge delivery.
+    result.bridgeAttempted=(sendToBridge!==false)?1:0;
+    result.bridgeFailed=0;
+    if(sendToBridge!==false){
+      try{window.webkit.messageHandlers.adPerformance7596.postMessage(result);}
+      catch(_){result.bridgeFailed=1;}
+    }
     return result;
   }
   function snapshotInitial() {
-    if(stopped||initialSent)return;
-    initialSent=true;report('snapshot');
+    if(stopped)return null;
+    if(initialSent)return report('snapshot',false);
+    initialSent=true;return report('snapshot');
   }
   function snapshot() {
     if(stopped)return;
