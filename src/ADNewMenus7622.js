@@ -61,8 +61,18 @@
     if (tameEnabled) {
       s.textContent += '#a-page>.a-container.octopus-page-style [class*="_Y29ud_bxcGridImage_"] img {filter:brightness('+tameFactor+')!important;-webkit-filter:brightness('+tameFactor+')!important;mix-blend-mode:normal!important;}';
     }
-    function recognizeFeedback() {
+    function recognizeFeedback(fromInteraction) {
       try {
+        // Do not synchronously layout an entire Search/PDP document at
+        // DOMContentLoaded or pageshow merely to identify an unrelated ad form.
+        // An actual ad-feedback click still invokes the original visible-text
+        // classifier so hidden Home templates cannot be mistaken for the form.
+        if (!fromInteraction) {
+          var path = (typeof location !== 'undefined' && location.pathname) || '';
+          if (path === '/s' || path.indexOf('/s/') === 0 ||
+              path === '/dp' || path.indexOf('/dp/') === 0 ||
+              path.indexOf('/gp/product/') === 0 || path.indexOf('/gp/aw/d/') === 0) return;
+        }
         var txt = ((doc.body && doc.body.innerText) || '').toLowerCase();
         // Own only the actively rendered advertising feedback form (r1),
         // never its underlying Home product grid or sponsored raster.
@@ -80,8 +90,8 @@
       try {
         var t=e.target;
         if (t && t.closest && t.closest('[id^="ad-feedback-"],[class*="ad-feedback-primary-link"],[id^="af-label-primary-link-"]')) {
-          setTimeout(recognizeFeedback,200);
-          setTimeout(recognizeFeedback,700);
+          setTimeout(function(){recognizeFeedback(true);},200);
+          setTimeout(function(){recognizeFeedback(true);},700);
         }
       } catch (_) {}
     },true);

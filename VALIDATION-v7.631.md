@@ -1,0 +1,9 @@
+# AmazonDark v7.631 — validation summary
+
+- **18/18 focused normalized historical/current regressions PASS**, including checkout exact CSS hash + unaltered payload, checkout routing and hydration, native Alexa final-paint (preserves neutral white labels/blue badge), all v7.625–v7.630 performance/probe contracts, and the new v7.631 Search/PDP route-gate test. Full result: `AmazonDark-v7.631-focused-validation.log`.
+- Logos lint: PASS. New ad feedback JavaScript syntax (`node --check`): PASS. Probe helper `sh -n`: PASS.
+- v7.631 route-gate Node harness: skipped checkout style initialization on `/s`, `/s/query`, `/dp`, `/dp/ASIN`, `/gp/product/ASIN`, `/gp/aw/d/ASIN`, and preserved original behavior on `/cart`, `/gp/buy/checkout`, `/gp/your-account`.
+- Production source continues to have no recurring MutationObservers/interval scanners; **5-second WebKit sample timer is opt-in only and invalidated at capture completion**. Up to eight visible WebViews per sample; no normal-time WebKit polling.
+- Original 7.630 source-based perf diagnosis: 6.76 sec Search and 15.64 sec PDP `domInteractive`; native per-hook total tens of milliseconds; current 7.631 code skips the unrelated checkout style sheet (~84 KB with 107 `:has` occurrences). No honest on-device benchmark possible before the user installs and captures 7.631.
+- Full `AD_STRICT_VALIDATE=0 sh scripts/validate.sh` attempted. It ran legacy regressions through ~v7.388 then exceeded local execution time; **not a complete validation PASS**. Complete GitHub Actions/Theos rootless compile unverified locally. Historical source hash tests and native gnu++98 compilation fixtures included among focused pass.
+- No Home raster changes, no image-taming formula changes, no button/divider geometry changes, no production scroll mutation, and no changes to core neutral-black-text-to-white rules.

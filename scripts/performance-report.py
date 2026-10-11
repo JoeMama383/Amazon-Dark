@@ -153,6 +153,8 @@ def brief_report(data,label='Current'):
         lines.append(f'- WebKit telemetry handshake: **{data.get("webEvalAcks",0)} returned eval snapshots**, **{data.get("webBridgeReports",0)} bridge messages**, **{data.get("webEvalMissing",0)} evals without usable snapshots**. The eval return path works independently of the message bridge.')
         badbridge=sum((numeric(d.get('bridgeFailed')) or 0)>0 for d in rawdocs if isinstance(d,dict))
         if badbridge: lines.append(f'- **Warning:** {badbridge} reports signaled a WebKit message-bridge failure; eval-returned snapshots may still retain timing aggregates.')
+    if 'webPeriodicSamples' in data or 'webPeriodicFailures' in data:
+        lines.append(f'- Armed WebKit sampling: **{data.get("webPeriodicSamples",0)} successful 5-second snapshots**, **{data.get("webPeriodicFailures",0)} missing/error snapshots**. Missing samples are not zero work or zero latency.')
     lines.append(f'- Theme preference enabled when armed: **{data.get("themeEnabledAtArm", "unknown")}** (same phone, same network and menu required for an A/B comparison).')
     # Link navigation controller appearances to adjacent WebView loading starts.
     # The heuristic is never presented as a definitive ownership mapping.
