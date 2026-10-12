@@ -18,8 +18,8 @@ assert 'ADPersonOrderSearchCompactHost7589(host)' in S
 assert 'ADPersonOrderSearchInner7242(host)' in S
 # Exact Your Review web owner.
 assert 'body:has(#cr-single-review) .a-subheader h4' in N
-assert 'body:has(#cr-single-review) #cr-single-review :is([class*=_cr-single-review_style_card-deck__],[class*=_cr-single-review_style_peek-expand__])' in N
-assert 'body:has(#cr-single-review) #cr-single-review [class*=_cr-single-review_style_contain-rich-content__]' in N
+assert 'body:is(*,#cr-single-review) #cr-single-review :is([class*=_cr-single-review_style_card-deck__],[class*=_cr-single-review_style_peek-expand__])' in N
+assert 'body:is(*,#cr-single-review) #cr-single-review [class*=_cr-single-review_style_contain-rich-content__]' in N
 assert 'background:#000!important' in N
 assert 'color:#fff!important' in N
 assert 'border:1px solid #747a7c!important' in N

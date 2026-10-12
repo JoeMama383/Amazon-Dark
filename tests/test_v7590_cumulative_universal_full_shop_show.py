@@ -43,7 +43,7 @@ for token in [
 ]: assert token in S, token
 for token in [
     'body:has(#cr-single-review) .a-subheader',
-    'body:has(#cr-single-review) #cr-single-review [class*=_cr-single-review_style_contain-rich-content__]',
+    'body:is(*,#cr-single-review) #cr-single-review [class*=_cr-single-review_style_contain-rich-content__]',
     '.a-button[class*=_cr-single-review_style_single-review-button__]{background:#000!important',
 ]: assert token in N, token
 
