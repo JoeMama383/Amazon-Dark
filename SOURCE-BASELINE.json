@@ -1,6 +1,7 @@
 {
-  "version": "7.556~filters-search-paint-repair",
-  "baseline": "f9b6a35b (origin/main v7.555)",
-  "focus": "Captured Filters floatboxes/detached footer and Search budget/category/video-copy owners",
-  "device_validation": "Pending; loading overlay not captured visibly"
+  "version": "7.634~account-menus-22-probe-oled",
+  "baseline": "AmazonDark-v7.633-web-cache-cpp98-lists-nine-probe-repair-source.zip",
+  "baseline_sha256": "1f41f19d43cd6b672688ec7e490b61be6896c91451a50fd8291d48d4a92af3b0",
+  "focus": "22 captured account, content, Alexa privacy/data, Help, Orders and Buy Again documents including nested submenu states",
+  "device_validation": "Pending; local structural/runtime and native syntax checks only"
 }

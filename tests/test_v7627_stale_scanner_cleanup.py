@@ -1,3 +1,4 @@
+# v7.634 adds one bounded Your Books existing-shadow catch-up, no recurring scanner.
 """Prevent stale overlay-only v7.619 Home-raster code leaking into scanner CI."""
 from pathlib import Path
 import importlib.util
@@ -10,7 +11,7 @@ mod=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 rows,groups=mod.analyze(ROOT)
 prod=groups['production / combined']
-assert prod['querySelectorAll'] == 8, prod
+assert prod['querySelectorAll'] == 9, prod
 assert prod['MutationObserver']==0 and prod['setInterval']==0 and prod['TreeWalker']==0
 assert prod['requestAnimationFrame']==0
 assert not (ROOT/'src/ADMenuRepair7620.js').exists()
@@ -37,5 +38,5 @@ with tempfile.TemporaryDirectory() as td:
   cards.forEach(function(c){ c.querySelectorAll('img'); });
 }''')
     _,dirty=mod.analyze(mock)
-    assert dirty['production / combined']['querySelectorAll']==10, dirty
-print('PASS: v7.627 discarded v7.619 raster source is explicitly removed; clean 8, ghost 10, no production recurring scanners')
+    assert dirty['production / combined']['querySelectorAll']==11, dirty
+print('PASS: v7.627 discarded v7.619 raster source is explicitly removed; clean 9, ghost 11, no production recurring scanners')

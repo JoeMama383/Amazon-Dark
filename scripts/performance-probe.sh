@@ -1,7 +1,7 @@
 #!/bin/sh
 # One bounded foreground session. No screenshots, UI scrolling or historical bundles.
 set -eu
-VER=7.633
+VER=7.634
 CUR=${VER#7.}
 ROOT=${AD_UI_ROOT:-/var/mobile}
 CONTAINERS=${AD_UI_CONTAINERS:-$ROOT/Containers/Data/Application}

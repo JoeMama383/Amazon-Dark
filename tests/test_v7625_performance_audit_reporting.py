@@ -57,7 +57,11 @@ with tempfile.TemporaryDirectory() as td:
     prod=groups['production / combined']
     assert prod['MutationObserver']==0 and prod['setInterval']==0 and prod['requestAnimationFrame']==0 and prod['TreeWalker']==0,prod
     assert prod['scroll-listener']==0,prod
-    assert prod['querySelectorAll']<=8,(prod['querySelectorAll'], 'new production DOM scanner requires review')
+    # v7.634: one reviewed, once-only catch-up under customer-corner-root.
+    books=(R/'src/ADAccountMenus7634.js').read_text()
+    assert books.count('querySelectorAll(')==1 and "getElementById('customer-corner-root')" in books
+    assert 'count<256' in books and "'DOMContentLoaded',existing,{once:true}" in books
+    assert prod['querySelectorAll']<=9,(prod['querySelectorAll'], 'new production DOM scanner requires review')
     assert groups['opt-in diagnostics']['MutationObserver']>=1  # FULL/transition probe retained
     assert groups['opt-in diagnostics']['requestAnimationFrame']>=1  # performance diagnostic retained
     assert not any('picture img' in (R/'src'/n).read_text() for n in ('ADKeepShopping7613.js', 'ADKeepShopping7613.js.inc'))

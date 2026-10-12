@@ -1,0 +1,112 @@
+/* v7.634: 22 captured documents. Paint only; no geometry or visibility changes. */
+/* Content & Devices React and legacy Angular owners. */
+#root:has([class*="NavigationBar-module__navHeader_myx"]),
+#ng-app.desktopMargin_myx,
+#root:has(.navHeader_myx),
+#customer-corner-root,
+.cs-help-v4 {color:#fff!important;color-scheme:dark;}
+#root :is([class*="NavigationBar-module__navHeader_myx"],.navHeader_myx),
+#ng-app :is(.navigationHeader_myx,.homeApp_myx,.settingsApp_myx,.myx-box,.myx-box-inner,.a-alert,.myx-popover,.myx-popover-inner),
+#root:has([class*="NavigationBar-module__navHeader_myx"]) :is(.body-inner,.main-box,.app-main-box,.spacer,.tooltip,.mobile-filter-container,.search-box-container,.search-icon-content,.your_books_ingress_section,#CONTENT_LIST,#mobile-filter-container,.mobile-filter-layout-body,.mobile-filter-layout-show-results-container,.content-main-box,[class*="DigitalEntitySummary-module__container_mobile"],[class*="DialogSheet-module_dialog-sheet-container"],[class*="DialogSheet-module_message-container"],[class*="DeviceDialogBox-module_message_container"],[id^="deliver_to_device_list_"], [class*="PrivacySettings-module_title-container"],[class*="PrivacySettings-module_page-container"],[class*="Card-module_card_mobile"]),
+#apd-content-wrapper :is(.overview-item,.utterance-item,.thread-item,.apd-content-box,.myad-section,.menu-options-list,.apd-modal-box),
+.apd-modal-box,
+#customer-corner-root :is(#tabview-topbar,#tab-bar,#filter-topbar-mobile,#view-nav-tabs,#bottom-sheet-container,#bottom-sheet-content,[class*="ftue-popup__modal-ftue-frame"]),
+.cs-help-v4 :is(.a-box,.a-box-inner,.help-content,.cs-help-content,#helplink,#picker-box,#lang-menu) {
+ background-color:#000!important;background-image:none!important;box-shadow:none!important;
+}
+/* Neutral ink only. Links and semantic color classes are excluded, including descendants. */
+#ng-app.desktopMargin_myx :is(div,span,p,h1,h2,h3,h4,h5,h6,b,strong,li,td,th,label):not(:where(a *,[class*="color-link"],[class*="color-link"] *,[class*="color-error"],[class*="color-error"] *,[class*="color-success"],[class*="color-success"] *,[class*="color-state"],[class*="color-state"] *,[class*="active"],[class*="active"] *,[class*="color-secondary"],[class*="color-secondary"] *)),
+#root:has([class*="NavigationBar-module__navHeader_myx"]) :is(h1,h2,h3,h4,p,span,.information_row,.device-name,#CONTENT_COUNT):not(:where(a,a *,[class*="active"],[class*="active"] *,[class*="success"],[class*="success"] *,[class*="error"],[class*="error"] *,#mobile-content-see-more-actions *,#mobile-filter-show-results-text *,#mobile-filter-show-results-text)),
+#root .navHeader_myx :is(h1,.navOptionTitle_myx):not(:where(.active *)),
+#apd-content-wrapper :is(h1,h2,h3,p,label,.pageName,.utterance-title,.thread-title,.full-width-message,.scope-name,.scope-empty,.ad-preferences-sub-section-title,.ad-preferences-sub-section-description,.myad-section-title,.myad-sub-section-description,.choiceText,.sub-section-title,.textLabel,.myad-modal-choice-text,.span-date,.dsh-date-box,.dsh-history-content-device-summary,.item,.tab-description,.tab-title-text,.tab-help-title-text,.menu-header>span,.filter-row>span:not(.selected-filter),.menu-options-list a:not(.active),.myad-section>div),
+.apd-modal-box :is(h1,h2,p,.myad-modal-choice-text),
+#customer-corner-root :is([role="heading"],#book-count-mobile,.tagText,.tagContent,[class*="ftue-popup__modal-ftue-title"],#title,#status,#bottom-sheet-content p,#bottom-sheet-content span:not(:where(a,a *))),
+.cs-help-v4 :is(h1,h2,h3,h4,h5,p,li,ul,ol,dt,dd,strong,b,label,td,th,.help-content,.cs-help-content,.a-box-inner,#resetopts,#helplink):not(:where(a *,[class*="color-link"],[class*="color-link"] *,[class*="color-error"],[class*="color-error"] *)) {
+ color:#fff!important;-webkit-text-fill-color:currentColor!important;
+}
+#ng-app :is(.myx-color-secondary,.myx-color-secondary *),
+#root:has([class*="NavigationBar-module__navHeader_myx"]) :is(.serial-number,.device-type),
+#apd-content-wrapper :is(.utterance-subtitle,.metadata-text,.date-section-header,.span-text,.myad-modal-choice-description),
+.apd-modal-box .myad-modal-choice-description,
+#customer-corner-root [data-testid="discovery-mode-sub-title"],
+.cs-help-v4 :is(.a-color-secondary,.a-color-tertiary,.lead) {color:#b1b5b5!important;-webkit-text-fill-color:currentColor!important;}
+/* Recolor existing neutral borders; selected orange/blue edges retain their authored colors. */
+#ng-app :is(.myx-bordered,.myx-bordered td,.myx-bordered th,.myx-box,.a-box,.navOptions_phone_alexa_myx),
+#root:has([class*="NavigationBar-module__navHeader_myx"]) :is(.main-box,.app-main-box,.title-container,.content-main-box,#CONTENT_LIST,[id^="deliver_to_device_list_"],[class*="NavigationBar-module__navHeader_myx"]),
+#root .navHeader_myx,
+#apd-content-wrapper :is(#apd-page-header,.menu-header,.rah-bulk-selection-controls,.filter-row,.filter-menu,.dsh-manage-data-box,.dsh-date-box,.dsh-device-state-history-record-list,.apd-content-box,.overview-item,.myad-section,.myad-sub-section,.ad-preferences-sub-section),
+#customer-corner-root :is(#tab-bar,#filter-topbar-mobile,[data-testid="view-panel-mobile"],#control-buttons,[data-testid="discovery-book-view"],#recommended-tags),
+.cs-help-v4 :is(.a-box,hr,.a-divider-inner,.mktplc-links,.lead) {border-color:#494d4d!important;}
+/* Buttons: one existing outline, no forced new size/radius. */
+#ng-app :is(.myx-button,.a-button),
+#root:has([class*="NavigationBar-module__navHeader_myx"]) :is(button,[role="button"]):not([class*="selected"]),
+#apd-content-wrapper :is(button,.apd-button):not(.menu-button),
+.apd-modal-box :is(button,.apd-button),
+#customer-corner-root :is(button,[role="button"]):not([aria-selected="true"]):not([aria-checked="true"]),
+.cs-help-v4 .a-button {background:#000!important;border-color:#747a7c!important;color:#fff!important;-webkit-text-fill-color:currentColor!important;box-shadow:none!important;}
+#ng-app .a-button-inner,.cs-help-v4 .a-button-inner {background:transparent!important;box-shadow:none!important;}
+#ng-app :is(.myx-button,.a-button) :is(span,div),
+#root:has([class*="NavigationBar-module__navHeader_myx"]) :is(button,[role="button"]) :is(span,div),
+#apd-content-wrapper button,#apd-content-wrapper button :is(span,div),
+.apd-modal-box button,.apd-modal-box button :is(span,div),
+#customer-corner-root button :is(span,div),.cs-help-v4 .a-button-text {color:#fff!important;-webkit-text-fill-color:currentColor!important;}
+#root:has([class*="NavigationBar-module__navHeader_myx"]) :is(.mobile-filter-layout-item-selected,.mobile-content-filter-container-selected){background-color:#303335!important;color:#fff!important;-webkit-text-fill-color:currentColor!important;}
+#apd-content-wrapper :is(input[type="text"],input[type="date"],select),
+#ng-app :is(input[type="text"],select),
+#customer-corner-root :is(input[type="text"],input[type="search"],select),
+#root:has([class*="NavigationBar-module__navHeader_myx"]) #content-search-box {background:#17191a!important;color:#fff!important;-webkit-text-fill-color:currentColor!important;border-color:#747a7c!important;box-shadow:none!important;}
+#root:has([class*="NavigationBar-module__navHeader_myx"]) [role="checkbox"]:not([aria-checked="true"]){background-color:#303335!important;border-color:#747a7c!important;}
+#apd-content-wrapper :is(.disabled,[aria-disabled="true"]){color:#b1b5b5!important;-webkit-text-fill-color:currentColor!important;}
+/* Monochrome navigation and input glyphs; never stars, brand marks, or full photos. */
+#ng-app .myx-icon-dropdown,
+#apd-content-wrapper :is(.tab-caret,.myad-tab-caret,.ad-preferences-tab-caret,.tab-icon),
+.apd-modal-box .close-button img,
+#customer-corner-root #popup-close img,
+.cs-help-v4 :is(.a-icon-page-back,.a-icon-touch-link,.a-icon-previous) {filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}
+#root:has([class*="NavigationBar-module__navHeader_myx"]) .search-icon-content,
+#apd-content-wrapper .menu-button {color:#b1b5b5!important;-webkit-text-fill-color:currentColor!important;}
+/* Order details: light transaction plate, delivery labels, linked recommendation price. */
+#a-page .od-modernized :is(.od-modernized-item-image,[data-testid="viewTransactionsLink-content-wrapper-outline"]){background:#000!important;}
+#a-page .od-modernized :is(.od-milestone-label,.udm-primary-delivery-message,.udm-primary-delivery-message *,.a-icon-text,.a-price,.a-price *,[data-testid="viewTransactionsLink-content-wrapper-outline"] span){color:#fff!important;-webkit-text-fill-color:currentColor!important;}
+#a-page .od-modernized .a-color-secondary{color:#b1b5b5!important;-webkit-text-fill-color:currentColor!important;}
+/* Buy Again: the captured progress floor is independent of cart page ownership. */
+[data-csa-c-painter="cart-progress-indicator-cards"] :is(#cart-cpi-content,[class*="_cpiContent__"]){background:#000!important;}
+[data-csa-c-painter="cart-progress-indicator-cards"] :is([class*="_bmsTitle__"],#progressMessage,#progressMessage span){color:#fff!important;-webkit-text-fill-color:currentColor!important;}
+[data-csa-c-painter="cart-progress-indicator-cards"] .a-meter{background-color:#494d4d!important;background-image:none!important;}
+[data-csa-c-painter="buy-again-grid-mobile-cards"] [class*="_actionsIcon_"]{background:#303335!important;border-color:#747a7c!important;}
+[data-csa-c-painter="buy-again-grid-mobile-cards"] :is(.udm-primary-delivery-message,.udm-primary-delivery-message *,.a-icon-text){color:#fff!important;-webkit-text-fill-color:currentColor!important;}
+#ordersSearch .a-icon-search,
+[data-csa-c-painter="buy-again-grid-mobile-cards"] :is(img[class*="_iconMargin_"],img[class*="_stpInfoIcon_"]){filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}
+/* Residual owners verified against every capture, including detached dialogs. */
+#ng-app .myx-bordered tr,
+#root:has([class*="NavigationBar-module__navHeader_myx"]) .actions-container-mobile>div {background-color:#000!important;background-image:none!important;}
+#root:has([class*="NavigationBar-module__navHeader_myx"]) #search-button [role="link"],
+#customer-corner-root #view-nav-tabs [role="tab"]:not([aria-selected="true"]):not([data-testid$="-selected"]),
+#apd-content-wrapper .delete-displayed-recordings-text {border-color:#494d4d!important;}
+#root:has([class*="NavigationBar-module__navHeader_myx"]) .mobile-filter-caret,
+#root:has([class*="NavigationBar-module__navHeader_myx"]) .mobile-filter-caret .fa,
+#apd-content-wrapper .apd-expand-toggle-button,
+#apd-content-wrapper .apd-expand-toggle-button::before {color:#fff!important;-webkit-text-fill-color:currentColor!important;}
+#root:has([class*="NavigationBar-module__navHeader_myx"]) [class*="DialogSheet-module_close"]::before,
+#root:has([class*="NavigationBar-module__navHeader_myx"]) [class*="DialogSheet-module_close"]::after {background-color:#fff!important;}
+.apd-modal-box .close-x img {filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}
+/* Keep the toggle's checked accent and white thumb. */
+
+#a-page .od-modernized,#a-page .od-modernized ul {color:#fff!important;}
+#a-page .od-modernized #__next [data-testid="viewTransactionsLink"] span {color:#fff!important;-webkit-text-fill-color:currentColor!important;}
+/* Sponsored info glyph is authored linework; only its white backing is gray. */
+#a-page .od-modernized [class*="_ad-feedback-sprite-mobile__"]{background-color:#b1b5b5!important;}
+.cs-help-v4 #resetopts {border-color:#747a7c!important;}
+.cs-help-v4 #lang-img{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}
+[data-csa-c-painter^="buy-again-"],[data-csa-c-painter="cart-progress-indicator-cards"]{color:#fff!important;}
+[data-csa-c-painter="cart-progress-indicator-cards"] :is(#callToAction,#callToAction>span,[class*="_rxGyCpiSubtitle__"]){color:#fff!important;-webkit-text-fill-color:currentColor!important;}
+/* Explicit text leaves that author their own dark ink instead of inheriting. */
+#ng-app.desktopMargin_myx :is(ul,ol,table,tbody,tr),
+#root:has([class*="NavigationBar-module__navHeader_myx"]) :is([class*="NavigationBar-module__navOptionItem_myx"]):not([class*="active"]) span,
+#root:has([class*="NavigationBar-module__navHeader_myx"]) .device-details-info .device-name,
+#root:has([class*="NavigationBar-module__navHeader_myx"]) .content-family-name>span>div,
+#customer-corner-root #view-nav-tabs [role="tab"]:not([aria-selected="true"]):not([data-testid$="-selected"]),
+#apd-content-wrapper :is(.dsh-history-content-device-state>div,.ad-preferences-sub-section-description>div,.apd-content-space-split>span,.menu-options-list .menu-row>div,.myad-sub-section-description>div:not([class*="learn-more"])),
+.cs-help-v4 :is(.oas-uuid-do-not-delete,.help-content>div,.a-box-group,#helplink .a-box-inner),
+[data-csa-c-painter="cart-progress-indicator-cards"] .a-spacing-small.a-spacing-top-small {color:#fff!important;-webkit-text-fill-color:currentColor!important;}
+#root:has([class*="NavigationBar-module__navHeader_myx"]) .device-details-info .serial-number span {color:#b1b5b5!important;-webkit-text-fill-color:currentColor!important;}
