@@ -27,7 +27,7 @@ assert 'if (!fromInteraction)' in (R/'src/ADNewMenus7622.js').read_text()
 assert 'doc.body.innerText' in (R/'src/ADNewMenus7622.js').read_text()
 assert 'recognizeFeedback(true)' in (R/'src/ADNewMenus7622.js').read_text()
 assert 'timerWithTimeInterval:5 target:self selector:@selector(sampleWeb:)' in perf
-assert 'if(!web||!web.window)continue;' in perf  # samples during loading
+assert 'if(!web||!web.window||[self.pendingEvals containsObject:web])continue;' in perf  # samples during loading
 assert 'window.__adPerformance7596.snapshotInitial()' in perf
 assert '[self.webSampleTimer invalidate]' in perf
 assert '@"webPeriodicSamples":@(self.webPeriodicSamples)' in perf

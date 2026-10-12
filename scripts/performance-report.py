@@ -131,7 +131,7 @@ def brief_report(data,label='Current'):
         return {'count':sum(int(x.get('count') or 0) for x in vals),
                 'maxMs':max([numeric(x.get('maxMs')) or 0 for x in vals]+[0]),
                 'totalMs':sum(numeric(x.get('totalMs')) or 0 for x in vals)}
-    for name in ['frames','inputToNextRAF','eventTiming','longTasks','resources','scrollFromMove','scrollFromTouch']:
+    for name in ['frames','inputToNextRAF','eventTiming','longTasks','resources','scrollFromMove','scrollFromTouch','inputArrival','inputTaskDelay','eventLoopLag']:
         m=aggregate(name)
         lines.append(f'- Web `{name}`: **{m["count"]:,} samples**, mean **{fmt(m["totalMs"]/m["count"] if m["count"] else None)}**, max **{fmt(m["maxMs"] if m["count"] else None)}**.')
     started=sum(int(d.get('scrollStarted') or 0) for d in docs if isinstance(d,dict))
@@ -155,6 +155,14 @@ def brief_report(data,label='Current'):
         if badbridge: lines.append(f'- **Warning:** {badbridge} reports signaled a WebKit message-bridge failure; eval-returned snapshots may still retain timing aggregates.')
     if 'webPeriodicSamples' in data or 'webPeriodicFailures' in data:
         lines.append(f'- Armed WebKit sampling: **{data.get("webPeriodicSamples",0)} successful 5-second snapshots**, **{data.get("webPeriodicFailures",0)} missing/error snapshots**. Missing samples are not zero work or zero latency.')
+    samples=[x for x in data.get('sampleDiagnostics',[]) if isinstance(x,dict)]
+    if samples:
+        waits=[numeric(x.get('evalMs')) for x in samples]
+        waits=[x for x in waits if x is not None]
+        codes=sorted({int(x.get('errorCode') or 0) for x in samples if x.get('errorCode')})
+        lines.append(f'- Periodic evaluation wait: **{fmt(max(waits) if waits else None)}** maximum; WebKit error codes: **{codes or "none"}**. This includes IPC and scheduling, not just script execution.')
+    if any('inputArrival' in d for d in docs):
+        lines.append('- Input arrival measures event timestamp to capture listener; task delay measures listener to a queued task; event-loop lag measures a 250 ms foreground heartbeat. They are distinct proxies, not hardware presentation latency.')
     lines.append(f'- Theme preference enabled when armed: **{data.get("themeEnabledAtArm", "unknown")}** (same phone, same network and menu required for an A/B comparison).')
     # Link navigation controller appearances to adjacent WebView loading starts.
     # The heuristic is never presented as a definitive ownership mapping.

@@ -26,6 +26,7 @@ typedef unsigned long UIBackgroundTaskIdentifier;
 @end
 @interface NSObject
 + (instancetype)new;
++ (instancetype)alloc;
 + (id)class;
 - (id)class;
 - (BOOL)isKindOfClass:(id)cls;
@@ -34,6 +35,9 @@ typedef unsigned long UIBackgroundTaskIdentifier;
 - (void)addObserver:(id)o forKeyPath:(NSString *)k options:(NSUInteger)n context:(void*)c;
 - (void)removeObserver:(id)o forKeyPath:(NSString *)k context:(void*)c;
 - (void)observeValueForKeyPath:(NSString *)k ofObject:(id)o change:(NSDictionary *)d context:(void*)c;
+@end
+@interface NSError:NSObject
+@property(readonly) NSInteger code;
 @end
 @interface NSString:NSObject
 + (id)stringWithUTF8String:(const char*)s;
@@ -48,6 +52,7 @@ typedef unsigned long UIBackgroundTaskIdentifier;
 @interface NSNumber:NSObject
 + (instancetype)numberWithBool:(BOOL)n;
 + (instancetype)numberWithInt:(int)n;
++ (instancetype)numberWithInteger:(NSInteger)n;
 + (instancetype)numberWithUnsignedInt:(unsigned)n;
 + (instancetype)numberWithUnsignedInteger:(NSUInteger)n;
 + (instancetype)numberWithUnsignedLong:(unsigned long)n;
@@ -62,6 +67,7 @@ typedef unsigned long UIBackgroundTaskIdentifier;
 - (BOOL)containsObject:(id)o;
 @end
 @interface NSMutableArray:NSArray
+- (void)replaceObjectAtIndex:(NSUInteger)i withObject:(id)o;
 + (instancetype)array;
 - (void)addObject:(id)o;
 @end
@@ -70,6 +76,7 @@ typedef unsigned long UIBackgroundTaskIdentifier;
 - (id)objectForKeyedSubscript:(id)key;
 @end
 @interface NSMutableDictionary:NSDictionary
+@property(readonly) NSUInteger count;
 + (instancetype)dictionary;
 - (void)setObject:(id)obj forKeyedSubscript:(id)key;
 @end
@@ -80,6 +87,7 @@ typedef unsigned long UIBackgroundTaskIdentifier;
 - (id)objectAtIndexedSubscript:(NSUInteger)i;
 - (BOOL)containsObject:(id)o;
 - (void)addObject:(id)o;
+- (void)removeObject:(id)o;
 @end
 @interface NSMapTable:NSObject
 + (instancetype)weakToStrongObjectsMapTable;
@@ -140,7 +148,19 @@ NSString *NSStringFromClass(id);
 @end
 #define UIEventTypeTouches 0
 @protocol WKScriptMessageHandler @end
+@interface WKContentWorld:NSObject
++ (instancetype)worldWithName:(NSString*)name;
+@end
+#define WKUserScriptInjectionTimeAtDocumentStart 0
+@interface WKUserScript:NSObject
+- (instancetype)initWithSource:(NSString*)s injectionTime:(NSInteger)t forMainFrameOnly:(BOOL)b inContentWorld:(WKContentWorld*)w;
+@end
 @interface WKUserContentController:NSObject
+@property(readonly) NSArray *userScripts;
+- (void)addUserScript:(WKUserScript*)s;
+- (void)removeAllUserScripts;
+- (void)addScriptMessageHandler:(id)h contentWorld:(WKContentWorld*)w name:(NSString*)n;
+- (void)removeScriptMessageHandlerForName:(NSString*)n contentWorld:(WKContentWorld*)w;
 - (void)addScriptMessageHandler:(id)h name:(NSString*)n;
 - (void)removeScriptMessageHandlerForName:(NSString*)n;
 @end
@@ -151,6 +171,7 @@ NSString *NSStringFromClass(id);
 @property(readonly) id window;
 @property(readonly) BOOL loading;
 @property(readonly) WKWebViewConfiguration *configuration;
+- (void)evaluateJavaScript:(NSString*)s inFrame:(id)f inContentWorld:(WKContentWorld*)w completionHandler:(void(^)(id,NSError*))h;
 - (void)evaluateJavaScript:(NSString*)s completionHandler:(void(^)(id,NSError*))h;
 @end
 @interface WKFrameInfo:NSObject
