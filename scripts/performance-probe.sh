@@ -1,7 +1,7 @@
 #!/bin/sh
 # One bounded foreground session. No screenshots, UI scrolling or historical bundles.
 set -eu
-VER=7.636
+VER=7.637
 CUR=${VER#7.}
 ROOT=${AD_UI_ROOT:-/var/mobile}
 CONTAINERS=${AD_UI_CONTAINERS:-$ROOT/Containers/Data/Application}
@@ -27,13 +27,18 @@ done
 [ -s "$TARGETS" ] || { echo 'Open Amazon once to create its probe receipt, then retry.' >&2; exit 1; }
 case "${1:-}" in
   arm)
+    case "${2:-}" in ''|styles) ;; *) echo 'Use arm or arm styles.' >&2; exit 1;; esac
     installed=$(dpkg-query -W -f='${Version}' com.joemama383.amazondark 2>/dev/null || true)
     case "$installed" in "$VER"~*) ;; *) echo "Install/open v$VER first. Installed: $installed" >&2; exit 1;; esac
     while IFS= read -r d; do
       printf 'armed\n' > "$d/$NAME.state"
       date +%s > "$d/$NAME.arm"
+      [ "${2:-}" != styles ] || printf 'styles\n' >> "$d/$NAME.arm"
       chmod 600 "$d/$NAME.arm"
     done < "$TARGETS"
+    if [ "${2:-}" = styles ]; then
+      echo 'Style-cost experiment: open ONE fresh slow menu and leave it still for 35 seconds. This deliberately forces bounded style recalculations; its input timings are not an ordinary-use benchmark.'
+    fi
     echo "Armed v$VER performance capture. Return to Amazon and reproduce the lag for up to 90 seconds."
     echo 'Backgrounding ends the session early. Avoid UI/transition probes during this measurement.'
     ;;
@@ -54,5 +59,5 @@ case "${1:-}" in
     mv "$out.partial" "$out"; chmod 666 "$out" 2>/dev/null || true
     printf 'Exported one performance session: %s\n' "$out"
     ;;
-  *) echo 'Usage: sh scripts/performance-probe.sh arm | export' >&2; exit 1;;
+  *) echo 'Usage: sh scripts/performance-probe.sh arm [styles] | export' >&2; exit 1;;
 esac

@@ -48,6 +48,10 @@ typedef unsigned long UIBackgroundTaskIdentifier;
 - (NSString*)stringByReplacingOccurrencesOfString:(NSString*)s withString:(NSString*)r;
 - (BOOL)writeToFile:(NSString*)p atomically:(BOOL)a encoding:(NSUInteger)e error:(NSError**)err;
 @property(readonly) double doubleValue;
+@property(readonly) NSUInteger length;
+- (BOOL)hasSuffix:(NSString*)suffix;
+- (BOOL)hasPrefix:(NSString*)prefix;
+- (const char*)UTF8String;
 @end
 @interface NSNumber:NSObject
 + (instancetype)numberWithBool:(BOOL)n;
@@ -153,6 +157,8 @@ NSString *NSStringFromClass(id);
 @end
 #define WKUserScriptInjectionTimeAtDocumentStart 0
 @interface WKUserScript:NSObject
+@property(readonly) NSString *source;
+- (instancetype)initWithSource:(NSString*)s injectionTime:(NSInteger)t forMainFrameOnly:(BOOL)b;
 - (instancetype)initWithSource:(NSString*)s injectionTime:(NSInteger)t forMainFrameOnly:(BOOL)b inContentWorld:(WKContentWorld*)w;
 @end
 @interface WKUserContentController:NSObject

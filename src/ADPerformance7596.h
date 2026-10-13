@@ -1,6 +1,11 @@
 // No clocks, allocations, hierarchy walks or timers on the inactive path.
 static BOOL gADPerformanceActive7596=NO;
 static unsigned gADPerformanceGeneration7596=0;
+// A controlled script-list restore must not trigger the normal auto-reinstall hook.
+static unsigned gADUserScriptRestoreDepth7637=0;
+#if defined(__OBJC__)
+static void ADPerformanceAttach7637(id controller);
+#endif
 enum ADPerformanceLane7596 { ADPerfEvent,ADPerfReactLayout,ADPerfImageLayout,ADPerfImageCommit,ADPerfTextCommit,ADPerfViewPaint,ADPerfLabel,ADPerfLaneCount };
 static void ADPerformanceRecord7596(unsigned lane,double milliseconds);
 static void ADPerformanceEvent7596(UIEvent *event);

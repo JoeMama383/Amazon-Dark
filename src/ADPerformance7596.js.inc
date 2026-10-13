@@ -84,7 +84,7 @@
 "  function report(reason, sendToBridge) {\n"
 "    var nav={};\n"
 "    try{var e=performance.getEntriesByType('navigation')[0]; if(e)['responseStart','responseEnd','domInteractive','domContentLoadedEventEnd','loadEventEnd'].forEach(function(k){if(Number.isFinite(e[k]))nav[k]=e[k];});}catch(_){}\n"
-"    var result={session:session,documentId:documentId,reason:reason,durationMs:now()-started,\n"
+"    var result={session:session,timeOriginMs:performance.timeOrigin||0,documentId:documentId,reason:reason,durationMs:now()-started,\n"
 "      supported:types,inputArrival:inputArrival,inputTaskDelay:taskDelay,eventLoopLag:eventLoopLag,inputKinds:inputKinds,slowEvents:slowEvents,frames:frames,inputToNextRAF:inputFrame,eventTiming:eventTiming,\n"
 "      longTasks:longTasks,resources:resources,resourceKinds:resourceKinds,\n"
 "      scrollFromMove:scrollFromMove,scrollFromTouch:scrollFromTouch,\n"

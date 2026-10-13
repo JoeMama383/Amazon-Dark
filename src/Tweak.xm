@@ -1,4 +1,4 @@
-/* AmazonDark v7.636 */
+/* AmazonDark v7.637 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.636-selector-work-reduction"
+#define AD_VERSION "v7.637-startup-dedup-attribution"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2342,6 +2342,7 @@ static NSString *ADPDPUICompletionJS7439(void){
 }
 
 
+static NSString *ADThemeProgram7637(NSString *source,NSUInteger slot);
 static long gADForcedPDPFrameThemeStrength7448=-999;
 static NSString *gADForcedPDPFrameThemeCached7448=nil;
 static NSString *ADForcedPDPFrameThemeJS7440(void){
@@ -2370,8 +2371,8 @@ static NSString *ADForcedPDPFrameThemeJS7440(void){
         "${A} :is(video,canvas,picture){mix-blend-mode:normal!important;}"
         "`;try{if(window.CSSStyleSheet&&'adoptedStyleSheets' in d){var sh=window.__ad7440ForcedSheet;if(!sh){sh=new CSSStyleSheet();window.__ad7440ForcedSheet=sh;}sh.replaceSync(s.textContent);var aa=d.adoptedStyleSheets||[];if(aa.indexOf(sh)<0)d.adoptedStyleSheets=aa.concat([sh]);}}catch(_){}window.__ad7440FrameOwnerKey=K;return 'ad7440-installed';}catch(e){return 'ad7440-error:'+String(e&&e.message||e);}})();",strengthKey,factor,factor];
     gADForcedPDPFrameThemeStrength7448=strengthKey;
-    gADForcedPDPFrameThemeCached7448=built;
-    return built;
+    gADForcedPDPFrameThemeCached7448=ADThemeProgram7637(built,8);
+    return gADForcedPDPFrameThemeCached7448;
 }
 
 static NSString *ADFrameOwnerTriggerJS7440(void){
@@ -2402,13 +2403,56 @@ static void ADInjectFrameNode7440(WKWebView *wv,id node,NSString *js,id world){
     } @catch(...) {}
 }
 
+// One in-flight enumeration per web view. A new iframe-load received during it
+// requests one trailing pass; there is no polling or deadline-based retry.
+static void *kADFramePassPending7637=&kADFramePassPending7637;
+static void *kADFramePassAgain7637=&kADFramePassAgain7637;
 static void ADForceChildFrameTheme7440(WKWebView *wv){
     if(!gP.enabled||!wv)return;
-    @try {
-        NSString *js=ADForcedPDPFrameThemeJS7440(); id world=ADPageWorld7440(); if(!world||!js.length)return;
-        SEL trees=NSSelectorFromString(@"_frameTrees:");if([wv respondsToSelector:trees])((void(*)(id,SEL,id))objc_msgSend)(wv,trees,^(id roots){if([roots isKindOfClass:NSSet.class])for(id r in (NSSet*)roots)ADInjectFrameNode7440(wv,r,js,world);else if([roots isKindOfClass:NSArray.class])for(id r in (NSArray*)roots)ADInjectFrameNode7440(wv,r,js,world);});
-        SEL frames=NSSelectorFromString(@"_frames:");if([wv respondsToSelector:frames])((void(*)(id,SEL,id))objc_msgSend)(wv,frames,^(id root){ADInjectFrameNode7440(wv,root,js,world);});
-    } @catch(...) {}
+    if(objc_getAssociatedObject(wv,kADFramePassPending7637)){
+        objc_setAssociatedObject(wv,kADFramePassAgain7637,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);return;
+    }
+    objc_setAssociatedObject(wv,kADFramePassPending7637,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    __weak WKWebView *weakWeb=wv;
+    dispatch_async(dispatch_get_main_queue(),^{
+        WKWebView *web=weakWeb;if(!web)return;
+        // Events already queued before enumeration are covered by this pass.
+        objc_setAssociatedObject(web,kADFramePassAgain7637,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        void (^complete)(void)=^{
+            WKWebView *current=weakWeb;if(!current)return;
+            BOOL again=objc_getAssociatedObject(current,kADFramePassAgain7637)!=nil;
+            objc_setAssociatedObject(current,kADFramePassPending7637,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(current,kADFramePassAgain7637,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            if(again)ADForceChildFrameTheme7440(current);
+        };
+        @try {
+            NSString *js=ADForcedPDPFrameThemeJS7440();id world=ADPageWorld7440();
+            if(!gP.enabled||!world||!js.length){complete();return;}
+            SEL trees=NSSelectorFromString(@"_frameTrees:");
+            SEL frames=NSSelectorFromString(@"_frames:");
+            if([web respondsToSelector:trees]){
+                ((void(*)(id,SEL,id))objc_msgSend)(web,trees,^(id roots){
+                    WKWebView *current=weakWeb;
+                    // An unexpected private-API reply uses the legacy fallback;
+                    // a valid collection never causes a second enumeration.
+                    if(gP.enabled&&current&&![roots isKindOfClass:NSSet.class]&&![roots isKindOfClass:NSArray.class]&&[current respondsToSelector:frames]){
+                        ((void(*)(id,SEL,id))objc_msgSend)(current,frames,^(id root){
+                            WKWebView *fallbackWeb=weakWeb;if(gP.enabled&&fallbackWeb)ADInjectFrameNode7440(fallbackWeb,root,js,world);complete();
+                        });return;
+                    }
+                    if(gP.enabled&&current){
+                        if([roots isKindOfClass:NSSet.class])for(id r in (NSSet*)roots)ADInjectFrameNode7440(current,r,js,world);
+                        else if([roots isKindOfClass:NSArray.class])for(id r in (NSArray*)roots)ADInjectFrameNode7440(current,r,js,world);
+                    }
+                    complete();
+                });
+            }else if([web respondsToSelector:frames]){
+                ((void(*)(id,SEL,id))objc_msgSend)(web,frames,^(id root){
+                    WKWebView *current=weakWeb;if(gP.enabled&&current)ADInjectFrameNode7440(current,root,js,world);complete();
+                });
+            }else complete();
+        }@catch(...){complete();}
+    });
 }
 
 @interface ADFrameOwnerBridge7440 : NSObject <WKScriptMessageHandler>
@@ -2669,7 +2713,7 @@ static NSString *ADNewMenusJS7482(void){
     ;
     NSString *orderMedia7620=@"";
     if(gP.whiteTame){
-        orderMedia7620=[NSString stringWithFormat:@"#a-page .od-modernized .od-container :is(.od-product-image,.od-modernized-item-image-container,.od-active-delivery__image-container-image) img:not([class*=icon]):not([class*=sprite]){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;}",ad7593Factor];
+        orderMedia7620=[NSString stringWithFormat:@"#a-page .od-modernized .od-container :is(.od-product-image,.od-modernized-item-image-container,.od-active-delivery__image-container-image) img:not([class*=icon]):not([class*=sprite]){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;}",ad7593Factor,ad7593Factor];
     }
     orderPrivacy7620=[orderPrivacy7620 stringByReplacingOccurrencesOfString:@"__AD7620_ORDER_IMAGES__" withString:orderMedia7620];
     base=[base stringByAppendingString:orderPrivacy7620];
@@ -2686,7 +2730,7 @@ static NSString *ADNewMenusJS7482(void){
     newMenus7622=[newMenus7622 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     newMenus7622=[newMenus7622 stringByReplacingOccurrencesOfString:@"__TAME__" withString:(gP.whiteTame?@"true":@"false")];
     base=[base stringByAppendingString:newMenus7622];
-    // v7.636: nine independent list/registry probes. Declarative CSS only;
+    // v7.637: nine independent list/registry probes. Declarative CSS only;
     // no route scans, MutationObservers, timers, transforms or layout changes.
     NSString *listsRegistry7633=@""
 #include "ADListsRegistry7633.js.inc"
@@ -2694,7 +2738,7 @@ static NSString *ADNewMenusJS7482(void){
     listsRegistry7633=[listsRegistry7633 stringByReplacingOccurrencesOfString:@"__TAME__" withString:(gP.whiteTame?@"true":@"false")];
     listsRegistry7633=[listsRegistry7633 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     base=[base stringByAppendingString:listsRegistry7633];
-    // v7.636: all 22 supplied account/content/privacy/help captures.
+    // v7.637: all 22 supplied account/content/privacy/help captures.
     NSString *accountMenus7634=@""
 #include "ADAccountMenus7634.js.inc"
     ;
@@ -2726,6 +2770,22 @@ static NSString *ADCoreWebJS7271(void){
 }
 
 
+// Timing applies only to our own programs and listeners; never patch browser
+// prototypes or app handlers. The recorder is absent outside an armed session.
+static NSString *ADThemeProgram7637(NSString *source,NSUInteger slot){
+    NSString *program=source;
+    for(NSString *target in @[@"window",@"document",@"doc",@"d"]){
+        program=[program stringByReplacingOccurrencesOfString:[target stringByAppendingString:@".addEventListener("] withString:[NSString stringWithFormat:@"ad7637Listen(%@,",target]];
+    }
+    program=[program stringByReplacingOccurrencesOfString:@"window.getComputedStyle(" withString:@"ad7637Computed("];
+    program=[program stringByReplacingOccurrencesOfString:@"getComputedStyle(" withString:@"ad7637Computed("];
+    NSString *wrapper=@""
+#include "ADThemeProgram7637.js.inc"
+    ;
+    wrapper=[wrapper stringByReplacingOccurrencesOfString:@"__SLOT__" withString:[NSString stringWithFormat:@"%lu",(unsigned long)slot]];
+    return [wrapper stringByReplacingOccurrencesOfString:@"__PROGRAM__" withString:program];
+}
+
 // v7.388: WKUserScript
 static WKUserScript *ADSharedUserScript7387(NSUInteger slot,NSString *(*source)(void),BOOL mainOnly,BOOL strengthDependent){
     static WKUserScript *scripts[8]={nil};
@@ -2733,12 +2793,13 @@ static WKUserScript *ADSharedUserScript7387(NSUInteger slot,NSString *(*source)(
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
     strength+=(gP.whiteTame?101:0); // v7.596: both preferences affect generated bytes.
     if(!scripts[slot]||(strengthDependent&&strengths[slot]!=strength)){
-        // v7.636: isolate Foundation-only route wrapping from the genuine C++98
+        // v7.637: isolate Foundation-only route wrapping from the genuine C++98
         // unit harness, which extracts this cache guard without Objective-C.
         // The shipped Logos .xm is Objective-C++, so the guarded branch below
         // remains fully active for every production checkout user script.
 #if defined(__OBJC__)
         NSString *program=source();
+        program=ADThemeProgram7637(program,slot);
         // Search/PDP: skip irrelevant checkout-only style/hydration work.
         // Keep all three authored checkout payloads byte-for-byte unchanged.
         if(slot==4 || slot==5 || slot==6){
@@ -2758,6 +2819,7 @@ static WKUserScript *ADSharedUserScript7387(NSUInteger slot,NSString *(*source)(
 
 static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
+    ADPerformanceAttach7637(ucc);
     ADSkelAttach7339(ucc); // v7.339 diagnostic integration
     ADUIProbeAttach7362(ucc); // universal FULL/VIEWPORT bridge
     ADFrameOwnerAttach7440(ucc); // v7.448 event-driven child-frame ownership bridge
@@ -2852,6 +2914,7 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 %hook WKUserContentController
 - (void)removeAllUserScripts {
     %orig;
+    if(gADUserScriptRestoreDepth7637)return;
     objc_setAssociatedObject(self,kADCoreWebUS7271,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADKillerUS7382,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADPriceHistoryUS7380,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -9802,7 +9865,7 @@ static BOOL ADAlexaOwnSheet7622(UIView *v){
         return YES;
     } @catch(...) { return NO; }
 }
-// v7.636: Run the probe-owned neutral-text correction at the *final paint*,
+// v7.637: Run the probe-owned neutral-text correction at the *final paint*,
 // not only while React initially assigns its storage. In r4, the title leaves
 // under custom-guide-mode-button / automations-mode-button mount before the
 // sheet has a window; Amazon commits their black foreground afterward.
@@ -9843,7 +9906,7 @@ static void ADAlexaOwnVector7622(UIView *v){
     }
 }
 
-// v7.636: native React grocery/shopping sheet repair from r4/r5/r6 captures.
+// v7.637: native React grocery/shopping sheet repair from r4/r5/r6 captures.
 // Anchors below are actual React accessibility identifiers in the supplied
 // probe; never infer scope from navigation-root or generic RCTView alone.
 static const void *kADShoppingNative7633=&kADShoppingNative7633;

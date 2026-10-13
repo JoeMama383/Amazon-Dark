@@ -68,7 +68,7 @@ def metric_line(name,m):
 
 def flattened(doc):
     nav=doc.get('navigationMs') or {}
-    return {k:numeric(nav.get(k)) for k in ['responseStart','responseEnd','domInteractive','domContentLoadedEventEnd','loadEventEnd']}
+    return {k:(numeric(nav.get(k)) if (numeric(nav.get(k)) or 0)>0 else None) for k in ['responseStart','responseEnd','domInteractive','domContentLoadedEventEnd','loadEventEnd']}
 
 
 def get_top_value(doc,key):
@@ -92,6 +92,59 @@ def latest_documents(data):
                 latest[ident]=doc
         else: unknown.append(doc)
     return unknown+list(latest.values())
+
+
+def theme_work_report(data):
+    docs=[x for x in data.get('themeWork',[]) if isinstance(x,dict)]
+    inventory=[x for x in data.get('userScriptInventory',[]) if isinstance(x,dict)]
+    if not docs and not inventory:return []
+    names={'s0':'Core/menus','s1':'Sponsored filter','s2':'Price history','s3':'Image taming',
+           's4':'Checkout floors','s5':'Checkout media','s6':'Checkout hydration','s7':'Privacy','s8':'Child-frame delivery'}
+    lines=['','AmazonDark execution attribution (armed only):']
+    if inventory:
+        before=[x for x in inventory if x.get('phase')==0];after=[x for x in inventory if x.get('phase')==1]
+        lines.append('- Duplicate WKUserScript object entries: **%d before enrollment**, **%d after cleanup** (summed across controllers).'%(sum(int(x.get('duplicateObjects',0)) for x in before),sum(int(x.get('duplicateObjects',0)) for x in after)))
+    if not docs:
+        return lines+['- **No theme execution reports.** Already-loaded documents cannot report earlier startup work; navigate to a fresh page after arming.']
+    main=[x for x in docs if x.get('mainFrame')];child=[x for x in docs if not x.get('mainFrame')]
+    lines.append('- Theme-work coverage: **%d main documents**, **%d child documents**.'%(len(main),len(child)))
+    lines.append('- Largest main-document sheet inventory: **%d theme style elements**, **%d top-level rules**, **%d adopted sheets**. Counts do not measure matching/rendering cost.'%(max([int(x.get('themeSheets',0)) for x in main]+[0]),max([int(x.get('themeRules',0)) for x in main]+[0]),max([int(x.get('adoptedSheets',0)) for x in main]+[0])))
+    metrics={}
+    for doc in docs:
+        for m in doc.get('metrics',[]):
+            if not isinstance(m,dict):continue
+            name=m.get('name','');key=('main' if doc.get('mainFrame') else 'child',name)
+            row=metrics.setdefault(key,{'count':0,'total':0,'max':0})
+            row['count']+=int(m.get('count',0));row['total']+=numeric(m.get('totalMs')) or 0;row['max']=max(row['max'],numeric(m.get('maxMs')) or 0)
+    lines+=['','| Scope | Own script/callback | Calls | Total inclusive | Slowest |','| --- | --- | ---: | ---: | ---: |']
+    for (scope,name),m in sorted(metrics.items(),key=lambda pair:pair[1]['max'],reverse=True)[:40]:
+        slot,_,callback=name.partition('/');label=names.get(slot,slot)+' / '+callback
+        lines.append('| %s | %s | %d | %s | %s |'%(scope,label,m['count'],fmt(m['total']),fmt(m['max'])))
+    matched=[]
+    for web in latest_documents(data):
+        origin=numeric(web.get('timeOriginMs'))
+        if not origin:continue
+        same=[d for d in main if numeric(d.get('timeOriginMs'))==origin]
+        if not same:continue
+        install=sum((numeric(m.get('totalMs')) or 0) for d in same for m in d.get('metrics',[]) if str(m.get('name','')).endswith('/install'))
+        matched.append((web,install))
+    for web,install in matched:
+        lag=(web.get('eventLoopLag') or {}).get('maxMs')
+        if (numeric(lag) or 0)>=100:
+            lines.append('- Document %s: measured theme installs **%s**, worst event-loop lag **%s**. Install totals exclude deferred style/layout/paint and later callbacks.'%(web.get('documentId'),fmt(install),fmt(lag)))
+    trials=[(doc.get('documentId'),trial) for doc in docs for trial in doc.get('styleTrials',[]) if isinstance(trial,dict)]
+    if data.get('styleExperiment'):
+        lines+=['','**Style-cost experiment:** input/RAF gaps include deliberate forced recalculations and must not be compared with ordinary-use latency. The paired costs rank reapplication work; they do not prove which sheet caused the original stall.']
+        if trials:
+            lines+=['','| Theme stylesheet | Rules | Disable + flush | Restore + flush | Error |','| --- | ---: | ---: | ---: | ---: |']
+            for _,m in sorted(trials,key=lambda x:numeric(x[1].get('restoreMs')) or 0,reverse=True):
+                lines.append('| %s | %d | %s | %s | %s |'%(m.get('name','unknown'),int(m.get('rules',0)),fmt(m.get('disableMs')),fmt(m.get('restoreMs')),m.get('failed',0)))
+        else:lines.append('- No stylesheet trials completed. Leave a freshly loaded menu visible until the experiment completes; an empty result is not zero cost.')
+        states={0:'not completed',1:'completed',2:'soft budget reached',3:'interrupted'}
+        for doc in main:
+            if doc.get('styleMode'):lines.append('- Style trial document %s: **%s**, %s spent; at most 24 theme style elements tested.'%(doc.get('documentId'),states.get(doc.get('styleState'),'unknown'),fmt(doc.get('styleSpentMs'))))
+    lines.append('- Callback labels include registration index and function name; computed-style reads overlap their parent callback. Do not sum inclusive rows. Cheap JS timings with large input gaps leave deferred CSS/rendering or uninstrumented work unresolved.')
+    return lines
 
 
 def brief_report(data,label='Current'):
@@ -163,6 +216,7 @@ def brief_report(data,label='Current'):
         lines.append(f'- Periodic evaluation wait: **{fmt(max(waits) if waits else None)}** maximum; WebKit error codes: **{codes or "none"}**. This includes IPC and scheduling, not just script execution.')
     if any('inputArrival' in d for d in docs):
         lines.append('- Input arrival measures event timestamp to capture listener; task delay measures listener to a queued task; event-loop lag measures a 250 ms foreground heartbeat. They are distinct proxies, not hardware presentation latency.')
+    lines+=theme_work_report(data)
     lines.append(f'- Theme preference enabled when armed: **{data.get("themeEnabledAtArm", "unknown")}** (same phone, same network and menu required for an A/B comparison).')
     # Link navigation controller appearances to adjacent WebView loading starts.
     # The heuristic is never presented as a definitive ownership mapping.
