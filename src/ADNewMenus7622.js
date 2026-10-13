@@ -65,9 +65,10 @@
       try {
         // Do not synchronously layout an entire Search/PDP document at
         // DOMContentLoaded or pageshow merely to identify an unrelated ad form.
+        // Lifecycle events are objects, not the explicit boolean opt-in.
         // An actual ad-feedback click still invokes the original visible-text
         // classifier so hidden Home templates cannot be mistaken for the form.
-        if (!fromInteraction) {
+        if (fromInteraction !== true) {
           var path = (typeof location !== 'undefined' && location.pathname) || '';
           if (path === '/s' || path.indexOf('/s/') === 0 ||
               path === '/dp' || path.indexOf('/dp/') === 0 ||

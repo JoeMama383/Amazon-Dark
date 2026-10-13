@@ -6,7 +6,7 @@ static unsigned gADUserScriptRestoreDepth7637=0;
 #if defined(__OBJC__)
 static void ADPerformanceAttach7637(id controller);
 #endif
-enum ADPerformanceLane7596 { ADPerfEvent,ADPerfReactLayout,ADPerfImageLayout,ADPerfImageCommit,ADPerfTextCommit,ADPerfViewPaint,ADPerfLabel,ADPerfLaneCount };
+enum ADPerformanceLane7596 { ADPerfEvent,ADPerfReactLayout,ADPerfImageLayout,ADPerfImageCommit,ADPerfTextCommit,ADPerfViewPaint,ADPerfLabel,ADPerfFrameRepair,ADPerfLaneCount };
 static void ADPerformanceRecord7596(unsigned lane,double milliseconds);
 static void ADPerformanceEvent7596(UIEvent *event);
 static void ADPerformanceEnroll7596(WKWebView *web);

@@ -23,7 +23,9 @@ for pth,should_theme in [('/s',False),('/s/query',False),('/dp',False),('/dp/ASI
             'assert.strictEqual(ctx.__payloadRan,'+str(should_theme).lower()+');')
     result=subprocess.run(['node','-'],input=harness,text=True,capture_output=True)
     assert result.returncode==0,(pth,result.stderr)
-assert 'if (!fromInteraction)' in (R/'src/ADNewMenus7622.js').read_text()
+# Lifecycle callbacks supply a truthy Event; only our explicit click passes true.
+# The production Event-object behavior is exercised by test_v7638_feedback_lifecycle.py.
+assert 'if (fromInteraction !== true)' in (R/'src/ADNewMenus7622.js').read_text()
 assert 'doc.body.innerText' in (R/'src/ADNewMenus7622.js').read_text()
 assert 'recognizeFeedback(true)' in (R/'src/ADNewMenus7622.js').read_text()
 assert 'timerWithTimeInterval:5 target:self selector:@selector(sampleWeb:)' in perf

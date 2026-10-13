@@ -32,7 +32,7 @@
     styleTimer=0;
     if(stopped||document.hidden||Date.now()>=deadline){styleState=3;return;}
     if(styleIndex>=styleQueue.length){styleState=1;publish();return;}
-    if(styleSpent>=1500){styleState=2;publish();return;}
+    if(styleSpent>=15000){styleState=2;publish();return;}
     var entry=styleQueue[styleIndex++],sheet=entry.sheet,prior=sheet.disabled;
     var start=performance.now(),off=0,on=0,failed=0;
     try{
@@ -54,6 +54,17 @@
         if(sheet.disabled||typeof id!=='string'||!/^ad[0-9][a-zA-Z0-9_-]{0,94}$/.test(id))continue;
         try{styleQueue.push({sheet:sheet,name:id,rules:sheet.cssRules.length});}catch(_){}
       }
+      // Adopted sheets are not in document.styleSheets. Only our known owned
+      // references are inspected; never disable an Amazon-authored sheet.
+      var adopted=document.adoptedStyleSheets||[];
+      [['__ad7554InterestsSheet','ad7554-interests-adopted'],
+       ['__ad7440ForcedSheet','ad7440-frame-adopted'],
+       ['__ad7454PDPAdSurvivor','ad7454-survivor-adopted']].forEach(function(pair){
+        var sh=window[pair[0]];
+        if(sh&&adopted.indexOf(sh)>=0&&!sh.disabled){
+          try{styleQueue.push({sheet:sh,name:pair[1],rules:sh.cssRules.length});}catch(_){}
+        }
+      });
       styleQueue.sort(function(a,b){return b.rules-a.rules;});styleQueue=styleQueue.slice(0,24);
       styleTimer=setTimeout(trial,2000);
     }catch(_){styleState=3;}
@@ -72,7 +83,7 @@
     return {session:session,documentId:documentId,timeOriginMs:performance.timeOrigin||0,route:route,
       durationMs:performance.now()-started,themeSheets:sheets,themeRules:rules,unreadableSheets:unreadable,
       adoptedSheets:(document.adoptedStyleSheets||[]).length,dropped:dropped,
-      styleMode:styleMode?1:0,styleState:styleState,styleSpentMs:styleSpent,styleTrials:styleTrials,
+      styleMode:styleMode?1:0,styleState:styleState,stylePlanned:styleQueue.length,styleSpentMs:styleSpent,styleTrials:styleTrials,
       metrics:order.map(function(k){return metrics[k];}),slowCalls:slow};
   }
   function publish(){var result=snapshot();dirty=false;try{window.webkit.messageHandlers.adThemeWork7637.postMessage(result);}catch(_){}return result;}

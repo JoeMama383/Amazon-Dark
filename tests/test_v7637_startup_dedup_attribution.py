@@ -98,17 +98,29 @@ for bad in ('querySelector','getElementsBy','getBoundingClientRect','getComputed
 assert 'self.themeReports.count<128' in P and 'self.scriptInventory.count>=64' in P
 print('PASS: actual removal hook survives 30 diagnostic sessions without duplicates; original app removals reinstall; traced own callbacks preserve semantics, bounds, privacy and cleanup; single frame API fallback')
 # Freeze all existing JS payloads and their CSS declarations, rather than trusting
-# a few selected UI rules. Only release stamps may change in this performance pass.
+# a few selected UI rules. v7.638 explicitly checks the two repaired JS paths separately below.
 import hashlib
 from payload_source import strings,block
 baseline=json.loads((R/'tests/fixtures/theme_payloads_v7636.json').read_text())
 def digest(text):
- text=re.sub(r'7\.(636|637)', '7.VERSION', text)
+ text=re.sub(r'7\.(636|637|638)', '7.VERSION', text)
  return hashlib.sha256(text.encode()).hexdigest()
 for name,expected in baseline['functions'].items():
- assert digest(strings(block(T,name)))==expected,('changed existing payload',name)
+ current=strings(block(T,name))
+ if name=='ADForcedPDPFrameThemeJS7440':
+  legacy=json.loads((R/'tests/fixtures/frame_program_v7637.json').read_text())
+  assert digest(legacy)==expected
+  # v7.638 changes ownership, not any paint selector/declaration or its scope.
+  for expression in (r'var A=(.*?);',r'(?:s.textContent|var css)=`(.*?)`;'):
+   assert re.search(expression,current,re.S).group(1)==re.search(expression,legacy,re.S).group(1)
+ else: assert digest(current)==expected,('changed existing payload',name)
 for name,expected in baseline['includes'].items():
- assert digest((R/'src'/name).read_text())==expected,('changed existing include',name)
+ current=(R/'src'/name).read_text()
+ if name=='ADNewMenus7622.js.inc':
+  code=''.join(json.loads(x) for x in current.splitlines())
+  code=code.replace('        // Lifecycle events are objects, not the explicit boolean opt-in.\n','').replace('if (fromInteraction !== true) {','if (!fromInteraction) {')
+  current=''.join(json.dumps(x)+'\n' for x in code.splitlines(True))
+ assert digest(current)==expected,('changed existing include',name)
 # All listener call sites in the shipped programs use the supported receivers.
 main=block(T,'ADNewMenusJS7482')
 parts=[]
@@ -121,7 +133,7 @@ for code in parts:
  assert 'removeEventListener(' not in code
  for receiver in re.findall(r'([\w.]+)\.addEventListener\(',code):
   assert receiver in ('window','document','d','doc'),receiver
-print('PASS: all v7.636 CSS/JS theme payload strings retained exactly (version stamps normalized); wrapper call-site contract covers every production listener')
+print('PASS: all retained theme payloads and CSS unchanged; only the explicit feedback guard and frame-sheet ownership exceptions are permitted; wrapper call-site contract covers every production listener')
 
 # Both standard and prefixed filters receive the same real formatter argument.
 order_line=next(x for x in T.splitlines() if 'orderMedia7620=[NSString stringWithFormat:' in x)

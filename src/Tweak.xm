@@ -1,4 +1,4 @@
-/* AmazonDark v7.637 */
+/* AmazonDark v7.638 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.637-startup-dedup-attribution"
+#define AD_VERSION "v7.638-render-work-queue-repair"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2353,7 +2353,7 @@ static NSString *ADForcedPDPFrameThemeJS7440(void){
         CGFloat t=((CGFloat)strengthKey)/100.0;
         factor=1.0-(0.10+(0.48*t));
     }
-    NSString *built=[NSString stringWithFormat:@"(function(){try{var d=document,h=d.documentElement;if(!h)return 'ad7440-no-root';var K='%ld',s=d.getElementById('ad7440-forced-frame-theme');if(window.__ad7440FrameOwnerKey===K&&s&&s.isConnected)return 'ad7440-already';h.setAttribute('data-ad7440-frame-owner','1');if(!s){s=d.createElement('style');s.id='ad7440-forced-frame-theme';(d.head||h||d).appendChild(s);}var A=\"html[data-ad7440-frame-owner]:is(:has(#ad),:has(#dynamic-bb),:has([data-testid=renderer-factory-ad-container]),:has([data-testid=ad-background-container]),:has([data-testid=gridContainer]),:has([data-testid=product-card]),:has([data-testid=product-details]),:has([data-testid=product-description]),:has([data-testid=brand-product-description]),:has([data-testid*=product-image]),:has([data-testid*=product-picture]),:has([data-acei-id=prod-img]),:has([data-ad-feedback-label-id]),:has([id^=ad-feedback-]),:has(.creative-container),:has(.swiper-wrapper),:has([class*=product]),:has(.a-price),:has(video))\";s.textContent=`"
+    NSString *built=[NSString stringWithFormat:@"(function(){try{var d=document,h=d.documentElement;if(!h)return 'ad7440-no-root';var K='%ld',s=d.getElementById('ad7440-forced-frame-theme');if(window.__ad7440FrameOwnerKey===K&&s&&s.isConnected&&(s.textContent||(d.adoptedStyleSheets||[]).indexOf(window.__ad7440ForcedSheet)>=0))return 'ad7440-already';h.setAttribute('data-ad7440-frame-owner','1');if(!s){s=d.createElement('style');s.id='ad7440-forced-frame-theme';(d.head||h||d).appendChild(s);}var A=\"html[data-ad7440-frame-owner]:is(:has(#ad),:has(#dynamic-bb),:has([data-testid=renderer-factory-ad-container]),:has([data-testid=ad-background-container]),:has([data-testid=gridContainer]),:has([data-testid=product-card]),:has([data-testid=product-details]),:has([data-testid=product-description]),:has([data-testid=brand-product-description]),:has([data-testid*=product-image]),:has([data-testid*=product-picture]),:has([data-acei-id=prod-img]),:has([data-ad-feedback-label-id]),:has([id^=ad-feedback-]),:has(.creative-container),:has(.swiper-wrapper),:has([class*=product]),:has(.a-price),:has(video))\";var css=`"
         "${A},${A} body{background:#000!important;color:#e8e6e3!important;color-scheme:dark!important;}"
         "${A} :is(div,section,article,main,header,footer,ul,ol,li,table,tbody,thead,tfoot,tr,td){background-color:transparent!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
         "${A} :is(#ad,#dynamic-bb,[data-testid=renderer-factory-ad-container],[data-testid=ad-background-container],[data-testid=main-content],[data-testid=content],[data-testid=gridContainer],[data-testid=product-details],[data-testid=product-card],[data-testid=product-description],[data-testid=brand-product-description],.creative-container,.product-details,.product-info,.product-card,.carousel-container,.swiper-wrapper,.swiper-slide,[class*=cardWrapper],[class*=productCard],[class*=product-card],[class*=productDetails],[class*=product-details],[class*=productInfo],[class*=product-info]){background:#000!important;box-shadow:none!important;border-color:#494d4d!important;outline-color:#494d4d!important;}"
@@ -2369,7 +2369,7 @@ static NSString *ADForcedPDPFrameThemeJS7440(void){
         "${A} :is(button,[role=button],.swiper-button-next,.swiper-button-prev,[class*=arrowButton],[class*=carouselButton]) :is(svg,path,polyline,line){color:#fff!important;fill:none!important;stroke:#fff!important;}"
         "${A} img:not([class*=logo]):not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=badge]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;opacity:1!important;}"
         "${A} :is(video,canvas,picture){mix-blend-mode:normal!important;}"
-        "`;try{if(window.CSSStyleSheet&&'adoptedStyleSheets' in d){var sh=window.__ad7440ForcedSheet;if(!sh){sh=new CSSStyleSheet();window.__ad7440ForcedSheet=sh;}sh.replaceSync(s.textContent);var aa=d.adoptedStyleSheets||[];if(aa.indexOf(sh)<0)d.adoptedStyleSheets=aa.concat([sh]);}}catch(_){}window.__ad7440FrameOwnerKey=K;return 'ad7440-installed';}catch(e){return 'ad7440-error:'+String(e&&e.message||e);}})();",strengthKey,factor,factor];
+        "`;var owned=false;try{if(window.CSSStyleSheet&&'adoptedStyleSheets' in d){var sh=window.__ad7440ForcedSheet;if(!sh){sh=new CSSStyleSheet();window.__ad7440ForcedSheet=sh;}sh.replaceSync(css);var aa=d.adoptedStyleSheets||[];if(aa.indexOf(sh)<0)d.adoptedStyleSheets=aa.concat([sh]);owned=true;}}catch(_){try{var bad=window.__ad7440ForcedSheet;d.adoptedStyleSheets=(d.adoptedStyleSheets||[]).filter(function(x){return x!==bad;});}catch(_){}}s.textContent=owned?'':css;window.__ad7440FrameOwnerKey=K;return 'ad7440-installed';}catch(e){return 'ad7440-error:'+String(e&&e.message||e);}})();",strengthKey,factor,factor];
     gADForcedPDPFrameThemeStrength7448=strengthKey;
     gADForcedPDPFrameThemeCached7448=ADThemeProgram7637(built,8);
     return gADForcedPDPFrameThemeCached7448;
@@ -2390,21 +2390,42 @@ static id ADPageWorld7440(void){
     return world;
 }
 
-static void ADInjectFrameNode7440(WKWebView *wv,id node,NSString *js,id world){
-    if(!wv||!node||!js.length||!world)return;
+// Collect frame handles without sending an evaluation for each handle yet.
+// The pass owns the queue until every reply arrives; subsequent iframe loads
+// coalesce into one trailing enumeration, not another WebContent work burst.
+static void ADInjectFrameNode7440(WKWebView *wv,id node,NSMutableArray *frames){
+    if(!wv||!node)return;
     @try {
         id info=[node valueForKey:@"info"];
-        if(info&&[info respondsToSelector:@selector(isMainFrame)]&&![(WKFrameInfo *)info isMainFrame]){
-            SEL eval=NSSelectorFromString(@"evaluateJavaScript:inFrame:inContentWorld:completionHandler:");
-            if([wv respondsToSelector:eval])((void(*)(id,SEL,id,id,id,id))objc_msgSend)(wv,eval,js,info,world,nil);
-        }
+        if(info&&[info respondsToSelector:@selector(isMainFrame)]&&![(WKFrameInfo *)info isMainFrame])
+            [frames addObject:info];
         id kids=[node valueForKey:@"childFrames"];
-        if([kids isKindOfClass:NSArray.class])for(id child in (NSArray *)kids)ADInjectFrameNode7440(wv,child,js,world);
+        if([kids isKindOfClass:NSArray.class])for(id child in (NSArray *)kids)ADInjectFrameNode7440(wv,child,frames);
     } @catch(...) {}
 }
 
-// One in-flight enumeration per web view. A new iframe-load received during it
-// requests one trailing pass; there is no polling or deadline-based retry.
+static void ADRunFrameRepairs7638(WKWebView *wv,NSArray *frames,NSUInteger index,NSString *js,id world,void (^complete)(void)){
+    if(!wv||!gP.enabled||index>=frames.count){complete();return;}
+    SEL eval=NSSelectorFromString(@"evaluateJavaScript:inFrame:inContentWorld:completionHandler:");
+    if(![wv respondsToSelector:eval]){complete();return;}
+    __weak WKWebView *weakWeb=wv;
+    unsigned generation=gADPerformanceGeneration7596;
+    double began=gADPerformanceActive7596?CACurrentMediaTime():0;
+    void (^next)(void)=^{
+        // Give native input a turn between child repairs. No timer or polling.
+        dispatch_async(dispatch_get_main_queue(),^{
+            ADRunFrameRepairs7638(weakWeb,frames,index+1,js,world,complete);
+        });
+    };
+    @try {
+        ((void(*)(id,SEL,id,id,id,id))objc_msgSend)(wv,eval,js,frames[index],world,^(id value,NSError *error){
+            if(began&&gADPerformanceActive7596&&generation==gADPerformanceGeneration7596)
+                ADPerformanceRecord7596(ADPerfFrameRepair,(CACurrentMediaTime()-began)*1000);
+            next();
+        });
+    }@catch(...){next();}
+}
+
 static void *kADFramePassPending7637=&kADFramePassPending7637;
 static void *kADFramePassAgain7637=&kADFramePassAgain7637;
 static void ADForceChildFrameTheme7440(WKWebView *wv){
@@ -2416,7 +2437,6 @@ static void ADForceChildFrameTheme7440(WKWebView *wv){
     __weak WKWebView *weakWeb=wv;
     dispatch_async(dispatch_get_main_queue(),^{
         WKWebView *web=weakWeb;if(!web)return;
-        // Events already queued before enumeration are covered by this pass.
         objc_setAssociatedObject(web,kADFramePassAgain7637,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         void (^complete)(void)=^{
             WKWebView *current=weakWeb;if(!current)return;
@@ -2428,28 +2448,27 @@ static void ADForceChildFrameTheme7440(WKWebView *wv){
         @try {
             NSString *js=ADForcedPDPFrameThemeJS7440();id world=ADPageWorld7440();
             if(!gP.enabled||!world||!js.length){complete();return;}
+            void (^run)(id)=^(id roots){
+                WKWebView *current=weakWeb;
+                if(!gP.enabled||!current){complete();return;}
+                NSMutableArray *queue=[NSMutableArray array];
+                if([roots isKindOfClass:NSSet.class]||[roots isKindOfClass:NSArray.class]){
+                    for(id root in roots)ADInjectFrameNode7440(current,root,queue);
+                }else ADInjectFrameNode7440(current,roots,queue);
+                ADRunFrameRepairs7638(current,[queue copy],0,js,world,complete);
+            };
             SEL trees=NSSelectorFromString(@"_frameTrees:");
             SEL frames=NSSelectorFromString(@"_frames:");
             if([web respondsToSelector:trees]){
                 ((void(*)(id,SEL,id))objc_msgSend)(web,trees,^(id roots){
                     WKWebView *current=weakWeb;
-                    // An unexpected private-API reply uses the legacy fallback;
-                    // a valid collection never causes a second enumeration.
                     if(gP.enabled&&current&&![roots isKindOfClass:NSSet.class]&&![roots isKindOfClass:NSArray.class]&&[current respondsToSelector:frames]){
-                        ((void(*)(id,SEL,id))objc_msgSend)(current,frames,^(id root){
-                            WKWebView *fallbackWeb=weakWeb;if(gP.enabled&&fallbackWeb)ADInjectFrameNode7440(fallbackWeb,root,js,world);complete();
-                        });return;
+                        ((void(*)(id,SEL,id))objc_msgSend)(current,frames,run);return;
                     }
-                    if(gP.enabled&&current){
-                        if([roots isKindOfClass:NSSet.class])for(id r in (NSSet*)roots)ADInjectFrameNode7440(current,r,js,world);
-                        else if([roots isKindOfClass:NSArray.class])for(id r in (NSArray*)roots)ADInjectFrameNode7440(current,r,js,world);
-                    }
-                    complete();
+                    run(roots);
                 });
             }else if([web respondsToSelector:frames]){
-                ((void(*)(id,SEL,id))objc_msgSend)(web,frames,^(id root){
-                    WKWebView *current=weakWeb;if(gP.enabled&&current)ADInjectFrameNode7440(current,root,js,world);complete();
-                });
+                ((void(*)(id,SEL,id))objc_msgSend)(web,frames,run);
             }else complete();
         }@catch(...){complete();}
     });
@@ -2730,7 +2749,7 @@ static NSString *ADNewMenusJS7482(void){
     newMenus7622=[newMenus7622 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     newMenus7622=[newMenus7622 stringByReplacingOccurrencesOfString:@"__TAME__" withString:(gP.whiteTame?@"true":@"false")];
     base=[base stringByAppendingString:newMenus7622];
-    // v7.637: nine independent list/registry probes. Declarative CSS only;
+    // v7.638: nine independent list/registry probes. Declarative CSS only;
     // no route scans, MutationObservers, timers, transforms or layout changes.
     NSString *listsRegistry7633=@""
 #include "ADListsRegistry7633.js.inc"
@@ -2738,7 +2757,7 @@ static NSString *ADNewMenusJS7482(void){
     listsRegistry7633=[listsRegistry7633 stringByReplacingOccurrencesOfString:@"__TAME__" withString:(gP.whiteTame?@"true":@"false")];
     listsRegistry7633=[listsRegistry7633 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     base=[base stringByAppendingString:listsRegistry7633];
-    // v7.637: all 22 supplied account/content/privacy/help captures.
+    // v7.638: all 22 supplied account/content/privacy/help captures.
     NSString *accountMenus7634=@""
 #include "ADAccountMenus7634.js.inc"
     ;
@@ -2793,7 +2812,7 @@ static WKUserScript *ADSharedUserScript7387(NSUInteger slot,NSString *(*source)(
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
     strength+=(gP.whiteTame?101:0); // v7.596: both preferences affect generated bytes.
     if(!scripts[slot]||(strengthDependent&&strengths[slot]!=strength)){
-        // v7.637: isolate Foundation-only route wrapping from the genuine C++98
+        // v7.638: isolate Foundation-only route wrapping from the genuine C++98
         // unit harness, which extracts this cache guard without Objective-C.
         // The shipped Logos .xm is Objective-C++, so the guarded branch below
         // remains fully active for every production checkout user script.
@@ -9865,7 +9884,7 @@ static BOOL ADAlexaOwnSheet7622(UIView *v){
         return YES;
     } @catch(...) { return NO; }
 }
-// v7.637: Run the probe-owned neutral-text correction at the *final paint*,
+// v7.638: Run the probe-owned neutral-text correction at the *final paint*,
 // not only while React initially assigns its storage. In r4, the title leaves
 // under custom-guide-mode-button / automations-mode-button mount before the
 // sheet has a window; Amazon commits their black foreground afterward.
@@ -9906,7 +9925,7 @@ static void ADAlexaOwnVector7622(UIView *v){
     }
 }
 
-// v7.637: native React grocery/shopping sheet repair from r4/r5/r6 captures.
+// v7.638: native React grocery/shopping sheet repair from r4/r5/r6 captures.
 // Anchors below are actual React accessibility identifiers in the supplied
 // probe; never infer scope from navigation-root or generic RCTView alone.
 static const void *kADShoppingNative7633=&kADShoppingNative7633;

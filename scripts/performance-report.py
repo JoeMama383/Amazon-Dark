@@ -17,7 +17,7 @@ import tarfile
 BOUNDS = [1.0,4.0,8.0,16.7,33.4,50.0,100.0,float('inf')]
 LANES = ['eventDispatchInclusive','reactLayoutTheme','imageLayoutTheme',
          'imageCommitInclusive','reactTextCommitInclusive','viewBackgroundInclusive',
-         'labelAttributedCommitInclusive']
+         'labelAttributedCommitInclusive', 'childFrameRepairRoundTrip']
 
 
 def load(path):
@@ -94,8 +94,23 @@ def latest_documents(data):
     return unknown+list(latest.values())
 
 
+def latest_theme_documents(data):
+    # WebKit privacy rounding changes timeOrigin by ~1 ms between bridge/eval
+    # reports. Same opaque document ID and frame must not be counted twice.
+    rows=[]
+    for doc in data.get('themeWork') or []:
+        if not isinstance(doc,dict):continue
+        prior=next((i for i,x in enumerate(rows)
+            if x.get('documentId')==doc.get('documentId')
+            and x.get('mainFrame')==doc.get('mainFrame')
+            and abs((numeric(x.get('timeOriginMs')) or 0)-(numeric(doc.get('timeOriginMs')) or 0))<=5),None)
+        if prior is None:rows.append(doc)
+        elif (numeric(rows[prior].get('durationMs')) or 0)<=(numeric(doc.get('durationMs')) or 0):rows[prior]=doc
+    return rows
+
+
 def theme_work_report(data):
-    docs=[x for x in data.get('themeWork',[]) if isinstance(x,dict)]
+    docs=latest_theme_documents(data)
     inventory=[x for x in data.get('userScriptInventory',[]) if isinstance(x,dict)]
     if not docs and not inventory:return []
     names={'s0':'Core/menus','s1':'Sponsored filter','s2':'Price history','s3':'Image taming',
@@ -124,7 +139,7 @@ def theme_work_report(data):
     for web in latest_documents(data):
         origin=numeric(web.get('timeOriginMs'))
         if not origin:continue
-        same=[d for d in main if numeric(d.get('timeOriginMs'))==origin]
+        same=[d for d in main if abs((numeric(d.get('timeOriginMs')) or 0)-origin)<=5]
         if not same:continue
         install=sum((numeric(m.get('totalMs')) or 0) for d in same for m in d.get('metrics',[]) if str(m.get('name','')).endswith('/install'))
         matched.append((web,install))
@@ -142,7 +157,7 @@ def theme_work_report(data):
         else:lines.append('- No stylesheet trials completed. Leave a freshly loaded menu visible until the experiment completes; an empty result is not zero cost.')
         states={0:'not completed',1:'completed',2:'soft budget reached',3:'interrupted'}
         for doc in main:
-            if doc.get('styleMode'):lines.append('- Style trial document %s: **%s**, %s spent; at most 24 theme style elements tested.'%(doc.get('documentId'),states.get(doc.get('styleState'),'unknown'),fmt(doc.get('styleSpentMs'))))
+            if doc.get('styleMode'):lines.append('- Style trial document %s: **%s**, %s spent; at most 24 owned style elements/adopted sheets tested; 15s soft work budget.'%(doc.get('documentId'),states.get(doc.get('styleState'),'unknown'),fmt(doc.get('styleSpentMs'))))
     lines.append('- Callback labels include registration index and function name; computed-style reads overlap their parent callback. Do not sum inclusive rows. Cheap JS timings with large input gaps leave deferred CSS/rendering or uninstrumented work unresolved.')
     return lines
 

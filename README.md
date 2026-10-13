@@ -1,3 +1,7 @@
+# AmazonDark v7.638~render-work-queue-repair
+
+Repairs the Search/PDP feedback lifecycle guard, removes duplicate forced child-frame CSS, and serializes child repairs through JavaScript completion. Paint rules are retained. Performance diagnostics now include child-frame round trips and explicitly armed adopted-sheet cost trials. See `DIFF-v7.638.md`, `VALIDATION-v7.638.md`, and `COMMANDS.md`. On-device latency verification remains required.
+
 # AmazonDark v7.619~handoff-regression-repair
 
 Fixes GitHub strict-CI handoff headings, retains v7.605–v7.613 UI modules, and adds source-delivery audit coverage. See `DIFF-v7.619.md`, `VALIDATION-v7.619.md`, `COMMANDS.md`. Device painting and a successful Theos build still require verification.
