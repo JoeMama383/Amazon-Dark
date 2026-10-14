@@ -103,7 +103,7 @@ import hashlib
 from payload_source import strings,block
 baseline=json.loads((R/'tests/fixtures/theme_payloads_v7636.json').read_text())
 def digest(text):
- text=re.sub(r'7\.(636|637|638)', '7.VERSION', text)
+ text=re.sub(r'7\.(636|637|638|639)', '7.VERSION', text)
  return hashlib.sha256(text.encode()).hexdigest()
 for name,expected in baseline['functions'].items():
  current=strings(block(T,name))
@@ -113,6 +113,15 @@ for name,expected in baseline['functions'].items():
   # v7.638 changes ownership, not any paint selector/declaration or its scope.
   for expression in (r'var A=(.*?);',r'(?:s.textContent|var css)=`(.*?)`;'):
    assert re.search(expression,current,re.S).group(1)==re.search(expression,legacy,re.S).group(1)
+ elif name=='ADNewMenusJS7482':
+  # v7.639 adds a cached native composer which branches the unchanged CSS
+  # include at run time. Ignore ONLY its four exact Foundation string keys;
+  # all other historic menu script components stay under their golden hash.
+  keys=('ADNewMenusScope7639.js.incs.textContent=``;\n// v7.594: arc-button'
+        'var ad7639AllCSS=``;\n// v7.594: arc-button')
+  assert keys in current
+  current=current.replace(keys,'',1)
+  assert digest(current)==expected,('changed existing payload',name)
  else: assert digest(current)==expected,('changed existing payload',name)
 for name,expected in baseline['includes'].items():
  current=(R/'src'/name).read_text()

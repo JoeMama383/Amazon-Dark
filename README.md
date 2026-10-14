@@ -1,3 +1,7 @@
+# AmazonDark v7.639~search-pdp-render-scope
+
+Production-first CSS work reduction: Search and Home now skip four wholly PDP-oriented completion programs, and main-frame Search/PDP CSS drops 164 verified off-route One Medical, Warbler, authentication, Deals and Memories selector rules while keeping original complete menu CSS for their own routes. No opt-in probe expansion and no recurring production work. See `DIFF-v7.639.md`, `VALIDATION-v7.639.md`, and `COMMANDS.md`. On-device latency and theme coverage still require confirmation.
+
 # AmazonDark v7.638~render-work-queue-repair
 
 Repairs the Search/PDP feedback lifecycle guard, removes duplicate forced child-frame CSS, and serializes child repairs through JavaScript completion. Paint rules are retained. Performance diagnostics now include child-frame round trips and explicitly armed adopted-sheet cost trials. See `DIFF-v7.638.md`, `VALIDATION-v7.638.md`, and `COMMANDS.md`. On-device latency verification remains required.
