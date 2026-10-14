@@ -27,10 +27,16 @@ prelude = r'''
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 typedef double CGFloat;
+typedef unsigned long NSUInteger;
+typedef struct { NSUInteger location; NSUInteger length; } NSRange;
+static const NSUInteger NSNotFound = ~0UL;
 @interface NSString
 + (id)stringWithUTF8String:(const char*)s;
 + (id)stringWithFormat:(id)format, ...;
 - (id)stringByAppendingString:(id)s;
+- (NSRange)rangeOfString:(id)s;
+- (id)stringByReplacingCharactersInRange:(NSRange)range withString:(id)s;
+- (id)stringByReplacingOccurrencesOfString:(id)old withString:(id)replacement;
 @end
 struct ADPrefs { int whiteTame; int whiteTameStrength; };
 static ADPrefs gP;

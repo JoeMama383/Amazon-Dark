@@ -1,6 +1,6 @@
-# AmazonDark v7.639~search-pdp-render-scope
+# AmazonDark v7.640~render-scope-lifecycle
 
-Production-first CSS work reduction: Search and Home now skip four wholly PDP-oriented completion programs, and main-frame Search/PDP CSS drops 164 verified off-route One Medical, Warbler, authentication, Deals and Memories selector rules while keeping original complete menu CSS for their own routes. No opt-in probe expansion and no recurring production work. See `DIFF-v7.639.md`, `VALIDATION-v7.639.md`, and `COMMANDS.md`. On-device latency and theme coverage still require confirmation.
+Production rendering change based on v7.639: exclude complete, explicitly off-route Home/Interests/Search/PDP CSS rules before installing owned styles on main Search/product pages; avoid their unused adopted Interests sheet; recover detached core theme sheets at DOMContentLoaded, load and pageshow. No recurring scan, DOM observer, geometry change or new probe workload. All 303 regression scripts passed, with ARM64/iOS syntax checks and synthetic WebKit compatibility checks. See `DIFF-v7.640.md`, `VALIDATION-v7.640.md`, and `COMMANDS.md`. This is a production performance candidate; the reported phone stalls and cold-boot theme coverage are not yet verified fixed.
 
 # AmazonDark v7.638~render-work-queue-repair
 

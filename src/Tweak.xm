@@ -1,4 +1,4 @@
-/* AmazonDark v7.639 */
+/* AmazonDark v7.640 */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
@@ -14,7 +14,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.639-search-pdp-render-scope"
+#define AD_VERSION "v7.640-render-scope-lifecycle"
 #include "ADPerformance7596.h"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
@@ -2628,7 +2628,7 @@ static NSString *ADNewMenusJS7482(void){
     NSString *base=[NSString stringWithUTF8String:
 #include "ADNewMenus7482.js.inc"
     ];
-    // v7.639: preserve the frozen, authored menu CSS include intact for the
+    // v7.640: preserve the frozen, authored menu CSS include intact for the
     // entire historical regression suite. At program construction only (cached
     // per TWB setting), branch the stylesheet's first assignment so Search/PDP
     // never attach unrelated medical/auth/Deals/Memories selector families.
@@ -2766,7 +2766,7 @@ static NSString *ADNewMenusJS7482(void){
     newMenus7622=[newMenus7622 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     newMenus7622=[newMenus7622 stringByReplacingOccurrencesOfString:@"__TAME__" withString:(gP.whiteTame?@"true":@"false")];
     base=[base stringByAppendingString:newMenus7622];
-    // v7.639: nine independent list/registry probes. Declarative CSS only;
+    // v7.640: nine independent list/registry probes. Declarative CSS only;
     // no route scans, MutationObservers, timers, transforms or layout changes.
     NSString *listsRegistry7633=@""
 #include "ADListsRegistry7633.js.inc"
@@ -2774,7 +2774,7 @@ static NSString *ADNewMenusJS7482(void){
     listsRegistry7633=[listsRegistry7633 stringByReplacingOccurrencesOfString:@"__TAME__" withString:(gP.whiteTame?@"true":@"false")];
     listsRegistry7633=[listsRegistry7633 stringByReplacingOccurrencesOfString:@"__FACTOR__" withString:[NSString stringWithFormat:@"%.3f",(gP.whiteTame?ad7593Factor:1.0)]];
     base=[base stringByAppendingString:listsRegistry7633];
-    // v7.639: all 22 supplied account/content/privacy/help captures.
+    // v7.640: all 22 supplied account/content/privacy/help captures.
     NSString *accountMenus7634=@""
 #include "ADAccountMenus7634.js.inc"
     ;
@@ -2793,7 +2793,7 @@ static NSString *ADPDPProbeBackedFixesJS7458(void){
     return [[NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7458-pdp');if(!s){s=d.createElement('style');s.id='ad7458-pdp';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#nav-subnav :is(.mshop-subnav-bar,#mshop-subnav-scrollable,.mshop-subnav-link){background:#000!important;color:#fff!important}#nav-subnav .mshop-subnav-bar{box-shadow:0 1px 0 #494d4d!important}#nav-subnav #mshop-subnav-scrollable{border-bottom:1px solid #494d4d!important}#dp#dp #rich_product_information .rpi-icon,#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_v3-total-box-] .a-icon-supplemental,#dp#dp #dpx-rex-nice-widget-container .a-icon-search{filter:brightness(0) invert(1)!important}#dp#dp [class*=_p13n-mobile-sims-fbt_fbt-mobile_image-display__]{mix-blend-mode:normal!important}#dp#dp #heimdallShoppingCxFeedback_feature_div [class*=_shopping-cx-feedback-widget_style_mobileRatingButton__]{background:#303335!important;border-color:#747a7c!important;color:#fff!important}#dp#dp :is(#productDetails_techSpec_section_1,#productDetails_techSpec_section_1 :is(tbody,tr,th,td),#aw-udpv3-customer-reviews_feature_div .aui-primitive,[class*=_Y3Itd_review-with-divider_],[data-testid=solicitation-bottom-divider],.a-changeover-inner){border-color:#494d4d!important}#dp#dp .a-changeover-inner{background:#000!important;color:#fff!important}#dp #relatedProductZone4_feature_div .a-carousel-container,#dp #heimdallShoppingCxFeedback_feature_div fieldset{background:#000!important}#dp #cm_cr_top_reviews_to_arp_button>.a-box-inner{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #va-related-videos-widget_feature_div [class*=_dnNlL_vseUploadButton_] i.a-icon-supplemental{filter:brightness(0) invert(1)!important}#dp #product-details-card_primary-view .putb-read-more-primary-view::before,#dp [id^=putb-read-more-primary-view-][id$=-product-details-card_primary-view]::before{content:none!important;display:none!important;background:none!important;box-shadow:none!important}#dp #product-details-card_primary-view .putb-main-text :is(.a-size-small,.a-text-bold){color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #description-summary-card_primary-view .putb-main-text,#dp #description-summary-card_primary-view .putb-main-text>span{color:#fff!important;-webkit-text-fill-color:#fff!important}#dp #inline-twister-scroller .a-button-selected .swatch-title-text-container{background:#303335!important;color:#fff!important;-webkit-text-fill-color:#fff!important}`+(%d?`#dp#dp [id^=image-block-product-image-] img.media-block-image-tag,#dp#dp [id^=sp_phoneapp_detail][id$=_image_container_wrapper] img,#dp#dp .a-profile-avatar img,#dp#dp #product-details-card_primary-view .icon-bullets img,#offsite-buy-box img:not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]),[class*=_billboard-card_regularStyle_gwm-BillboardCard] img{filter:brightness(%.3f)!important;mix-blend-mode:normal!important}`:'');s.textContent+=`[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_]{background:#000!important;border-color:#747a7c!important;color:#fff!important;box-shadow:none!important}[data-csa-c-painter=Buy-Again-Rufus-Pills-Card][class*=_pillRow_] [class*=_pillText_],[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{color:#fff!important;-webkit-text-fill-color:#fff!important}[id^=atf-countdownCard-Text-Timer-Numeric-][class*=_Timer-Numeric__]{background:#000!important;box-shadow:inset 0 0 0 64px #000!important}[class*=_billboard-card_regularStyle_gwm-BillboardCard--cropped__]{background:#000!important;box-shadow:none!important}#btfSubNavTopTab .top-tab-content,#btfSubNavTopTab .top-tab-content>div{display:contents!important;font:inherit!important}#btfSubNavTopTab .a-icon-section-collapse{display:none!important}#btfSubNavTopTab .a-size-mini{font:inherit!important}#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile,#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile-claimed{background:#008000!important;border-color:#008000!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#dp#dp #promoPriceBlockMessage_feature_div :is(.ct-coupon-tile-copy,.ct-coupon-tile-badge-copy,.ct-coupon-tile-value-copy,.ct-coupon-tile-value-copy-discount,.ct-coupon-tile-checkbox-label,.ct-coupon-success-copy,.ct-coupon-success-copy-bold,.a-size-small.a-color-base.a-text-normal,.a-size-base,.a-size-small,span,div,strong,b){color:#fff!important;-webkit-text-fill-color:#fff!important;}#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile svg.ct-coupon-success path.ct-coupon-success-icon-background,#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile-claimed svg.ct-coupon-success path.ct-coupon-success-icon-background{fill:#000!important;stroke:none!important;}#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile svg.ct-coupon-success path:not(.ct-coupon-success-icon-background),#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile-claimed svg.ct-coupon-success path:not(.ct-coupon-success-icon-background){fill:#fff!important;stroke:none!important;}#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile svg.ct-coupon-success,#dp#dp #promoPriceBlockMessage_feature_div .ct-coupon-tile-claimed svg.ct-coupon-success{filter:none!important;-webkit-filter:none!important;}#dp#dp #dynamicPackageInfoFeature_feature_div .offer-display-feature-text-link,#dp#dp #dynamicPackageInfoFeature_feature_div .offer-display-feature-text-message{color:#6cb6ff!important;-webkit-text-fill-color:#6cb6ff!important;}`;s.textContent+=`section#pop.layout__background:has(.item-view__qty-large){background:#000!important;color:#e8e6e3!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card{background:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-box,.a-box-inner,.a-box-group){box-shadow:none!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(h1,h2,h3,h4,h5,h6,p,span,strong,b,em,label,a,div):not(.a-color-link):not(.a-link-normal):not(.a-color-price):not(.a-color-secondary):not(.a-color-tertiary):not(.a-color-success):not(.a-color-attainable):not(.a-color-error):not(.a-color-state):not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=saving]):not([class*=discount]):not([class*=promotion]):not([class*=promo]):not(:where(.a-color-link *)):not(:where(.a-link-normal *)):not(:where(.a-color-price *)):not(:where(.a-color-secondary *)):not(:where(.a-color-tertiary *)):not(:where(.a-color-success *)):not(:where(.a-color-attainable *)):not(:where(.a-color-error *)):not(:where(.a-color-state *)):not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=saving] *)):not(:where([class*=discount] *)):not(:where([class*=promotion] *)):not(:where([class*=promo] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-color-secondary,.a-color-tertiary),section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-color-secondary,.a-color-tertiary) *{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-color-link,.a-link-normal,.a-color-price,.a-color-success,.a-color-attainable,.a-color-error,.a-color-state,[class*=prime],[class*=star],[class*=rating],[class*=badge],[class*=deal],[class*=coupon],[class*=saving],[class*=discount],[class*=promotion],[class*=promo]),section#pop.layout__background:has(.item-view__qty-large) .pop-card :is(.a-color-link,.a-link-normal,.a-color-price,.a-color-success,.a-color-attainable,.a-color-error,.a-color-state,[class*=prime],[class*=star],[class*=rating],[class*=badge],[class*=deal],[class*=coupon],[class*=saving],[class*=discount],[class*=promotion],[class*=promo]) *{-webkit-text-fill-color:currentColor!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card a.a-touch-link.a-box{background:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;-webkit-tap-highlight-color:transparent!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card a.a-touch-link.a-box>.a-box-inner{background:transparent!important;box-shadow:none!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card a.a-touch-link.a-box :is(span,div,strong,b){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card a.a-touch-link.a-box:is(:active,:focus,:focus-visible){background:#202324!important;border-color:#747a7c!important;box-shadow:none!important;}section#pop.layout__background:has(.item-view__qty-large) .pop-card i.a-icon.a-icon-touch-link{border-color:#e8e6e3!important;}section#pop.layout__background:has(.item-view__qty-large) .item-view__qty-large{background:#303335!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#747a7c!important;box-shadow:none!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important;padding:0!important;box-sizing:border-box!important;}`+(%d?`section#pop.layout__background:has(.item-view__qty-large) .item-view__inner-col>a.a-link-normal>img:not(.connection-share-icon){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;opacity:1!important;}`:'');}catch(_){}})();",gP.whiteTame,f,gP.whiteTame,f,f] stringByAppendingString:ADReturnsThemeJS7480()];
 }
 
-// v7.639: these programs contain PDP-only selectors. Search and Home have no
+// v7.640: these programs contain PDP-only selectors. Search and Home have no
 // PDP owner, so do not parse/install their large completion sheets in the
 // critical navigation document. Child frames retain their original rules.
 // Any unknown route is deliberately left unchanged, including alternative PDP URLs.
@@ -2801,7 +2801,7 @@ static NSString *ADSkipPDPOnSearchHome7639(NSString *source){
     return [NSString stringWithFormat:@"(function(){try{var p=(location&&location.pathname)||'';if(window.top===window&&(p==='/'||p==='/s'||p.indexOf('/s/')===0))return;}catch(_){}%@})();",source];
 }
 
-// v7.639: narrow macro aliases preserve the historically audited core
+// v7.640: narrow macro aliases preserve the historically audited core
 // concatenation body. The self-call in a macro replacement is not reexpanded
 // by the C preprocessor; only the returned JS is route-gated.
 #define ADPDPCompletionJS7405() ADSkipPDPOnSearchHome7639(ADPDPCompletionJS7405())
@@ -2830,6 +2830,11 @@ static NSString *ADCoreWebJS7271(void){
 // prototypes or app handlers. The recorder is absent outside an armed session.
 static NSString *ADThemeProgram7637(NSString *source,NSUInteger slot){
     NSString *program=source;
+    // Transform only our source before WebKit sees it. No platform setters or
+    // app prototypes are hooked; unknown routes retain the complete paint.
+    program=[program stringByReplacingOccurrencesOfString:@"\\bs\\.textContent\\b" withString:@"ad7640Style(s).textContent" options:NSRegularExpressionSearch range:NSMakeRange(0,program.length)];
+    program=[program stringByReplacingOccurrencesOfString:@"if(start>=0&&end>start&&window.CSSStyleSheet" withString:@"if(!ad7640HotRoute()&&start>=0&&end>start&&window.CSSStyleSheet"];
+    if(slot==0)program=[program stringByReplacingOccurrencesOfString:@".appendChild(s)" withString:@".appendChild(ad7640RetainStyle(s))"];
     for(NSString *target in @[@"window",@"document",@"doc",@"d"]){
         program=[program stringByReplacingOccurrencesOfString:[target stringByAppendingString:@".addEventListener("] withString:[NSString stringWithFormat:@"ad7637Listen(%@,",target]];
     }
@@ -2839,7 +2844,10 @@ static NSString *ADThemeProgram7637(NSString *source,NSUInteger slot){
 #include "ADThemeProgram7637.js.inc"
     ;
     wrapper=[wrapper stringByReplacingOccurrencesOfString:@"__SLOT__" withString:[NSString stringWithFormat:@"%lu",(unsigned long)slot]];
-    return [wrapper stringByReplacingOccurrencesOfString:@"__PROGRAM__" withString:program];
+    NSString *helpers=[NSString stringWithUTF8String:
+#include "ADRenderScope7640.js.inc"
+    ];
+    return [wrapper stringByReplacingOccurrencesOfString:@"__PROGRAM__" withString:[helpers stringByAppendingString:program]];
 }
 
 // v7.388: WKUserScript
@@ -2849,7 +2857,7 @@ static WKUserScript *ADSharedUserScript7387(NSUInteger slot,NSString *(*source)(
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
     strength+=(gP.whiteTame?101:0); // v7.596: both preferences affect generated bytes.
     if(!scripts[slot]||(strengthDependent&&strengths[slot]!=strength)){
-        // v7.639: isolate Foundation-only route wrapping from the genuine C++98
+        // v7.640: isolate Foundation-only route wrapping from the genuine C++98
         // unit harness, which extracts this cache guard without Objective-C.
         // The shipped Logos .xm is Objective-C++, so the guarded branch below
         // remains fully active for every production checkout user script.
@@ -9921,7 +9929,7 @@ static BOOL ADAlexaOwnSheet7622(UIView *v){
         return YES;
     } @catch(...) { return NO; }
 }
-// v7.639: Run the probe-owned neutral-text correction at the *final paint*,
+// v7.640: Run the probe-owned neutral-text correction at the *final paint*,
 // not only while React initially assigns its storage. In r4, the title leaves
 // under custom-guide-mode-button / automations-mode-button mount before the
 // sheet has a window; Amazon commits their black foreground afterward.
@@ -9962,7 +9970,7 @@ static void ADAlexaOwnVector7622(UIView *v){
     }
 }
 
-// v7.639: native React grocery/shopping sheet repair from r4/r5/r6 captures.
+// v7.640: native React grocery/shopping sheet repair from r4/r5/r6 captures.
 // Anchors below are actual React accessibility identifiers in the supplied
 // probe; never infer scope from navigation-root or generic RCTView alone.
 static const void *kADShoppingNative7633=&kADShoppingNative7633;
