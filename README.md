@@ -1,3 +1,7 @@
+# AmazonDark v7.642~review-owner-cache
+
+Production performance candidate based on v7.641 and its normal on-device capture. On main Search/product documents, repeated document-wide review CSS conditions are replaced with one cached ownership state. The state follows review insertion, removal, ID changes and body replacement through a single observer using at most three ID lookups per delivery. It does not scan the DOM, read layout, poll, or write unchanged state. Authored review declarations and selector priority are preserved, as are the v7.641 route pruning and startup sheet recovery. Other routes and child frames keep their original CSS. See `DIFF-v7.642.md`, `VALIDATION-v7.642.md`, and `COMMANDS.md`. This is a production change, not a probe expansion; phone latency still needs verification.
+
 # AmazonDark v7.641~hot-route-css-trim
 
 Production performance change based on v7.640 and its ordinary on-device capture. Main Search/product documents now omit additional dedicated full-page menu rules and four unrelated complete sheets before installation. Shared overlays, authored controls, image taming, non-hot routes and startup sheet recovery are retained. No recurring scan, observer, geometry change or additional runtime probe work. The offline performance report now separates uniquely matched Search/product timings. See `DIFF-v7.641.md`, `VALIDATION-v7.641.md`, and `COMMANDS.md`. This reduces stylesheet work; the remaining phone input delay still requires on-device verification.

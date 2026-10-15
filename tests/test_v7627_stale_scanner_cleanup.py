@@ -12,7 +12,9 @@ spec.loader.exec_module(mod)
 rows,groups=mod.analyze(ROOT)
 prod=groups['production / combined']
 assert prod['querySelectorAll'] == 9, prod
-assert prod['MutationObserver']==0 and prod['setInterval']==0 and prod['TreeWalker']==0
+# v7.642's single bounded ID-only owner observer is covered by its own lifecycle
+# regression and the production audit. Old broad scanners remain forbidden.
+assert prod['MutationObserver']==1 and prod['setInterval']==0 and prod['TreeWalker']==0
 assert prod['requestAnimationFrame']==0
 assert not (ROOT/'src/ADMenuRepair7620.js').exists()
 assert not (ROOT/'src/ADMenuRepair7620.js.inc').exists()

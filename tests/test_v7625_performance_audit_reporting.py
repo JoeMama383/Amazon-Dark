@@ -55,7 +55,14 @@ with tempfile.TemporaryDirectory() as td:
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     rows,groups=module.analyze(R)
     prod=groups['production / combined']
-    assert prod['MutationObserver']==0 and prod['setInterval']==0 and prod['requestAnimationFrame']==0 and prod['TreeWalker']==0,prod
+    # v7.642 explicitly budgets one ID-only review ownership observer, replacing
+    # repeated relational CSS checks. It is not a DOM scanner; do not hide it
+    # from the production census or permit any additional observer.
+    assert prod['MutationObserver']==1 and prod['setInterval']==0 and prod['requestAnimationFrame']==0 and prod['TreeWalker']==0,prod
+    review=(R/'src/ADRenderScope7640.js').read_text().split('function ad7642ReviewScope(css) {')[1].split('function ad7640Style(style) {')[0]
+    assert review.count('new MutationObserver(')==1
+    for banned in ('querySelector', 'getComputedStyle', 'offsetHeight', 'setTimeout', 'setInterval', 'requestAnimationFrame'):
+        assert banned not in review
     assert prod['scroll-listener']==0,prod
     # v7.634: one reviewed, once-only catch-up under customer-corner-root.
     books=(R/'src/ADAccountMenus7634.js').read_text()

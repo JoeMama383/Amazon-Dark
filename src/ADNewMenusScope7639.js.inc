@@ -1,5 +1,5 @@
 "`;\n"
-"// v7.641: document-start, main-frame Search/PDP-only cheap route gate.\n"
+"// v7.642: document-start, main-frame Search/PDP-only cheap route gate.\n"
 "// Scope distant menu families out of the hot stylesheet; no DOM walk,\n"
 "// observer, timer, history hook, class marker, or deferred theme application.\n"
 "// All other routes and every child frame keep the complete original CSS.\n"

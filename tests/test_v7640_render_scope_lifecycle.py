@@ -7,8 +7,12 @@ assert ''.join(json.loads(x) for x in (r/'src/ADRenderScope7640.js.inc').read_te
 t=(r/'src/Tweak.xm').read_text()
 for text in ['ad7640Style(s).textContent','NSRegularExpressionSearch','if(!ad7640HotRoute()&&start>=0', 'if(slot==0)program=', '#include "ADRenderScope7640.js.inc"']:
     assert text in t,text
-for forbidden in ['getComputedStyle','offsetHeight','querySelector','MutationObserver','setTimeout','setInterval']:
+for forbidden in ['getComputedStyle','offsetHeight','querySelector','setTimeout','setInterval']:
     assert forbidden not in helper,forbidden
+# v7.642 adds one separately tested ID-only review owner observer. The source
+# filter and head-recovery lifecycle must still have no observer of their own.
+without_review = helper.split('function ad7642ReviewScope(css) {')[0] + helper.split('function ad7640Style(style) {')[1]
+assert 'MutationObserver' not in without_review
 test=r'''
 const vm=require('vm'),assert=require('assert');
 function context(path,child=false){

@@ -11,7 +11,7 @@ function ad7640ScopeCSS(css) {
     '#gwm-Deck-btf', '.gwm-dashboard-container',
     '#a-page:has(#interests-ai-sticky-div):has(#product-grid)',
     'body:has(#interests-ai-sticky-div)',
-    // v7.641: full-page owners still present in the v7.640 Search/PDP capture.
+    // v7.642: full-page owners still present in the v7.640 Search/PDP capture.
     // Do not exclude shared overlays (ax-mbs, reviews, lists, shipping, maps).
     'section.your-orders-mobile-content-container.aok-relative.js-yo-container',
     '#typ-body-container', '#live-page-container-mobile',
@@ -75,6 +75,39 @@ function ad7640ScopeCSS(css) {
   return result + css.slice(start);
 }
 
+// Review selectors previously repeated a document-wide :has() disjunction.
+// Resolve its two ID witnesses once per mutation delivery instead. This does
+// not walk nodes, read computed style/layout, or write on unchanged state.
+function ad7642ReviewScope(css) {
+  var prefix = ':is(body:has(#mobile-product-reviews),body:has(#cruise-customer-reviews))';
+  if (css.indexOf(prefix) < 0 || typeof MutationObserver !== 'function') return css;
+  if (!window.__ad7642ReviewOwner) {
+    function refresh() {
+      var body = document.body;
+      if (!body) return;
+      function owns(id) {
+        var node = document.getElementById(id);
+        return node && node !== body && body.contains(node);
+      }
+      var mobile = owns('mobile-product-reviews'), cruise = owns('cruise-customer-reviews');
+      var state = mobile || cruise ? 'reviews' + (mobile ? ' mobile' : '') + (owns('dp') ? ' product' : '') : null;
+      if (body.getAttribute('data-ad7642-reviews') !== state) {
+        if (state !== null) body.setAttribute('data-ad7642-reviews', state);
+        else body.removeAttribute('data-ad7642-reviews');
+      }
+    }
+    var observer = new MutationObserver(refresh);
+    observer.observe(document, {subtree: true, childList: true, attributes: true, attributeFilter: ['id']});
+    window.__ad7642ReviewOwner = observer;
+    refresh();
+  }
+  // :is retains the original ID + body specificity; :where adds none.
+  // Keep the authored descendant selectors and every declaration unchanged.
+  return css.split(prefix).join('body:is(*,#mobile-product-reviews):where([data-ad7642-reviews])')
+    .split('body:has(#mobile-product-reviews):not(:has(#dp))')
+    .join('body:is(*,#mobile-product-reviews):is(*,#dp):where([data-ad7642-reviews~=mobile]:not([data-ad7642-reviews~=product]))');
+}
+
 function ad7640Style(style) {
   if (!ad7640HotRoute() || !style || style.tagName !== 'STYLE' || !/^ad[0-9]/.test(style.id || '')) return style;
   return {
@@ -84,7 +117,10 @@ function ad7640Style(style) {
       // them empty avoids their @media rules and repeated parse work too.
       if (/^(ad7480-returns-theme|ad7412-address-management|ad7596-order-confirmation|ad7597-live-and-thankyou)$/.test(style.id)) {
         style.textContent = '';
-      } else style.textContent = ad7640ScopeCSS(css);
+      } else {
+        if (style.id === 'ad7593-review-business') css = ad7642ReviewScope(css);
+        style.textContent = ad7640ScopeCSS(css);
+      }
     }
   };
 }

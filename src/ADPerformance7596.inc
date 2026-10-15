@@ -20,7 +20,7 @@ static NSDictionary *ADPerfMetricJSON7596(ADPerfMetric7596 m){
 }
 static NSString *ADPerfPath7596(NSString *suffix){
     NSString *d=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES).firstObject;
-    return [d stringByAppendingPathComponent:[@"AmazonDark-v7.641-performance" stringByAppendingString:suffix]];
+    return [d stringByAppendingPathComponent:[@"AmazonDark-v7.642-performance" stringByAppendingString:suffix]];
 }
 // Keep diagnostics outside the app's page globals and bridge overrides.
 static WKContentWorld *ADPerfWorld7635(void){return [WKContentWorld worldWithName:@"AmazonDarkPerformance7635"];}
@@ -100,7 +100,7 @@ static ADPerformance7596 *gADPerformance7596=nil;
     [self.display addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
     self.timer=[NSTimer timerWithTimeInterval:90 target:self selector:@selector(expired:) userInfo:nil repeats:NO];
     [NSRunLoop.mainRunLoop addTimer:self.timer forMode:NSRunLoopCommonModes];
-    // v7.641: the asynchronous WKScriptMessageHandler may fail inside Amazon's
+    // v7.642: the asynchronous WKScriptMessageHandler may fail inside Amazon's
     // WebKit content world. While explicitly armed, pull existing JS counters at
     // 5-second intervals instead; no DOM traversal or production polling.
     self.webSampleTimer=[NSTimer timerWithTimeInterval:5 target:self selector:@selector(sampleWeb:) userInfo:nil repeats:YES];
