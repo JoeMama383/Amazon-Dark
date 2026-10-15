@@ -109,6 +109,49 @@ def latest_theme_documents(data):
     return rows
 
 
+def matched_main_documents(data):
+    # Web timings and theme timings use independent opaque IDs. Correlate only
+    # unique time origins, allowing WebKit's <=5 ms privacy rounding. A child
+    # frame or another WebView born at the same time makes the match ambiguous.
+    themes=latest_theme_documents(data)
+    webs=latest_documents(data)
+    pairs=[]
+    for theme in themes:
+        origin=numeric(theme.get('timeOriginMs'))
+        if not theme.get('mainFrame') or not origin:continue
+        matches=[w for w in webs if numeric(w.get('timeOriginMs')) is not None
+                 and abs(w['timeOriginMs']-origin)<=5]
+        if len(matches)!=1:continue
+        web=matches[0]
+        reverse=[t for t in themes if numeric(t.get('timeOriginMs')) is not None
+                 and abs(t['timeOriginMs']-web['timeOriginMs'])<=5]
+        if len(reverse)==1:pairs.append((theme,web))
+    return pairs
+
+
+def route_timing_report(data):
+    pairs=matched_main_documents(data)
+    if not pairs:return []
+    names={0:'Other',1:'Search',2:'Product'}
+    lines=['','Matched main-document timings (unique time-origin correlation; ambiguous matches omitted):','',
+           '| Route / web document | Theme rules | Input samples | Mean input → RAF | Max input → RAF | Max event-loop lag | DOM interactive |',
+           '| --- | ---: | ---: | ---: | ---: | ---: | ---: |']
+    for theme,web in pairs:
+        inputs=web.get('inputToNextRAF') or {}
+        count=int(inputs.get('count') or 0)
+        total=numeric(inputs.get('totalMs'))
+        mean=total/count if count and total is not None else None
+        loop=web.get('eventLoopLag') or {}
+        rules=numeric(theme.get('themeRules'))
+        lines.append('| %s / %s | %s | %d | %s | %s | %s | %s |'%(
+            names.get(theme.get('route'),'Unknown'),web.get('documentId','unknown'),
+            str(int(rules)) if rules is not None else 'n/a',count,fmt(mean),
+            fmt(inputs.get('maxMs') if count else None),
+            fmt(loop.get('maxMs') if loop.get('count') else None),
+            fmt(flattened(web)['domInteractive'])))
+    return lines
+
+
 def theme_work_report(data):
     docs=latest_theme_documents(data)
     inventory=[x for x in data.get('userScriptInventory',[]) if isinstance(x,dict)]
@@ -135,15 +178,9 @@ def theme_work_report(data):
     for (scope,name),m in sorted(metrics.items(),key=lambda pair:pair[1]['max'],reverse=True)[:40]:
         slot,_,callback=name.partition('/');label=names.get(slot,slot)+' / '+callback
         lines.append('| %s | %s | %d | %s | %s |'%(scope,label,m['count'],fmt(m['total']),fmt(m['max'])))
-    matched=[]
-    for web in latest_documents(data):
-        origin=numeric(web.get('timeOriginMs'))
-        if not origin:continue
-        same=[d for d in main if abs((numeric(d.get('timeOriginMs')) or 0)-origin)<=5]
-        if not same:continue
-        install=sum((numeric(m.get('totalMs')) or 0) for d in same for m in d.get('metrics',[]) if str(m.get('name','')).endswith('/install'))
-        matched.append((web,install))
-    for web,install in matched:
+    lines+=route_timing_report(data)
+    for theme,web in matched_main_documents(data):
+        install=sum((numeric(m.get('totalMs')) or 0) for m in theme.get('metrics',[]) if str(m.get('name','')).endswith('/install'))
         lag=(web.get('eventLoopLag') or {}).get('maxMs')
         if (numeric(lag) or 0)>=100:
             lines.append('- Document %s: measured theme installs **%s**, worst event-loop lag **%s**. Install totals exclude deferred style/layout/paint and later callbacks.'%(web.get('documentId'),fmt(install),fmt(lag)))

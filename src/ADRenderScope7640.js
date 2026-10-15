@@ -10,7 +10,26 @@ function ad7640ScopeCSS(css) {
     ':is(#gwm-Deck-btf,.gwm-dashboard-container)',
     '#gwm-Deck-btf', '.gwm-dashboard-container',
     '#a-page:has(#interests-ai-sticky-div):has(#product-grid)',
-    'body:has(#interests-ai-sticky-div)'
+    'body:has(#interests-ai-sticky-div)',
+    // v7.641: full-page owners still present in the v7.640 Search/PDP capture.
+    // Do not exclude shared overlays (ax-mbs, reviews, lists, shipping, maps).
+    'section.your-orders-mobile-content-container.aok-relative.js-yo-container',
+    '#typ-body-container', '#live-page-container-mobile',
+    '#sc-page-container', '#sc-active-cart', '#sc-saved-cart', '#sc-buy-box',
+    'body:has(#sc-page-container)',
+    '#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-])',
+    '[data-csa-c-painter=pharmacy-lego-painter]',
+    '#a-page:has([data-csa-c-painter=pharmacy-lego-painter])',
+    '#react-app.ryp__mobile',
+    'body:has(:is(#ee-aisles-on-ba-widget-container,#ordersSearch))',
+    'body:has(#ordersSearch)', '#ordersSearch',
+    'body:is(*,#ordersSearch) #ordersSearch',
+    '#a-page:has(#hybrid-hub-app .search-bar-with-suggestions-container)',
+    'body:has(.discounts-react-app)',
+    'body.omg-body:has(#omg-matc-top-section-id)',
+    '#ng-app', '#apd-content-wrapper', '.apd-modal-box', '.cs-help-v4',
+    '#root:has([class*="NavigationBar-module__navHeader_myx"])',
+    '#customer-corner-root'
   ];
   // A full Search document does not contain the PDP root, and vice versa.
   // Mixed selector lists remain intact so shared controls are never excluded.
@@ -60,7 +79,13 @@ function ad7640Style(style) {
   if (!ad7640HotRoute() || !style || style.tagName !== 'STYLE' || !/^ad[0-9]/.test(style.id || '')) return style;
   return {
     get textContent() { return style.textContent; },
-    set textContent(css) { style.textContent = ad7640ScopeCSS(css); }
+    set textContent(css) {
+      // These complete sheets have only dedicated full-page owners; leaving
+      // them empty avoids their @media rules and repeated parse work too.
+      if (/^(ad7480-returns-theme|ad7412-address-management|ad7596-order-confirmation|ad7597-live-and-thankyou)$/.test(style.id)) {
+        style.textContent = '';
+      } else style.textContent = ad7640ScopeCSS(css);
+    }
   };
 }
 

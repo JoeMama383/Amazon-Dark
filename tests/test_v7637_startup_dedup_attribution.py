@@ -103,7 +103,7 @@ import hashlib
 from payload_source import strings,block
 baseline=json.loads((R/'tests/fixtures/theme_payloads_v7636.json').read_text())
 def digest(text):
- text=re.sub(r'7\.(636|637|638|639|640)', '7.VERSION', text)
+ text=re.sub(r'7\.(636|637|638|639|640|641)', '7.VERSION', text)
  return hashlib.sha256(text.encode()).hexdigest()
 for name,expected in baseline['functions'].items():
  current=strings(block(T,name))

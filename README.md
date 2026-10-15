@@ -1,6 +1,6 @@
-# AmazonDark v7.640~render-scope-lifecycle
+# AmazonDark v7.641~hot-route-css-trim
 
-Production rendering change based on v7.639: exclude complete, explicitly off-route Home/Interests/Search/PDP CSS rules before installing owned styles on main Search/product pages; avoid their unused adopted Interests sheet; recover detached core theme sheets at DOMContentLoaded, load and pageshow. No recurring scan, DOM observer, geometry change or new probe workload. All 303 regression scripts passed, with ARM64/iOS syntax checks and synthetic WebKit compatibility checks. See `DIFF-v7.640.md`, `VALIDATION-v7.640.md`, and `COMMANDS.md`. This is a production performance candidate; the reported phone stalls and cold-boot theme coverage are not yet verified fixed.
+Production performance change based on v7.640 and its ordinary on-device capture. Main Search/product documents now omit additional dedicated full-page menu rules and four unrelated complete sheets before installation. Shared overlays, authored controls, image taming, non-hot routes and startup sheet recovery are retained. No recurring scan, observer, geometry change or additional runtime probe work. The offline performance report now separates uniquely matched Search/product timings. See `DIFF-v7.641.md`, `VALIDATION-v7.641.md`, and `COMMANDS.md`. This reduces stylesheet work; the remaining phone input delay still requires on-device verification.
 
 # AmazonDark v7.638~render-work-queue-repair
 
