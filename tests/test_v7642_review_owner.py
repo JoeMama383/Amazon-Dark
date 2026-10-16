@@ -34,6 +34,13 @@ c.document.body=body();ids['mobile-product-reviews']={inside:false};callback();a
 ids['mobile-product-reviews'].inside=true;callback();assert.equal(writes,6);
 c.ad7640Style(sheet).textContent=css;assert.equal(count,1);
 c.document.body=null;callback();c.document.body=body();callback();assert.equal(writes,7);
+// The existing callback is timed only while a recorder is armed.
+let timed=0;
+c.__adThemeWork7637={run:(name,fn,receiver,args)=>{
+ assert.equal(name,'s0/review-owner-mutation');timed++;return fn.apply(receiver,args);
+}};
+ids={};callback([{type:'childList'}]);assert.equal(timed,1);assert.equal(writes,8);
+delete c.__adThemeWork7637;callback();assert.equal(timed,1);assert.equal(writes,8);
 // Non-hot routes and non-review sheets keep their authored semantics.
 for(const path of ['/','/live','/medical','/product-reviews/X']){
  c.location.pathname=path;c.ad7640Style(sheet).textContent=css;assert.equal(sheet.textContent,css);

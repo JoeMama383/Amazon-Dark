@@ -20,7 +20,7 @@ static NSDictionary *ADPerfMetricJSON7596(ADPerfMetric7596 m){
 }
 static NSString *ADPerfPath7596(NSString *suffix){
     NSString *d=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES).firstObject;
-    return [d stringByAppendingPathComponent:[@"AmazonDark-v7.642-performance" stringByAppendingString:suffix]];
+    return [d stringByAppendingPathComponent:[@"AmazonDark-v7.643-performance" stringByAppendingString:suffix]];
 }
 // Keep diagnostics outside the app's page globals and bridge overrides.
 static WKContentWorld *ADPerfWorld7635(void){return [WKContentWorld worldWithName:@"AmazonDarkPerformance7635"];}
@@ -52,6 +52,7 @@ static void *kADPerfLoading7596=&kADPerfLoading7596;
 @property(nonatomic) double deadline,lastFrame;
 @property(nonatomic) NSUInteger injected,failed,dropped,enrolled;
 @property(nonatomic) BOOL styleExperiment;
+@property(nonatomic) NSUInteger startupIsolationMode;
 @property(nonatomic) BOOL finishing,writing,otherProbeObserved,themeEnabledAtArm;
 @property(nonatomic) UIBackgroundTaskIdentifier backgroundTask;
 - (void)foreground:(NSNotification *)notification;
@@ -73,6 +74,7 @@ static ADPerformance7596 *gADPerformance7596=nil;
     if(!request)return;
     [[NSFileManager defaultManager] removeItemAtPath:arm error:nil];
     self.styleExperiment=[request hasSuffix:@"styles\n"];
+    self.startupIsolationMode=[request hasSuffix:@"isolate-css\n"]?1:([request hasSuffix:@"isolate-core\n"]?2:([request hasSuffix:@"isolate-followups\n"]?3:0));
     double armed=request.doubleValue,now=NSDate.date.timeIntervalSince1970;
     if(armed>now+5||now-armed>600)return;
     memset(gADPerfLanes7596,0,sizeof(gADPerfLanes7596));memset(&gADPerfFrames7596,0,sizeof(gADPerfFrames7596));memset(&gADPerfInputAge7596,0,sizeof(gADPerfInputAge7596));memset(gADPerfFrameSeconds7596,0,sizeof(gADPerfFrameSeconds7596));
@@ -93,6 +95,11 @@ static ADPerformance7596 *gADPerformance7596=nil;
     ;
     themeSource=[[themeSource stringByReplacingOccurrencesOfString:@"__SESSION__" withString:[NSString stringWithFormat:@"\"%@\"",self.session]] stringByReplacingOccurrencesOfString:@"__DEADLINE__" withString:[NSString stringWithFormat:@"%.0f",self.deadline]];
     themeSource=[themeSource stringByReplacingOccurrencesOfString:@"__STYLE_TRIALS__" withString:(self.styleExperiment?@"true":@"false")];
+    themeSource=[themeSource stringByReplacingOccurrencesOfString:@"__STARTUP_ISOLATION__" withString:[NSString stringWithFormat:@"%lu",(unsigned long)self.startupIsolationMode]];
+    NSString *isolationSource=@""
+#include "ADStartupIsolation7643.js.inc"
+    ;
+    themeSource=[isolationSource stringByAppendingString:themeSource];
     self.themeScript=[[WKUserScript alloc] initWithSource:themeSource injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
     gADPerformanceGeneration7596++;gADPerfStart7596=CACurrentMediaTime();gADPerformanceActive7596=YES;
     [@"running\n" writeToFile:ADPerfPath7596(@".state") atomically:YES encoding:NSUTF8StringEncoding error:nil];
@@ -100,7 +107,7 @@ static ADPerformance7596 *gADPerformance7596=nil;
     [self.display addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
     self.timer=[NSTimer timerWithTimeInterval:90 target:self selector:@selector(expired:) userInfo:nil repeats:NO];
     [NSRunLoop.mainRunLoop addTimer:self.timer forMode:NSRunLoopCommonModes];
-    // v7.642: the asynchronous WKScriptMessageHandler may fail inside Amazon's
+    // v7.643: the asynchronous WKScriptMessageHandler may fail inside Amazon's
     // WebKit content world. While explicitly armed, pull existing JS counters at
     // 5-second intervals instead; no DOM traversal or production polling.
     self.webSampleTimer=[NSTimer timerWithTimeInterval:5 target:self selector:@selector(sampleWeb:) userInfo:nil repeats:YES];
@@ -207,7 +214,7 @@ static ADPerformance7596 *gADPerformance7596=nil;
 - (void)acceptThemeBody:(NSDictionary *)body main:(BOOL)main {
     if(self.writing||![body isKindOfClass:NSDictionary.class]||![body[@"session"] isEqual:self.session])return;
     NSMutableDictionary *safe=[NSMutableDictionary dictionary];safe[@"mainFrame"]=@(main);
-    for(NSString *key in @[@"documentId",@"timeOriginMs",@"route",@"durationMs",@"themeSheets",@"themeRules",@"unreadableSheets",@"adoptedSheets",@"dropped",@"styleMode",@"styleState",@"stylePlanned",@"styleSpentMs"]){
+    for(NSString *key in @[@"documentId",@"timeOriginMs",@"route",@"durationMs",@"themeSheets",@"themeRules",@"unreadableSheets",@"adoptedSheets",@"dropped",@"styleMode",@"styleState",@"stylePlanned",@"styleSpentMs",@"isolationMode",@"isolationEligible",@"isolationLate",@"isolationStyles",@"isolationCalls",@"isolationBytes",@"isolationFailures",@"isolationRestored",@"isolationRestoreMs",@"isolationRulesAtStop",@"isolationAdoptedAtStop"]){
         id value=body[key];if([value isKindOfClass:NSNumber.class]&&isfinite([value doubleValue])&&[value doubleValue]>=0)safe[key]=value;
     }
     for(NSString *key in @[@"metrics",@"slowCalls",@"styleTrials"]){
@@ -343,7 +350,7 @@ static ADPerformance7596 *gADPerformance7596=nil;
     NSArray *names=@[@"eventDispatchInclusive",@"reactLayoutTheme",@"imageLayoutTheme",@"imageCommitInclusive",@"reactTextCommitInclusive",@"viewBackgroundInclusive",@"labelAttributedCommitInclusive",@"childFrameRepairRoundTrip"];
     NSMutableDictionary *lanes=[NSMutableDictionary dictionary];for(unsigned i=0;i<ADPerfLaneCount;i++)lanes[names[i]]=ADPerfMetricJSON7596(gADPerfLanes7596[i]);
     NSMutableArray *seconds=[NSMutableArray array];for(unsigned i=0;i<90;i++)[seconds addObject:@(gADPerfFrameSeconds7596[i])];
-    NSDictionary *report=@{ @"version":@AD_VERSION,@"schema":@1,@"session":self.session,@"endReason":reason,@"durationMs":@(duration),@"nativeFrames":ADPerfMetricJSON7596(gADPerfFrames7596),@"touchEventAge":ADPerfMetricJSON7596(gADPerfInputAge7596),@"frameGapsOver50MsBySecond":seconds,@"lanes":lanes,@"webDocuments":[self.documents copy],@"styleExperiment":@(self.styleExperiment),@"themeWork":[self.themeReports copy],@"userScriptInventory":[self.scriptInventory copy],@"webLoadingIntervals":[self.navigations copy],@"controllerTransitions":[self.controllerTransitions copy],@"otherDiagnosticObserved":@(self.otherProbeObserved),@"themeEnabledAtArm":@(self.themeEnabledAtArm),@"enrolledWebViews":@(self.enrolled),@"injectionAttempts":@(self.injected),@"injectionErrors":@(self.failed),@"injectionTimings":[self.injectionTimings copy],@"webEvalAcks":@(self.webEvalAcks),@"webEvalMissing":@(self.webEvalMissing),@"webBridgeReports":@(self.webBridgeReports),@"sampleDiagnostics":[self.sampleDiagnostics copy],@"webPeriodicSamples":@(self.webPeriodicSamples),@"webPeriodicFailures":@(self.webPeriodicFailures),@"droppedRecords":@(self.dropped),@"unfinishedLoadingIntervals":@(self.navigationStarts.count),@"coverage":@"Native foreground only. Web aggregates are returned by eval as a fallback if the message bridge fails, and are pulled every five seconds while armed; Theme install/listener timings include child documents when document-start enrollment succeeds; input timings remain main-frame only. No cold-start or server attribution. Theme timings are inclusive and do not measure deferred CSS rendering cost. Child-frame repair round trips include WebContent queueing and IPC, not just JavaScript. Existing loaded documents have no retroactive theme timings. Missing Web reports are not zero latency. Inclusive lanes overlap; do not sum. RAF is not presentation latency. Controller appearance intervals include animations. Diagnostic overhead is included." };
+    NSDictionary *report=@{ @"version":@AD_VERSION,@"schema":@1,@"session":self.session,@"endReason":reason,@"durationMs":@(duration),@"nativeFrames":ADPerfMetricJSON7596(gADPerfFrames7596),@"touchEventAge":ADPerfMetricJSON7596(gADPerfInputAge7596),@"frameGapsOver50MsBySecond":seconds,@"lanes":lanes,@"webDocuments":[self.documents copy],@"styleExperiment":@(self.styleExperiment),@"startupIsolationMode":@(self.startupIsolationMode),@"themeWork":[self.themeReports copy],@"userScriptInventory":[self.scriptInventory copy],@"webLoadingIntervals":[self.navigations copy],@"controllerTransitions":[self.controllerTransitions copy],@"otherDiagnosticObserved":@(self.otherProbeObserved),@"themeEnabledAtArm":@(self.themeEnabledAtArm),@"enrolledWebViews":@(self.enrolled),@"injectionAttempts":@(self.injected),@"injectionErrors":@(self.failed),@"injectionTimings":[self.injectionTimings copy],@"webEvalAcks":@(self.webEvalAcks),@"webEvalMissing":@(self.webEvalMissing),@"webBridgeReports":@(self.webBridgeReports),@"sampleDiagnostics":[self.sampleDiagnostics copy],@"webPeriodicSamples":@(self.webPeriodicSamples),@"webPeriodicFailures":@(self.webPeriodicFailures),@"droppedRecords":@(self.dropped),@"unfinishedLoadingIntervals":@(self.navigationStarts.count),@"coverage":@"Native foreground only. Web aggregates are returned by eval as a fallback if the message bridge fails, and are pulled every five seconds while armed; Theme install/listener timings include child documents when document-start enrollment succeeds; input timings remain main-frame only. No cold-start or server attribution. Theme timings are inclusive and do not measure deferred CSS rendering cost. Child-frame repair round trips include WebContent queueing and IPC, not just JavaScript. Existing loaded documents have no retroactive theme timings. Missing Web reports are not zero latency. Inclusive lanes overlap; do not sum. RAF is not presentation latency. Controller appearance intervals include animations. Diagnostic overhead is included." };
     NSString *path=ADPerfPath7596(@".json"),*state=ADPerfPath7596(@".state");
     UIBackgroundTaskIdentifier task=self.backgroundTask;self.backgroundTask=UIBackgroundTaskInvalid;
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0),^{

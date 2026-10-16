@@ -27,6 +27,7 @@ MARKERS={
 }
 # Explicitly opt-in / unrelated to ordinary themed-page performance.
 DIAGNOSTIC={
+ 'ADStartupIsolation7643.js','ADStartupIsolation7643.js.inc',
  'ADThemeWork7637.js','ADThemeWork7637.js.inc',
  'ADUniversalUIProbe7362.js.inc','ADUniversalUIProbe7362.frame.js.inc',
  'ADUIProbeViewportSample7449.js.inc','ADPDPMainStream7451.js.inc',

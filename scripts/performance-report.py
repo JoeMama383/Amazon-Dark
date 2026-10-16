@@ -185,6 +185,20 @@ def theme_work_report(data):
         if (numeric(lag) or 0)>=100:
             lines.append('- Document %s: measured theme installs **%s**, worst event-loop lag **%s**. Install totals exclude deferred style/layout/paint and later callbacks.'%(web.get('documentId'),fmt(install),fmt(lag)))
     trials=[(doc.get('documentId'),trial) for doc in docs for trial in doc.get('styleTrials',[]) if isinstance(trial,dict)]
+    mode=int(data.get('startupIsolationMode') or 0)
+    if mode:
+        labels={1:'all intercepted theme CSS',2:'base Search/product CSS',3:'follow-up theme CSS'}
+        lines+=['','**Document-start isolation:** '+labels.get(mode,'unknown mode')+' withheld on newly loaded main Search/product documents. This is a counterfactual diagnostic, not normal themed-page performance. It does not remove native hooks or page scripts.']
+        eligible=[doc for doc in main if doc.get('isolationEligible') and doc.get('isolationStyles')]
+        if not eligible:lines.append('- **No eligible fresh document had CSS withheld. This capture cannot test the stylesheet hypothesis.** Navigate to fresh Search/product documents after arming.')
+        for doc in eligible:
+            lines.append('- Document %s: %d style elements intercepted, %s bytes withheld; %d restores, %d failures; retained theme rules at stop: %s; adopted sheets at stop: %s.'%(doc.get('documentId'),int(doc.get('isolationStyles',0)),format(int(doc.get('isolationBytes',0)),','),int(doc.get('isolationRestored',0)),int(doc.get('isolationFailures',0)),doc.get('isolationRulesAtStop','not recorded'),doc.get('isolationAdoptedAtStop','not recorded')))
+            if 'isolationRulesAtStop' not in doc or 'isolationAdoptedAtStop' not in doc:
+                lines.append('  - **Isolation completion unconfirmed:** final rule inventory was not recorded. Missing evidence is not zero residual CSS; do not interpret this as complete isolation or confirmed restoration.')
+            elif mode==1 and (doc.get('isolationFailures') or doc.get('isolationRulesAtStop',0) or doc.get('isolationAdoptedAtStop',0)):
+                lines.append('  - **Isolation incomplete:** residual styles/adopted sheets or restoration failures remain; do not interpret this as all theme CSS removed.')
+        late=sum(1 for doc in main if doc.get('isolationLate'))
+        if late:lines.append('- %d already-loaded documents were deliberately left unchanged.'%late)
     if data.get('styleExperiment'):
         lines+=['','**Style-cost experiment:** input/RAF gaps include deliberate forced recalculations and must not be compared with ordinary-use latency. The paired costs rank reapplication work; they do not prove which sheet caused the original stall.']
         if trials:

@@ -8,6 +8,8 @@
   var metrics=Object.create(null),order=[],slow=[],dropped=0,stopped=false,timer=0,deadlineTimer=0,dirty=false;
   var styleTrials=[],styleState=0,styleQueue=[],styleIndex=0,styleTimer=0,styleSpent=0;
   var styleMode=__STYLE_TRIALS__ && window.top===window;
+  // The helper exists only in an explicitly armed performance program.
+  var isolation=typeof ad7643StartupIsolation==='function'?ad7643StartupIsolation(__STARTUP_ISOLATION__,deadline):null;
   var started=performance.now(),documentId=Math.floor(Math.random()*1000000000);
   function begin(name){
     if(stopped||Date.now()>=deadline)return null;
@@ -80,17 +82,20 @@
     }}catch(_){}
     var path='';try{path=location.pathname||'';}catch(_){}
     var route=/^\/s(?:\/|$)/.test(path)?1:/^\/(?:dp(?:\/|$)|gp\/(?:product|aw\/d)\/)/.test(path)?2:0;
-    return {session:session,documentId:documentId,timeOriginMs:performance.timeOrigin||0,route:route,
+    var result={session:session,documentId:documentId,timeOriginMs:performance.timeOrigin||0,route:route,
       durationMs:performance.now()-started,themeSheets:sheets,themeRules:rules,unreadableSheets:unreadable,
       adoptedSheets:(document.adoptedStyleSheets||[]).length,dropped:dropped,
       styleMode:styleMode?1:0,styleState:styleState,stylePlanned:styleQueue.length,styleSpentMs:styleSpent,styleTrials:styleTrials,
       metrics:order.map(function(k){return metrics[k];}),slowCalls:slow};
+    if(isolation){var fields=isolation.snapshot();Object.keys(fields).forEach(function(k){result[k]=fields[k];});}
+    return result;
   }
   function publish(){var result=snapshot();dirty=false;try{window.webkit.messageHandlers.adThemeWork7637.postMessage(result);}catch(_){}return result;}
   function stop(){
     if(stopped)return snapshot();stopped=true;
     clearTimeout(timer);clearTimeout(deadlineTimer);clearTimeout(styleTimer);timer=0;
     if(styleMode&&!styleState)styleState=3;
+    if(isolation){var before=snapshot();isolation.restore(before.themeRules,before.adoptedSheets);}
     window.removeEventListener('pagehide',stop,true);
     window.removeEventListener('load',publish,true);
     window.removeEventListener('load',scheduleTrials,true);
@@ -99,6 +104,7 @@
     return result;
   }
   var api={session:session,stopped:false,begin:begin,end:end,run:run,snapshot:publish,stop:stop};
+  if(isolation&&isolation.style)api.style=isolation.style;
   window.__adThemeWork7637=api;
   window.addEventListener('load',publish,{capture:true,passive:true,once:true});
   window.addEventListener('pagehide',stop,{capture:true,passive:true,once:true});

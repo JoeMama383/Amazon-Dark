@@ -1,11 +1,11 @@
 #!/bin/sh
-# AmazonDark v7.642 universal UI probe helper.
+# AmazonDark v7.643 universal UI probe helper.
 # FULL: screenshot-triggered while Amazon stays foregrounded.
 # VIEWPORT: arm once, show the target in Amazon, then background Amazon once.
 # The app captures the last foreground scene at WillResignActive; export runs afterward.
 # FULL, VIEWPORT, and TRANSITION all export one current capture as plain .tar.
 set -eu
-VER=7.642
+VER=7.643
 # Use the package installed in Amazon, not an uninstalled checkout/helper version.
 # This is essential while a newer CI build has failed compilation: the older
 # installed tweak can still produce perfectly valid FULL/VIEWPORT captures.
@@ -27,7 +27,7 @@ fi
 NAME=AmazonDark-v$RUNTIME_VER
 ROOT=${AD_UI_ROOT:-/var/mobile}
 CONTAINERS=${AD_UI_CONTAINERS:-$ROOT/Containers/Data/Application}
-SHARED=${AD_UI_SHARED:-/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents}
+SHARED=${AD_UI_SHARED:-/private/var/mobile/Containers/Shared/AppGroup/9CA31931-B51F-4CBA-8A0E-8A9F62D94B33/Documents}
 TARGETS=$(mktemp)
 trap 'rm -f "$TARGETS"' EXIT HUP INT TERM
 

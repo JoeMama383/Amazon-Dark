@@ -11,7 +11,7 @@ function ad7640ScopeCSS(css) {
     '#gwm-Deck-btf', '.gwm-dashboard-container',
     '#a-page:has(#interests-ai-sticky-div):has(#product-grid)',
     'body:has(#interests-ai-sticky-div)',
-    // v7.642: full-page owners still present in the v7.640 Search/PDP capture.
+    // v7.643: full-page owners still present in the v7.640 Search/PDP capture.
     // Do not exclude shared overlays (ax-mbs, reviews, lists, shipping, maps).
     'section.your-orders-mobile-content-container.aok-relative.js-yo-container',
     '#typ-body-container', '#live-page-container-mobile',
@@ -96,7 +96,11 @@ function ad7642ReviewScope(css) {
         else body.removeAttribute('data-ad7642-reviews');
       }
     }
-    var observer = new MutationObserver(refresh);
+    var observer = new MutationObserver(function(records) {
+      var probe=window.__adThemeWork7637;
+      if(probe)return probe.run('s0/review-owner-mutation',refresh,this,arguments);
+      return refresh();
+    });
     observer.observe(document, {subtree: true, childList: true, attributes: true, attributeFilter: ['id']});
     window.__ad7642ReviewOwner = observer;
     refresh();
@@ -119,7 +123,10 @@ function ad7640Style(style) {
         style.textContent = '';
       } else {
         if (style.id === 'ad7593-review-business') css = ad7642ReviewScope(css);
-        style.textContent = ad7640ScopeCSS(css);
+        css = ad7640ScopeCSS(css);
+        var probe=window.__adThemeWork7637;
+        if(probe&&probe.style&&probe.style(style,css,function(){style.textContent=css;}))return;
+        style.textContent = css;
       }
     }
   };

@@ -1,11 +1,11 @@
 #!/bin/sh
 # One bounded foreground session. No screenshots, UI scrolling or historical bundles.
 set -eu
-VER=7.642
+VER=7.643
 CUR=${VER#7.}
 ROOT=${AD_UI_ROOT:-/var/mobile}
 CONTAINERS=${AD_UI_CONTAINERS:-$ROOT/Containers/Data/Application}
-SHARED=${AD_UI_SHARED:-/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents}
+SHARED=${AD_UI_SHARED:-/private/var/mobile/Containers/Shared/AppGroup/9CA31931-B51F-4CBA-8A0E-8A9F62D94B33/Documents}
 NAME=AmazonDark-v$VER-performance
 TARGETS=$(mktemp)
 STAGE=''
@@ -27,18 +27,24 @@ done
 [ -s "$TARGETS" ] || { echo 'Open Amazon once to create its probe receipt, then retry.' >&2; exit 1; }
 case "${1:-}" in
   arm)
-    case "${2:-}" in ''|styles) ;; *) echo 'Use arm or arm styles.' >&2; exit 1;; esac
+    case "${2:-}" in ''|styles|isolate-css|isolate-core|isolate-followups) ;; *) echo 'Use arm, arm styles, or arm isolate-css|isolate-core|isolate-followups.' >&2; exit 1;; esac
     installed=$(dpkg-query -W -f='${Version}' com.joemama383.amazondark 2>/dev/null || true)
     case "$installed" in "$VER"~*) ;; *) echo "Install/open v$VER first. Installed: $installed" >&2; exit 1;; esac
     while IFS= read -r d; do
       printf 'armed\n' > "$d/$NAME.state"
       date +%s > "$d/$NAME.arm"
-      [ "${2:-}" != styles ] || printf 'styles\n' >> "$d/$NAME.arm"
+      [ -z "${2:-}" ] || printf '%s\n' "$2" >> "$d/$NAME.arm"
       chmod 600 "$d/$NAME.arm"
     done < "$TARGETS"
     if [ "${2:-}" = styles ]; then
       echo 'Style-cost experiment: open ONE fresh slow menu and leave it still for 35 seconds. This deliberately forces bounded style recalculations; its input timings are not an ordinary-use benchmark.'
     fi
+    case "${2:-}" in isolate-*)
+      echo "Startup isolation ($2): navigate to a FRESH Search result, then a FRESH product page after returning to Amazon."
+      echo 'This is a diagnostic: selected AmazonDark CSS is temporarily withheld before first paint; some styling will be incomplete. Native theming and JavaScript remain enabled.'
+      echo 'No forced layout trials run. Background Amazon to finish; withheld styles are restored when the recorder stops. Export this capture separately from normal arm.'
+      ;;
+    esac
     echo "Armed v$VER performance capture. Return to Amazon and reproduce the lag for up to 90 seconds."
     echo 'Backgrounding ends the session early. Avoid UI/transition probes during this measurement.'
     ;;
@@ -59,5 +65,5 @@ case "${1:-}" in
     mv "$out.partial" "$out"; chmod 666 "$out" 2>/dev/null || true
     printf 'Exported one performance session: %s\n' "$out"
     ;;
-  *) echo 'Usage: sh scripts/performance-probe.sh arm [styles] | export' >&2; exit 1;;
+  *) echo 'Usage: sh scripts/performance-probe.sh arm [styles|isolate-css|isolate-core|isolate-followups] | export' >&2; exit 1;;
 esac
