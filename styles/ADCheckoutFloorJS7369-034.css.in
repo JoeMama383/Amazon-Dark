@@ -1,0 +1,1 @@
+#bolt-widget-amazon_us_checkout_generic_mobile :is(#hubOrderingByRecommendationFilterByMobileId,#hubOrderingByDistanceFilterByMobileId,#hubOrderingByFastestFilterByMobileId).a-button-selected{box-shadow:inset 0 0 0 2px #007185!important;}

@@ -1,0 +1,6 @@
+
+body:is(*,#wishlistAndFriendsLists) #wishlistAndFriendsLists img:not([class*=logo]):not([class*=icon]),
+body:has(.awl-list-view-page-container):has(#wl-item-view) #awl-list-items [id^=image_] img:not([class*=icon]){
+  filter:brightness(__FACTOR__)!important;-webkit-filter:brightness(__FACTOR__)!important;
+  mix-blend-mode:normal!important;opacity:1!important;
+}

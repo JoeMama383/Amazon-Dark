@@ -5,14 +5,14 @@ r=Path(__file__).resolve().parents[1]
 helper=(r/'src/ADRenderScope7640.js').read_text()
 assert ''.join(json.loads(x) for x in (r/'src/ADRenderScope7640.js.inc').read_text().splitlines())==helper
 t=(r/'src/Tweak.xm').read_text()
-for text in ['ad7640Style(s).textContent','NSRegularExpressionSearch','if(!ad7640HotRoute()&&start>=0', 'if(slot==0)program=', '#include "ADRenderScope7640.js.inc"']:
+for text in ['ad7640Style(s).textContent','NSRegularExpressionSearch','if(!ad7640HotRoute()&&start>=0',
+             '(slot==0?@".appendChild(ad7640RetainStyle(s))":@".appendChild(ad7644AppendStyle(s))")',
+             'withString:@".appendChild(ad7644AppendStyle(style))"', '#include "ADRenderScope7640.js.inc"']:
     assert text in t,text
 for forbidden in ['getComputedStyle','offsetHeight','querySelector','setTimeout','setInterval']:
     assert forbidden not in helper,forbidden
-# v7.642 adds one separately tested ID-only review owner observer. The source
-# filter and head-recovery lifecycle must still have no observer of their own.
-without_review = helper.split('function ad7642ReviewScope(css) {')[0] + helper.split('function ad7640Style(style) {')[1]
-assert 'MutationObserver' not in without_review
+# v7.644 restores declarative review ownership. No theme observer remains.
+assert 'MutationObserver' not in helper
 test=r'''
 const vm=require('vm'),assert=require('assert');
 function context(path,child=false){

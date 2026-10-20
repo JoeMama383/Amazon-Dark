@@ -1,0 +1,9 @@
+(function(){try{
+'use strict';
+var d=document,s=d.getElementById('ad7621-orders-recommendations-shipping');
+if(!s){s=d.createElement('style');s.id='ad7621-orders-recommendations-shipping';(d.head||d.documentElement).appendChild(s);}
+/* VIEWPORT v7.620 r2: actual dark-gray (rgb 24,26,27) is the
+   .a-carousel-container.p13n-sc-shoveler inside the Your Orders recommendations
+   widget.  Do NOT target the generic Home/PDP carousel family. */
+s.textContent=`@@AD_CSS:ADOrdersRecommendationsShipping7621-001.css.in@@`;
+}catch(_){}})();

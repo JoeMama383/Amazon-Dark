@@ -103,7 +103,7 @@ import hashlib
 from payload_source import strings,block
 baseline=json.loads((R/'tests/fixtures/theme_payloads_v7636.json').read_text())
 def digest(text):
- text=re.sub(r'7\.(636|637|638|639|640|641|642|643)', '7.VERSION', text)
+ text=re.sub(r'7\.(636|637|638|639|640|641|642|643|644)', '7.VERSION', text)
  return hashlib.sha256(text.encode()).hexdigest()
 for name,expected in baseline['functions'].items():
  current=strings(block(T,name))
@@ -122,14 +122,34 @@ for name,expected in baseline['functions'].items():
   assert keys in current
   current=current.replace(keys,'',1)
   assert digest(current)==expected,('changed existing payload',name)
+ elif name=='ADDealsPriceHistoryFollowupJS7574':
+  # Only the unrelated classifier is skipped on Search/PDP. Freeze every
+  # preceding CSS declaration and every remaining legacy instruction.
+  guard="if(typeof ad7640HotRoute==='function'&&ad7640HotRoute())return;"
+  assert current.count(guard)==1 and current.index(guard)<current.index('function rgba')
+  assert digest(current.replace(guard,'',1))==expected,('changed existing payload',name)
  else: assert digest(current)==expected,('changed existing payload',name)
+hot_route_exceptions={
+ 'ADKeepShopping7613.js.inc':[("// The captured section is in checkout/thank-you, never Search/PDP. These\n// routes keep the declarative owner rules but do not register a DOM scan.\nif(typeof ad7640HotRoute==='function' && ad7640HotRoute())return;\n",'')],
+ 'ADOrderAdsPrivacy7620.js.inc':[("  if(typeof ad7640HotRoute==='function' && ad7640HotRoute())return;\n",'')],
+ 'ADAccountMenus7634.js.inc':[("// Account-only shadow hosting must not patch browser prototypes or register\n// catch-up queries on Search/PDP. Static document rules above remain present.\nif(typeof ad7640HotRoute==='function' && ad7640HotRoute())return;\n",'')],
+ 'ADReviewBusiness7593.js.inc':[("if(typeof ad7640HotRoute==='function'&&ad7640HotRoute())return;\n",'')],
+ 'ADNewMenus7482.js.inc':[
+  ("function ad7591MedicalShadowPass(){if(typeof ad7640HotRoute==='function'&&ad7640HotRoute())return;",'function ad7591MedicalShadowPass(){'),
+  ("if(!(typeof ad7640HotRoute==='function'&&ad7640HotRoute())&&!d.__ad7596MedicalEvents)",'if(!d.__ad7596MedicalEvents)')]
+}
 for name,expected in baseline['includes'].items():
  current=(R/'src'/name).read_text()
+ code=''.join(json.loads(x) for x in current.splitlines())
  if name=='ADNewMenus7622.js.inc':
-  code=''.join(json.loads(x) for x in current.splitlines())
   code=code.replace('        // Lifecycle events are objects, not the explicit boolean opt-in.\n','').replace('if (fromInteraction !== true) {','if (!fromInteraction) {')
-  current=''.join(json.dumps(x)+'\n' for x in code.splitlines(True))
- assert digest(current)==expected,('changed existing include',name)
+ for new,old in hot_route_exceptions.get(name,[]):
+  assert code.count(new)==1,('missing exact hot-route guard',name,new)
+  code=code.replace(new,old,1)
+ # The source splitter preserves decoded JS bytes; JSON may spell a glyph as
+ # either UTF-8 or a Unicode escape. Both encodings execute the same payload.
+ encodings=[''.join(json.dumps(x,ensure_ascii=ascii_only)+'\n' for x in code.splitlines(True)) for ascii_only in (True,False)]
+ assert expected in [digest(x) for x in encodings],('changed existing include',name)
 # All listener call sites in the shipped programs use the supported receivers.
 main=block(T,'ADNewMenusJS7482')
 parts=[]
@@ -142,7 +162,7 @@ for code in parts:
  assert 'removeEventListener(' not in code
  for receiver in re.findall(r'([\w.]+)\.addEventListener\(',code):
   assert receiver in ('window','document','d','doc'),receiver
-print('PASS: all retained theme payloads and CSS unchanged; only the explicit feedback guard and frame-sheet ownership exceptions are permitted; wrapper call-site contract covers every production listener')
+print('PASS: all retained theme payloads and CSS unchanged; only exact feedback/hot-route guards and frame-sheet ownership exceptions permitted; wrapper contract covers every production listener')
 
 # Both standard and prefixed filters receive the same real formatter argument.
 order_line=next(x for x in T.splitlines() if 'orderMedia7620=[NSString stringWithFormat:' in x)

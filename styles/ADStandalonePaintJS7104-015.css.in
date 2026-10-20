@@ -1,0 +1,1 @@
+html[data-ad7104-standalone] [data-testid=simple-brand-logo-picture] img{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}

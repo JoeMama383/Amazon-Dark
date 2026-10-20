@@ -1,0 +1,62 @@
+(function () {
+  'use strict';
+  function install() {
+  try {
+    var doc = document, html = doc.documentElement;
+    if (!html) return;
+    var styleId = 'ad7622-alexa-feedback-article';
+    var s = doc.getElementById(styleId);
+    if (!s) {
+      s = doc.createElement('style');
+      s.id = styleId;
+      (doc.head || html).appendChild(s);
+    }
+    // The Alexa explanation is a separate Octopus editorial page in FULL r5,
+    // NOT the home ad raster. Keep all raster geometry and graphics unchanged.
+    s.textContent = `@@AD_CSS:ADNewMenus7622-001.css.in@@`;
+    var tameEnabled = __TAME__, tameFactor = '__FACTOR__';
+    if (tameEnabled) {
+      s.textContent += '#a-page>.a-container.octopus-page-style [class*="_Y29ud_bxcGridImage_"] img {filter:brightness('+tameFactor+')!important;-webkit-filter:brightness('+tameFactor+')!important;mix-blend-mode:normal!important;}';
+    }
+    function recognizeFeedback(fromInteraction) {
+      try {
+        // Do not synchronously layout an entire Search/PDP document at
+        // DOMContentLoaded or pageshow merely to identify an unrelated ad form.
+        // Lifecycle events are objects, not the explicit boolean opt-in.
+        // An actual ad-feedback click still invokes the original visible-text
+        // classifier so hidden Home templates cannot be mistaken for the form.
+        if (fromInteraction !== true) {
+          var path = (typeof location !== 'undefined' && location.pathname) || '';
+          if (path === '/s' || path.indexOf('/s/') === 0 ||
+              path === '/dp' || path.indexOf('/dp/') === 0 ||
+              path.indexOf('/gp/product/') === 0 || path.indexOf('/gp/aw/d/') === 0) return;
+        }
+        var txt = ((doc.body && doc.body.innerText) || '').toLowerCase();
+        // Own only the actively rendered advertising feedback form (r1),
+        // never its underlying Home product grid or sponsored raster.
+        if (txt.indexOf('leave feedback') >= 0 && txt.indexOf('this ad is') >= 0)
+          html.setAttribute('data-ad7622-feedback','1');
+        else html.removeAttribute('data-ad7622-feedback');
+      } catch (_) {}
+    }
+    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded',recognizeFeedback,{once:true});
+    else recognizeFeedback();
+    window.addEventListener('pageshow',recognizeFeedback,{once:true});
+    // User-triggered feedback is inserted after document load. Check only the
+    // exact click family and on completion of that interaction; never poll.
+    doc.addEventListener('click',function (e) {
+      try {
+        var t=e.target;
+        if (t && t.closest && t.closest('[id^="ad-feedback-"],[class*="ad-feedback-primary-link"],[id^="af-label-primary-link-"]')) {
+          setTimeout(function(){recognizeFeedback(true);},200);
+          setTimeout(function(){recognizeFeedback(true);},700);
+        }
+      } catch (_) {}
+    },true);
+  } catch (_) {}
+  }
+  // WebKit document-start occasionally precedes documentElement creation.
+  // Use exactly one DOMContentLoaded fallback, not a recurring observer.
+  if (document.documentElement) install();
+  else document.addEventListener('DOMContentLoaded',install,{once:true});
+})();

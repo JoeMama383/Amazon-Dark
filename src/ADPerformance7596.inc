@@ -20,7 +20,7 @@ static NSDictionary *ADPerfMetricJSON7596(ADPerfMetric7596 m){
 }
 static NSString *ADPerfPath7596(NSString *suffix){
     NSString *d=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES).firstObject;
-    return [d stringByAppendingPathComponent:[@"AmazonDark-v7.643-performance" stringByAppendingString:suffix]];
+    return [d stringByAppendingPathComponent:[@"AmazonDark-v7.644-performance" stringByAppendingString:suffix]];
 }
 // Keep diagnostics outside the app's page globals and bridge overrides.
 static WKContentWorld *ADPerfWorld7635(void){return [WKContentWorld worldWithName:@"AmazonDarkPerformance7635"];}
@@ -107,7 +107,7 @@ static ADPerformance7596 *gADPerformance7596=nil;
     [self.display addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
     self.timer=[NSTimer timerWithTimeInterval:90 target:self selector:@selector(expired:) userInfo:nil repeats:NO];
     [NSRunLoop.mainRunLoop addTimer:self.timer forMode:NSRunLoopCommonModes];
-    // v7.643: the asynchronous WKScriptMessageHandler may fail inside Amazon's
+    // v7.644: the asynchronous WKScriptMessageHandler may fail inside Amazon's
     // WebKit content world. While explicitly armed, pull existing JS counters at
     // 5-second intervals instead; no DOM traversal or production polling.
     self.webSampleTimer=[NSTimer timerWithTimeInterval:5 target:self selector:@selector(sampleWeb:) userInfo:nil repeats:YES];
@@ -214,7 +214,7 @@ static ADPerformance7596 *gADPerformance7596=nil;
 - (void)acceptThemeBody:(NSDictionary *)body main:(BOOL)main {
     if(self.writing||![body isKindOfClass:NSDictionary.class]||![body[@"session"] isEqual:self.session])return;
     NSMutableDictionary *safe=[NSMutableDictionary dictionary];safe[@"mainFrame"]=@(main);
-    for(NSString *key in @[@"documentId",@"timeOriginMs",@"route",@"durationMs",@"themeSheets",@"themeRules",@"unreadableSheets",@"adoptedSheets",@"dropped",@"styleMode",@"styleState",@"stylePlanned",@"styleSpentMs",@"isolationMode",@"isolationEligible",@"isolationLate",@"isolationStyles",@"isolationCalls",@"isolationBytes",@"isolationFailures",@"isolationRestored",@"isolationRestoreMs",@"isolationRulesAtStop",@"isolationAdoptedAtStop"]){
+    for(NSString *key in @[@"documentId",@"timeOriginMs",@"route",@"durationMs",@"themeSheets",@"themeRules",@"staticThemeSheets",@"unreadableSheets",@"adoptedSheets",@"dropped",@"styleMode",@"styleState",@"stylePlanned",@"styleSpentMs",@"isolationMode",@"isolationEligible",@"isolationLate",@"isolationStyles",@"isolationCalls",@"isolationBytes",@"isolationFailures",@"isolationRestored",@"isolationRestoreMs",@"isolationRulesAtStop",@"isolationAdoptedAtStop"]){
         id value=body[key];if([value isKindOfClass:NSNumber.class]&&isfinite([value doubleValue])&&[value doubleValue]>=0)safe[key]=value;
     }
     for(NSString *key in @[@"metrics",@"slowCalls",@"styleTrials"]){

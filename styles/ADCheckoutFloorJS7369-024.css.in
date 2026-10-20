@@ -1,0 +1,1 @@
+#checkoutDisplayPage [data-testid='selectFrameContentTestId'] [data-testid='heading']{outline:0!important;outline-color:transparent!important;box-shadow:none!important;}

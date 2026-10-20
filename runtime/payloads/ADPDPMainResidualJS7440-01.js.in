@@ -1,0 +1,1 @@
+(function(){try{if(window.top!==window)return;var d=document,s=d.getElementById('ad7440-pdp-main-residual');if(!s){s=d.createElement('style');s.id='ad7440-pdp-main-residual';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`@@AD_CSS:ADPDPMainResidualJS7440-001.css.in@@`;return 'ad7440-main-installed';}catch(e){return 'ad7440-main-error:'+String(e&&e.message||e);}})();

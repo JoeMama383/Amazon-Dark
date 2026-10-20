@@ -1,0 +1,11 @@
+(function(){try{
+var d=document,s=d.getElementById('ad7597-live-and-thankyou');
+if(!s){s=d.createElement('style');s.id='ad7597-live-and-thankyou';(d.head||d.documentElement||d).appendChild(s);}
+var css=`@@AD_CSS:ADLiveTheme7597-001.css.in@@`;
+if(s.textContent!==css)s.textContent=css;
+if(!d.getElementById('ad7597-live-logo-contrast')){
+ var svg=d.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('width','0');svg.setAttribute('height','0');svg.setAttribute('aria-hidden','true');svg.style.cssText='position:absolute;pointer-events:none';
+ svg.innerHTML='<defs><filter id="ad7597-live-logo-contrast" color-interpolation-filters="sRGB"><feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -1 0 0 0 0.8" result="dark"/><feComponentTransfer in="dark" result="mask"><feFuncA type="discrete" tableValues="0 1"/></feComponentTransfer><feComposite in="mask" in2="SourceAlpha" operator="in" result="whiteWord"/><feComposite in="SourceGraphic" in2="mask" operator="out" result="remainder"/><feMerge><feMergeNode in="remainder"/><feMergeNode in="whiteWord"/></feMerge></filter></defs>';
+ (d.body||d.documentElement).appendChild(svg);
+}
+}catch(_){}})();

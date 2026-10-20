@@ -1,0 +1,6 @@
+(function(){try{
+var d=document,s=d.getElementById('ad7596-order-confirmation');
+if(!s){s=d.createElement('style');s.id='ad7596-order-confirmation';(d.head||d.documentElement||d).appendChild(s);}
+var css=`@@AD_CSS:ADOrderConfirmation7596-001.css.in@@`;
+if(s.textContent!==css)s.textContent=css;
+}catch(_){}})();

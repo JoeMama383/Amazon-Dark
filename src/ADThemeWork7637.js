@@ -59,6 +59,13 @@
       // Adopted sheets are not in document.styleSheets. Only our known owned
       // references are inspected; never disable an Amazon-authored sheet.
       var adopted=document.adoptedStyleSheets||[];
+      var owned=window.__ad7644StaticSheets;
+      if(owned)owned.entries.forEach(function(entry){
+        var sh=entry.sheet;
+        if(adopted.indexOf(sh)>=0&&!sh.disabled){
+          try{styleQueue.push({sheet:sh,name:entry.id,rules:sh.cssRules.length});}catch(_){}
+        }
+      });
       [['__ad7554InterestsSheet','ad7554-interests-adopted'],
        ['__ad7440ForcedSheet','ad7440-frame-adopted'],
        ['__ad7454PDPAdSurvivor','ad7454-survivor-adopted']].forEach(function(pair){
@@ -80,11 +87,18 @@
       if(typeof id!=='string'||!/^ad[0-9-]/.test(id))continue;
       sheets++;try{rules+=sh.cssRules.length;}catch(_){unreadable++;}
     }}catch(_){}
+    // Constructed production sheets have no ownerNode and do not appear in
+    // document.styleSheets. Count only our explicit registry, never DOM nodes.
+    var staticSheets=window.__ad7644StaticSheets,staticCount=0;
+    if(staticSheets)staticSheets.entries.forEach(function(entry){
+      if((document.adoptedStyleSheets||[]).indexOf(entry.sheet)<0)return;
+      staticCount++;sheets++;try{rules+=entry.sheet.cssRules.length;}catch(_){unreadable++;}
+    });
     var path='';try{path=location.pathname||'';}catch(_){}
     var route=/^\/s(?:\/|$)/.test(path)?1:/^\/(?:dp(?:\/|$)|gp\/(?:product|aw\/d)\/)/.test(path)?2:0;
     var result={session:session,documentId:documentId,timeOriginMs:performance.timeOrigin||0,route:route,
       durationMs:performance.now()-started,themeSheets:sheets,themeRules:rules,unreadableSheets:unreadable,
-      adoptedSheets:(document.adoptedStyleSheets||[]).length,dropped:dropped,
+      adoptedSheets:(document.adoptedStyleSheets||[]).length,staticThemeSheets:staticCount,dropped:dropped,
       styleMode:styleMode?1:0,styleState:styleState,stylePlanned:styleQueue.length,styleSpentMs:styleSpent,styleTrials:styleTrials,
       metrics:order.map(function(k){return metrics[k];}),slowCalls:slow};
     if(isolation){var fields=isolation.snapshot();Object.keys(fields).forEach(function(k){result[k]=fields[k];});}
@@ -104,7 +118,7 @@
     return result;
   }
   var api={session:session,stopped:false,begin:begin,end:end,run:run,snapshot:publish,stop:stop};
-  if(isolation&&isolation.style)api.style=isolation.style;
+  if(isolation&&isolation.style){api.style=isolation.style;api.styleText=isolation.styleText;}
   window.__adThemeWork7637=api;
   window.addEventListener('load',publish,{capture:true,passive:true,once:true});
   window.addEventListener('pagehide',stop,{capture:true,passive:true,once:true});

@@ -1,0 +1,92 @@
+[
+  {
+    "route": "/s",
+    "comparedNodes": 60,
+    "states": [
+      "normal",
+      "focused"
+    ],
+    "fullCSSIdentical": false
+  },
+  {
+    "route": "/dp/FIXTURE",
+    "comparedNodes": 60,
+    "states": [
+      "normal",
+      "focused"
+    ],
+    "fullCSSIdentical": false
+  },
+  {
+    "route": "/",
+    "comparedNodes": 60,
+    "states": [
+      "normal",
+      "focused"
+    ],
+    "fullCSSIdentical": true
+  },
+  {
+    "route": "/interests",
+    "comparedNodes": 60,
+    "states": [
+      "normal",
+      "focused"
+    ],
+    "fullCSSIdentical": true
+  },
+  {
+    "route": "/live",
+    "comparedNodes": 60,
+    "states": [
+      "normal",
+      "focused"
+    ],
+    "fullCSSIdentical": true
+  },
+  {
+    "route": "/gp/cart/view.html",
+    "comparedNodes": 60,
+    "states": [
+      "normal",
+      "focused"
+    ],
+    "fullCSSIdentical": true
+  },
+  {
+    "route": "/gp/buy/thankyou/handlers/display.html",
+    "comparedNodes": 60,
+    "states": [
+      "normal",
+      "focused"
+    ],
+    "fullCSSIdentical": true
+  },
+  {
+    "route": "/gp/css/order-history",
+    "comparedNodes": 60,
+    "states": [
+      "normal",
+      "focused"
+    ],
+    "fullCSSIdentical": true
+  },
+  {
+    "route": "/gp/your-account/your-addresses",
+    "comparedNodes": 60,
+    "states": [
+      "normal",
+      "focused"
+    ],
+    "fullCSSIdentical": true
+  },
+  {
+    "route": "/gp/css/returns/homepage.html",
+    "comparedNodes": 60,
+    "states": [
+      "normal",
+      "focused"
+    ],
+    "fullCSSIdentical": true
+  }
+]

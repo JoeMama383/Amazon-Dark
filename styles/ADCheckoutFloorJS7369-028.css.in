@@ -1,0 +1,1 @@
+#checkoutDisplayPage div:has(+ iframe#maple-advertisement),#checkoutDisplayPage div:has(+ iframe#maple-advertisement)>div{background:#000!important;box-shadow:none!important;}

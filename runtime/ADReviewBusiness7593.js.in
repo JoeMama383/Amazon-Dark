@@ -1,0 +1,49 @@
+(function(){try{
+var d=document,s=d.getElementById('ad7593-review-business');
+if(!s){s=d.createElement('style');s.id='ad7593-review-business';(d.head||d.documentElement||d).appendChild(s);}
+var css=`@@AD_CSS:ADReviewBusiness7593-001.css.in@@`;
+if(__AD7593_ENABLED__){css+=`@@AD_CSS:ADReviewBusiness7593-002.css.in@@`;}
+// Review photo tiles are authored as CSS background images on their
+// .review-image-thumbnail buttons (no child <img>). Earlier v7.593
+// background-image:none!important and v7.594 background:transparent!important
+// erased them. Both neutralizers above now spare authored background-image.
+// Multiply once using the configured tame factor, without an overlay or geometry edit.
+var ad7593MediaTone=Math.round(Math.max(0,Math.min(1,__AD7593_FACTOR__))*255);
+css+=`@@AD_CSS:ADReviewBusiness7593-003.css.in@@`;
+s.textContent=css;
+if(typeof ad7640HotRoute==='function'&&ad7640HotRoute())return;
+// One finite page-owned paint pass for otherwise unknown credit-card white panels.
+// Evaluate existing authored colors, never replace branded blue/orange surfaces.
+function ad7593BusinessNeutralPass(){try{
+ if(d.documentElement.getAttribute('data-ad7593-business-card')!=='1'||!d.body)return;
+ var els=d.body.querySelectorAll('main,section,article,div,p,h1,h2,h3,h4,h5,h6,span,label');
+ for(var i=0;i<els.length&&i<650;i++){
+  var el=els[i],cs=window.getComputedStyle(el);if(!cs)continue;
+  var bg=/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([0-9.]+))?/.exec(cs.backgroundColor||'');
+  if(bg&&(!bg[4]||+bg[4]>.90)&&+bg[1]>210&&+bg[2]>210&&+bg[3]>210&&Math.max(+bg[1],+bg[2],+bg[3])-Math.min(+bg[1],+bg[2],+bg[3])<25){
+   el.style.setProperty('background-color','#000','important');
+  }
+  if(!el.closest('a,button,[role=button],[class*=prime],[class*=Prime],[class*=logo],[class*=Logo],[class*=star],[class*=rating],[class*=badge],[class*=price],[class*=Price]')){
+   var fg=/rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(cs.color||'');
+   if(fg&&Math.max(+fg[1],+fg[2],+fg[3])<70&&Math.max(+fg[1],+fg[2],+fg[3])-Math.min(+fg[1],+fg[2],+fg[3])<20){
+    el.style.setProperty('color','#fff','important');el.style.setProperty('-webkit-text-fill-color','#fff','important');
+   }
+  }
+ }
+}catch(_){}}
+function ad7593BusinessOwner(){try{
+ if(!d.body||d.querySelector('#dp,#checkoutDisplayPage,#sc-page-container'))return;
+ if(d.documentElement.getAttribute('data-ad7593-business-card')==='1')return;
+ var heads=d.querySelectorAll('h1,h2,h3,h4,[class*=heading],[class*=title]');var seen='';
+ for(var i=0;i<heads.length&&i<24;i++){seen+=' '+String(heads[i].textContent||'').slice(0,180);}
+ if(!/Prime\s*Business\s*Card/i.test(seen)){
+  var excerpt=(d.body.textContent||'').slice(0,11000);seen=excerpt;
+ }
+ if(/Prime\s*Business\s*Card/i.test(seen)&&/(Amazon\s*Gift\s*Card|upon\s*approval|annual\s*credit\s*card\s*fee)/i.test((d.body.textContent||'').slice(0,11000))){d.documentElement.setAttribute('data-ad7593-business-card','1');ad7593BusinessNeutralPass();}
+}catch(_){}}
+ad7593BusinessOwner();
+if(!d.__ad7596BusinessEvents){d.__ad7596BusinessEvents=true;
+if(d.addEventListener)d.addEventListener('DOMContentLoaded',ad7593BusinessOwner,{once:true});
+if(window.addEventListener){window.addEventListener('load',ad7593BusinessOwner,{once:true});window.addEventListener('pageshow',ad7593BusinessOwner,{once:true});}
+}
+}catch(_){}})();

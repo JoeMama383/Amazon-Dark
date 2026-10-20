@@ -64,6 +64,7 @@ done
 auto_cleanup=''
 py_count=0
 if command -v python3 >/dev/null 2>&1; then
+  python3 scripts/build-style-sources.py --check
   test_tmp="$ROOT/.ad-regressions.$$"
   rm -rf "$test_tmp"
   mkdir -p "$test_tmp"

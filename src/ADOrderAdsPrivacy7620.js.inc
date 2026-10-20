@@ -111,6 +111,7 @@
 "  // Native r2 has #mobileDataDeleteButton and #mobileAdPreferenceButton but no\n"
 "  // a.back-button: use those exact owners. r5/r6 have a.back-button and a\n"
 "  // page-specific expander/radio layout. No foreground scans or polling.\n"
+"  if(typeof ad7640HotRoute==='function' && ad7640HotRoute())return;\n"
 "  function owner(){\n"
 "    try{\n"
 "      var page=doc.getElementById('a-page');\n"

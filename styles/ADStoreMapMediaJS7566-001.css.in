@@ -1,0 +1,1 @@
+#aplf-map-container-mobile{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}#aplf-map-container-mobile .mapboxgl-canvas,#aplf-map-container-mobile img{filter:none!important;-webkit-filter:none!important;box-shadow:none!important;}

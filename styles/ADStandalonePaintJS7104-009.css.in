@@ -1,0 +1,1 @@
+html[data-ad7104-standalone] #dynamic-bb [data-acei-id=prc] > :is(#symbolOne,#price-integer,#price-fraction){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}html[data-ad7104-standalone] #dynamic-bb [data-acei-id=sns-disc]{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}

@@ -1,0 +1,1 @@
+#sc-page-container #p13n-uf-anchor li.a-carousel-card{background:#000!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card:not(.a-carousel-card-empty):not(:has(.p13n-uf))>*{background:#303335!important;box-shadow:none!important;transition:none!important;}

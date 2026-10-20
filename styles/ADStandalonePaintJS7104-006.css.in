@@ -1,0 +1,1 @@
+html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid=message-container],html[data-ad7104-standalone] #dynamic-bb [data-testid=deal-badge] > div[style*=\"background-color: rgb(255, 255, 255)\"]{background-color:transparent!important;box-shadow:none!important;}

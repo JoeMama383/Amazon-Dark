@@ -1,0 +1,43 @@
+(function(){try{
+var d=document,s=d.getElementById('ad7482-new-menus');
+if(!s){s=d.createElement('style');s.id='ad7482-new-menus';(d.head||d.documentElement||d).appendChild(s);}
+s.textContent=`@@AD_CSS:ADNewMenus7482-001.css.in@@`;
+// v7.594: arc-button renders the CID sign-in control inside a shadow root, so document CSS cannot reach its white native button.
+function ad7585WarblerShadow(){try{
+var h=d.querySelector('#warblerApplicationRoot arc-button[data-testid=wfe-sidebar-cid-signin-btn]'),r=h&&h.shadowRoot;if(!r)return;
+var q=r.querySelector('#ad7585-sidebar-cid-style');if(!q){q=d.createElement('style');q.id='ad7585-sidebar-cid-style';q.textContent='@@AD_CSS:ADNewMenus7482-002.css.in@@';r.appendChild(q);}
+}catch(_){}}
+/* v7.644: PUI bottom sheets are Shadow DOM. The universal probe crosses shadow ancestry, but document CSS cannot. Inject only into the two probe-proven One Medical hosts. */
+function ad7591ShadowStyle(r,id,css){try{if(!r)return;var q=r.querySelector('#'+id);if(!q){q=d.createElement('style');q.id=id;q.textContent=css;r.appendChild(q);}}catch(_){}}
+function ad7591MedicalSheetShadows(){try{
+var ids=['glowModal','links-bottomsheet'];for(var i=0;i<ids.length;i++){var id=ids[i],h=d.querySelector('pui-bottom-sheet#'+id),r=h&&h.shadowRoot;if(!r)continue;
+var base='@@AD_CSS:ADNewMenus7482-003.css.in@@';
+if(id==='glowModal')base+='@@AD_CSS:ADNewMenus7482-004.css.in@@';
+else base+='@@AD_CSS:ADNewMenus7482-005.css.in@@';
+ad7591ShadowStyle(r,'ad7591-'+id+'-oled',base);
+if(id==='links-bottomsheet'){var icon=r.querySelector('#mobile-kyanite-logo pui-icon');var ir=icon&&icon.shadowRoot;if(ir)ad7591ShadowStyle(ir,'ad7591-medical-logo','@@AD_CSS:ADNewMenus7482-006.css.in@@');}
+}
+}catch(_){}}
+function ad7591AccountConfirmShadows(){try{var page=d.querySelector('pui-section.content-container');if(!page)return;var hosts=[page],seen=0,visited=new WeakSet();while(hosts.length&&seen<80){var h=hosts.shift();if(!h||visited.has(h))continue;visited.add(h);seen++;var r=h.shadowRoot;if(r){var tag=(h.tagName||'').toLowerCase(),css=tag==='pui-button'?'@@AD_CSS:ADNewMenus7482-007.css.in@@':'@@AD_CSS:ADNewMenus7482-008.css.in@@';ad7591ShadowStyle(r,'ad7591-account-oled',css);var q=r.querySelectorAll('pui-section,pui-button');for(var i=0;i<q.length&&hosts.length<80;i++)hosts.push(q[i]);}var l=h&&h.querySelectorAll?h.querySelectorAll('pui-section,pui-button'):[];for(var j=0;j<l.length&&hosts.length<80;j++)hosts.push(l[j]);}}catch(_){}}
+function ad7591MedicalShadowPass(){if(typeof ad7640HotRoute==='function'&&ad7640HotRoute())return;ad7585WarblerShadow();ad7591MedicalSheetShadows();ad7591AccountConfirmShadows();}
+ad7591MedicalShadowPass();
+if(!(typeof ad7640HotRoute==='function'&&ad7640HotRoute())&&!d.__ad7596MedicalEvents){d.__ad7596MedicalEvents=true;
+if(d.addEventListener){var ad7591Evt=function(e){try{var t=e&&e.target;if(!t)return;var medical=t.closest&&t.closest('#main-content,#warblerApplicationRoot,pui-section.content-container,pui-bottom-sheet');if(medical&&!d.__ad7596MedicalPending){d.__ad7596MedicalPending=true;Promise.resolve().then(function(){d.__ad7596MedicalPending=false;ad7591MedicalShadowPass();});}}catch(_){}};d.addEventListener('click',ad7591Evt,false);d.addEventListener('focusin',ad7591Evt,false);d.addEventListener('transitionend',ad7591Evt,false);d.addEventListener('animationend',ad7591Evt,false);d.addEventListener('DOMContentLoaded',ad7591MedicalShadowPass,{once:true});}
+if(window.addEventListener)window.addEventListener('load',ad7591MedicalShadowPass,{once:true});
+/* Finite upgrade completion: initial delivery may precede custom-element registration. */
+try{if(window.customElements&&window.customElements.whenDefined){['arc-button','pui-bottom-sheet'].forEach(function(tag){window.customElements.whenDefined(tag).then(ad7591MedicalShadowPass);});}}catch(_){}
+}
+// Interests uses the accepted rules in a document-owned sheet, independent of head hydration.
+try{
+var css=s.textContent,start=css.indexOf('/* v7.527 FULL r1:'),end=css.indexOf('/* v7.553 FULL r3 exact-owner search Filters',start);
+if(start>=0&&end>start&&window.CSSStyleSheet&&'adoptedStyleSheets' in d){
+var key='__ad7554InterestsSheet',sheet=window[key];
+if(!sheet){sheet=new CSSStyleSheet();window[key]=sheet;}
+var interestCSS=css.slice(start,end);
+// Header may hydrate before the product grid; scope remains the exact Interests owner.
+interestCSS=interestCSS.split('#a-page:has(#interests-ai-sticky-div):has(#product-grid)').join('body:has(#interests-ai-sticky-div)');
+sheet.replaceSync(interestCSS);
+var sheets=d.adoptedStyleSheets||[];if(sheets.indexOf(sheet)<0)d.adoptedStyleSheets=sheets.concat([sheet]);
+}
+}catch(_){}
+}catch(_){}})();

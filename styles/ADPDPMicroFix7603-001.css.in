@@ -1,0 +1,9 @@
+;(d.head||d.documentElement||d).appendChild(s);}
+var css=`
+/* v7.603: two captured PDP viewport scenes. Recolor the exact neutral text,
+   not the authored sustainability leaf image or the parent badge. */
+#dp #climatePledgeFriendlyATF_feature_div #climatePledgeFriendlyBadge .climatePledgeFriendlyProgramName.badgeTreatmentT1,
+#dp #climatePledgeFriendlyATF_feature_div #climatePledgeFriendlyBadge .climatePledgeFriendlyProgramName.badgeTreatmentT1 *{
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+/* Subscribe nudge

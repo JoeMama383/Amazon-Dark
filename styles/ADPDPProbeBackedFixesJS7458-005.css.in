@@ -1,0 +1,1 @@
+section#pop.layout__background:has(.item-view__qty-large) .item-view__inner-col>a.a-link-normal>img:not(.connection-share-icon){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;opacity:1!important;}

@@ -1,0 +1,5 @@
+body:is(*,#mobile-product-reviews) #mobile-product-reviews .reviews-mobile-image-tiles button.review-image-thumbnail,
+body:is(*,#cruise-customer-reviews) #cruise-customer-reviews .reviews-mobile-image-tiles button.review-image-thumbnail{
+ background-color:rgb(${ad7593MediaTone},${ad7593MediaTone},${ad7593MediaTone})!important;
+ background-blend-mode:multiply!important;
+}

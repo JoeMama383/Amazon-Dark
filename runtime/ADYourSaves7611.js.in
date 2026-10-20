@@ -1,0 +1,8 @@
+(function(){try{
+var d=document,s=d.getElementById('ad7611-your-saves');
+if(!s){s=d.createElement('style');s.id='ad7611-your-saves';(d.head||d.documentElement).appendChild(s);}
+/* r8 VIEWPORT: actual post-update Lists and Registries + Your Saves DOM.
+   Only activate when BOTH owners exist; no scan or runtime mutation. */
+s.textContent=`@@AD_CSS:ADYourSaves7611-001.css.in@@`;
+if(__TAME__){s.textContent+=`@@AD_CSS:ADYourSaves7611-002.css.in@@`;}
+}catch(_){}})();

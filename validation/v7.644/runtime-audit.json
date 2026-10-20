@@ -1,0 +1,34 @@
+[
+  {
+    "route": "/s",
+    "counts": {
+      "querySelectorAll": 0,
+      "querySelector": 0,
+      "allElements": 0,
+      "layout": 0,
+      "computed": 0,
+      "innerText": 0,
+      "observer": 0,
+      "liveStyles": 0
+    },
+    "shadowUnchanged": true,
+    "adopted": 34,
+    "entries": 41
+  },
+  {
+    "route": "/dp/FIXTURE",
+    "counts": {
+      "querySelectorAll": 0,
+      "querySelector": 0,
+      "allElements": 0,
+      "layout": 0,
+      "computed": 0,
+      "innerText": 0,
+      "observer": 0,
+      "liveStyles": 0
+    },
+    "shadowUnchanged": true,
+    "adopted": 38,
+    "entries": 45
+  }
+]

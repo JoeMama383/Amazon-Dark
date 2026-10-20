@@ -1,0 +1,1 @@
+#search#search [id^=ape_search_][id$=_placement][style*='414 / 125']:not(.is-image-oo){border:1px solid #3b4043!important;border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;box-sizing:border-box!important;}

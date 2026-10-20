@@ -55,20 +55,26 @@ with tempfile.TemporaryDirectory() as td:
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     rows,groups=module.analyze(R)
     prod=groups['production / combined']
-    # v7.642 explicitly budgets one ID-only review ownership observer, replacing
-    # repeated relational CSS checks. It is not a DOM scanner; do not hide it
-    # from the production census or permit any additional observer.
-    assert prod['MutationObserver']==1 and prod['setInterval']==0 and prod['requestAnimationFrame']==0 and prod['TreeWalker']==0,prod
-    review=(R/'src/ADRenderScope7640.js').read_text().split('function ad7642ReviewScope(css) {')[1].split('function ad7640Style(style) {')[0]
-    assert review.count('new MutationObserver(')==1
-    for banned in ('querySelector', 'getComputedStyle', 'offsetHeight', 'setTimeout', 'setInterval', 'requestAnimationFrame'):
-        assert banned not in review
+    # Production observer budget is zero again. Include every runtime module.
+    assert prod['MutationObserver']==0 and prod['setInterval']==0 and prod['requestAnimationFrame']==0 and prod['TreeWalker']==0,prod
+    helper=(R/'src/ADRenderScope7640.js').read_text()
+    for banned in ('querySelector', 'getComputedStyle', 'offsetHeight', 'setTimeout', 'setInterval', 'requestAnimationFrame', 'MutationObserver'):
+        assert banned not in helper
     assert prod['scroll-listener']==0,prod
     # v7.634: one reviewed, once-only catch-up under customer-corner-root.
     books=(R/'src/ADAccountMenus7634.js').read_text()
     assert books.count('querySelectorAll(')==1 and "getElementById('customer-corner-root')" in books
     assert 'count<256' in books and "'DOMContentLoaded',existing,{once:true}" in books
     assert prod['querySelectorAll']<=9,(prod['querySelectorAll'], 'new production DOM scanner requires review')
+    assert any(name=='ADSponsored.m' for name,*_ in rows)
+    native=groups['native combined (production + diagnostic hooks)']
+    for name in ('MutationObserver','setInterval','requestAnimationFrame','TreeWalker','scroll-listener'):
+        assert prod[name]+native[name]==0,(name,prod[name],native[name])
+    # Report and cap the older inspection APIs as well; searching only for
+    # querySelectorAll previously omitted broad tag walks and innerText layout.
+    budgets={'querySelector':21,'getElementsByTagName':7,'getComputedStyle':12,
+             'getBoundingClientRect':5,'innerText':1,'attachShadow-hook':1}
+    for name,budget in budgets.items():assert prod[name]+native[name]<=budget,(name,prod[name],native[name])
     assert groups['opt-in diagnostics']['MutationObserver']>=1  # FULL/transition probe retained
     assert groups['opt-in diagnostics']['requestAnimationFrame']>=1  # performance diagnostic retained
     assert not any('picture img' in (R/'src'/n).read_text() for n in ('ADKeepShopping7613.js', 'ADKeepShopping7613.js.inc'))

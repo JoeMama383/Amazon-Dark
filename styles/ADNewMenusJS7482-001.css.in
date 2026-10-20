@@ -1,0 +1,1 @@
+#a-page .od-modernized .od-container :is(.od-product-image,.od-modernized-item-image-container,.od-active-delivery__image-container-image) img:not([class*=icon]):not([class*=sprite]){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;}

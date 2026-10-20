@@ -1,0 +1,1 @@
+ :is(.a-color-secondary,.a-color-tertiary,.a-color-base,.a-text-normal,[class*="viewed" i],[class*="subtitle" i],[class*="count" i]){color:#fff!important;-webkit-text-fill-color:#fff!important;}

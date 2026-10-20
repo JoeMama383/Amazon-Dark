@@ -1,0 +1,1 @@
+html[data-ad7104-standalone] .video-js .vjs-poster[style*=background-image],html[data-ad7104-standalone] .vjs-poster.vjs-poster[style*=background-image]{box-shadow:none!important;filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;transition:none!important;}

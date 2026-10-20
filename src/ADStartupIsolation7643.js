@@ -33,9 +33,16 @@ function ad7643StartupIsolation(mode, deadline) {
       (document.head||document.documentElement).appendChild(floor);
     }
     calls++;
-    if(index<0){index=entries.length;entries.push({node:style,apply:apply,bytes:css.length});bytes+=css.length;}
-    else {bytes+=css.length-entries[index].bytes;entries[index].apply=apply;entries[index].bytes=css.length;}
+    if(index<0){index=entries.length;entries.push({node:style,apply:apply,css:css,bytes:css.length});bytes+=css.length;}
+    else {bytes+=css.length-entries[index].bytes;entries[index].apply=apply;entries[index].css=css;entries[index].bytes=css.length;}
     style.textContent='';return true;
+  }
+  // Preserve read-modify-write (textContent += ...) while the physical STYLE
+  // is empty. Otherwise only the appended suffix survives restoration.
+  function styleText(style) {
+    if(closed)return null;
+    for(var i=0;i<entries.length;i++)if(entries[i].node===style)return entries[i].css;
+    return null;
   }
   function snapshot() {
     return {isolationMode:mode,isolationEligible:active?1:0,isolationLate:late,
@@ -49,10 +56,10 @@ function ad7643StartupIsolation(mode, deadline) {
     var start=performance.now();
     for(var i=0;i<entries.length;i++) {
       try { entries[i].apply();restored++; } catch (_) {failures++;}
-      entries[i].apply=null;entries[i].node=null;
+      entries[i].apply=null;entries[i].node=null;entries[i].css=null;
     }
     if(floor){floor.remove();floor=null;}
     restoreMs=performance.now()-start;
   }
-  return {style:active?intercept:null,snapshot:snapshot,restore:restore};
+  return {style:active?intercept:null,styleText:styleText,snapshot:snapshot,restore:restore};
 }

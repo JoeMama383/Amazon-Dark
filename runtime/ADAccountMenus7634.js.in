@@ -1,0 +1,35 @@
+(function(){'use strict';try{
+var d=document,id='ad7634-account-menus';
+if(d.getElementById(id))return;
+var s=d.createElement('style');s.id=id;s.textContent="@@AD_CSS:ADAccountMenus7634-001.css.in@@";
+if(__TAME__)s.textContent+=`@@AD_CSS:ADAccountMenus7634-002.css.in@@`;
+(d.head||d.documentElement).appendChild(s);
+// Account-only shadow hosting must not patch browser prototypes or register
+// catch-up queries on Search/PDP. Static document rules above remain present.
+if(typeof ad7640HotRoute==='function' && ad7640HotRoute())return;
+// Your Books components are nested shadow trees. Their authored lifecycle creates
+// these roots; attach a shared, immutable stylesheet at creation, no polling or
+// page-wide mutation observer. Unrelated custom elements take only the tag check.
+var tags=new Set(['BDS-BOOK-COVER-IMAGE','BDS-BOOK-FORMAT','BDS-BOOK-PRICE','BDS-BUTTON','BDS-CAROUSEL','BDS-CAROUSEL-ITEM','BDS-ICON','BDS-STAR-RATING','BDS-TABS','BDS-UNIFIED-BOOK-FACEOUT','TAG-PILL']);
+var shadowCSS=`@@AD_CSS:ADAccountMenus7634-003.css.in@@`+(__TAME__?`@@AD_CSS:ADAccountMenus7634-004.css.in@@`:'');
+var sheet=null;
+try{sheet=new CSSStyleSheet();sheet.replaceSync(shadowCSS);}catch(_){sheet=null;}
+function paint(root){try{
+ if(!root)return;
+ if(sheet&&'adoptedStyleSheets' in root){if(root.adoptedStyleSheets.indexOf(sheet)<0)root.adoptedStyleSheets=root.adoptedStyleSheets.concat([sheet]);}
+ else if(!root.getElementById('ad7634-books-shadow')){var t=d.createElement('style');t.id='ad7634-books-shadow';t.textContent=shadowCSS;root.appendChild(t);}
+}catch(_){}}
+if(!window.__ad7634ShadowInstalled&&window.Element&&Element.prototype.attachShadow){
+ var original=Element.prototype.attachShadow;
+ Element.prototype.attachShadow=function(){var root=original.apply(this,arguments);if(tags.has(this.tagName))paint(root);return root;};
+ window.__ad7634ShadowInstalled=true;
+}
+// A late reinjection may find existing roots. Search exact component tags only
+// within the captured Your Books root, at most once after document readiness.
+function existing(){try{
+ var owner=d.getElementById('customer-corner-root');if(!owner)return;
+ var queue=[owner],selector=Array.from(tags).join(','),count=0;
+ while(queue.length&&count<256){var root=queue.shift(),hosts=root.querySelectorAll(selector);for(var i=0;i<hosts.length&&count<256;i++,count++){if(hosts[i].shadowRoot){paint(hosts[i].shadowRoot);queue.push(hosts[i].shadowRoot);}}}
+}catch(_){}}
+if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',existing,{once:true});else existing();
+}catch(_){}})();

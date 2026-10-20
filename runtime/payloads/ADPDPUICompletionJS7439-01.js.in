@@ -1,0 +1,1 @@
+(function(){try{if(window.top!==window)return;var d=document,s=d.getElementById('ad7439-pdp-ui-completion');if(!s){s=d.createElement('style');s.id='ad7439-pdp-ui-completion';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`@@AD_CSS:ADPDPUICompletionJS7439-001.css.in@@`;}catch(_){}})();

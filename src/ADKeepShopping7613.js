@@ -16,6 +16,9 @@ css+=owners+' :is(img,canvas){visibility:visible!important;opacity:1!important;m
 css+=owners+' :is([class*="image-container" i],[class*="image-wrapper" i],[class*="imageContainer"],[class*="imageWrapper"],[class*="thumbnail-container" i]){background-color:transparent!important;}';
 css+=owners+' :is([style*="background-image" i],[data-background-image],[class*="background-image" i]):not(:has(img,p,span,a,h1,h2,h3,h4)){visibility:visible!important;opacity:1!important;mix-blend-mode:normal!important;filter:'+tone+'!important;-webkit-filter:'+tone+'!important;}';
 s.textContent=css;
+// The captured section is in checkout/thank-you, never Search/PDP. These
+// routes keep the declarative owner rules but do not register a DOM scan.
+if(typeof ad7640HotRoute==='function' && ad7640HotRoute())return;
 var finished=false;
 function markKeepShopping(){
  if(finished)return;

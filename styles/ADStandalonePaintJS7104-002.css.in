@@ -1,0 +1,1 @@
+html[data-ad7104-standalone]:not([data-ad7144-full-raster-frame]) [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],html[data-ad7104-standalone]:not([data-ad7144-full-raster-frame]) [data-testid=ad-background-container]{border-color:#3b4043!important;outline-color:#3b4043!important;}

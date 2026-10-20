@@ -1,0 +1,9 @@
+
+:host{color:#fff;color-scheme:dark;}
+.tabs-container,.tab:not(.selected),.tag,.tagContent,.tagText,.base,.unified-book-faceout,.ubf-metadata,.format-container,.price,.amount,.price-field,.offscreen,.starRating,.rating{color:#fff!important;-webkit-text-fill-color:currentColor!important;}
+button,.base,.tag{background-color:#000!important;background-image:none!important;box-shadow:none!important;}
+:is(button,.base,.tag):not(.selected):not([aria-selected=true]):not([aria-checked=true]){border-color:#747a7c!important;}
+button :is(span,div),.tagContent,.tagText{color:#fff!important;-webkit-text-fill-color:currentColor!important;}
+.tab[aria-selected=true],.tag[aria-checked=true],.selected{background-color:#303335!important;}
+.format,.numberOfReviews,.basis-price,.basis-price-label,.basis-price-display-string,.price-to-pay-message{color:#b1b5b5!important;-webkit-text-fill-color:currentColor!important;}
+:host(bds-icon) img,:host(bds-button) button>span>img,.tagContent>img{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}

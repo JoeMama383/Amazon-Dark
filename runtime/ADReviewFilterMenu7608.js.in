@@ -1,0 +1,10 @@
+(function(){try{
+var d=document,s=d.getElementById('ad7608-review-filter-menu');
+if(!s){s=d.createElement('style');s.id='ad7608-review-filter-menu';(d.head||d.documentElement).appendChild(s);}
+/* v7.605 FULL r4 identified the reviews filter secondary-view popover.
+   Floors were already OLED. Remaining issue: neutral button surfaces stayed
+   stock white/yellow. Recolor only the existing Clear All, Apply and exact
+   filter option owners to neutral dark-mode button treatments, while leaving
+   the existing checkbox/radio sprites and geometry intact. */
+s.textContent=`@@AD_CSS:ADReviewFilterMenu7608-001.css.in@@`;
+}catch(_){}})();

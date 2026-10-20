@@ -1,0 +1,1 @@
+#checkoutDisplayPage #percolate-upsell-widget [class*='_bannerBlue_']{background:#000!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#checkoutDisplayPage #percolate-upsell-widget [class*='_bannerBlue_'] :is(p,span,b,strong){color:#fff!important;-webkit-text-fill-color:#fff!important;}

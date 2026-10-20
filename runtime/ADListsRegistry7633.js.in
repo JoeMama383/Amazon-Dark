@@ -1,0 +1,8 @@
+/* v7.638: probe-owned Lists/Registry, Your Saves, list-details, modal sheets and
+ * independently exported OMG list. Declarative CSS, zero document walking. */
+(function(){try{
+  var d=document, s=d.getElementById('ad7633-lists-registry');
+  if(!s){s=d.createElement('style');s.id='ad7633-lists-registry';(d.head||d.documentElement).appendChild(s);}
+  s.textContent=`@@AD_CSS:ADListsRegistry7633-001.css.in@@`;
+  if(__TAME__){s.textContent+=`@@AD_CSS:ADListsRegistry7633-002.css.in@@`;}
+}catch(_){}})();

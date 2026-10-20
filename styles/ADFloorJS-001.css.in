@@ -1,0 +1,1 @@
+[role=switch] [data-testid=outline-outer],[role=switch] [data-testid=outline-inner]{border:0!important;border-color:transparent!important;outline:0!important;outline-color:transparent!important;box-shadow:none!important;}

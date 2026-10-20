@@ -166,7 +166,9 @@ def theme_work_report(data):
         return lines+['- **No theme execution reports.** Already-loaded documents cannot report earlier startup work; navigate to a fresh page after arming.']
     main=[x for x in docs if x.get('mainFrame')];child=[x for x in docs if not x.get('mainFrame')]
     lines.append('- Theme-work coverage: **%d main documents**, **%d child documents**.'%(len(main),len(child)))
-    lines.append('- Largest main-document sheet inventory: **%d theme style elements**, **%d top-level rules**, **%d adopted sheets**. Counts do not measure matching/rendering cost.'%(max([int(x.get('themeSheets',0)) for x in main]+[0]),max([int(x.get('themeRules',0)) for x in main]+[0]),max([int(x.get('adoptedSheets',0)) for x in main]+[0])))
+    lines.append('- Largest main-document sheet inventory: **%d owned theme sheets**, **%d top-level rules**, **%d adopted sheets**. Counts include constructed theme sheets and do not measure matching/rendering cost. In isolation mode the final inventory is taken after restoration; use residual-at-stop values below for the withheld state.'%(max([int(x.get('themeSheets',0)) for x in main]+[0]),max([int(x.get('themeRules',0)) for x in main]+[0]),max([int(x.get('adoptedSheets',0)) for x in main]+[0])))
+    if any('staticThemeSheets' in x for x in main):
+        lines.append('- Largest constructed theme inventory: **%d sheets** (included in owned-theme totals).'%max([int(x.get('staticThemeSheets',0)) for x in main]+[0]))
     metrics={}
     for doc in docs:
         for m in doc.get('metrics',[]):

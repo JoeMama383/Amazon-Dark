@@ -1,0 +1,1 @@
+ :is(h1,h2,h3,h4,h5,h6,p,span,div,a,strong,b,small,label):not([class*="prime" i]):not([class*="star" i]):not([class*="badge" i]):not([class*="price" i]):not(.a-color-link):not(:where(.a-color-link *)){color:#fff!important;-webkit-text-fill-color:#fff!important;}

@@ -1,0 +1,8 @@
+(function(){try{
+var d=document,s=d.getElementById('ad7606-climate-pledge-friendly');
+if(!s){s=d.createElement('style');s.id='ad7606-climate-pledge-friendly';(d.head||d.documentElement).appendChild(s);}
+/* v7.602 VIEWPORT r5/r6/r7: this is the Octopus browse document containing
+   .apb-default-category-drilldown (Climate Pledge Friendly destination),
+   NOT the parent PDP sustainability card. No generic Amazon page overrides. */
+s.textContent=`@@AD_CSS:ADClimatePledge7606-001.css.in@@`;
+}catch(_){}})();

@@ -1,0 +1,63 @@
+(function(){try{
+  'use strict';
+  var doc=document;
+  var marker='data-ad7620-adprefs';
+  var cssId='ad7620-order-ads-privacy';
+  var style=doc.getElementById(cssId);
+  if(!style){style=doc.createElement('style');style.id=cssId;(doc.head||doc.documentElement).appendChild(style);}
+  // v7.620: All floors are OLED.  Gray is limited to Amazon'@@AD_CSS:ADOrderAdsPrivacy7620-001.css.in@@'s authored teal header background; title is already white. */
+html[data-ad7620-adprefs="1"] #a-page>h1.header-text-mobile{
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+/* Exact r6 preference card, r5 expanded deletion, and collapsed delete card. */
+html[data-ad7620-adprefs="1"] #a-page :is(.a-box-group.a-spacing-base,.a-box-group.a-spacing-base>.a-box,.a-box-group.a-spacing-base>.a-box>.a-box-inner,
+.a-box.a-first.a-box-title,.a-box.a-first.a-box-title>.a-box-inner,.a-box.a-last,.a-box.a-last>.a-box-inner,
+.a-box-group.a-form-control-group,.a-expander-container.a-expander-extend-container,.a-expander-content.a-expander-extend-content){background:#000!important;background-color:#000!important;box-shadow:none!important;}
+html[data-ad7620-adprefs="1"] #a-page :is(.a-box,.a-box-group,.a-subheader,hr,.a-divider-inner){border-color:#494d4d!important;}
+/* Neutral text only.  Blue links, opt-in radio color, and teal brand header stay authored. */
+html[data-ad7620-adprefs="1"] #a-page :is(h1,h2,h3,h4,h5,h6,p,li,label,span,strong,b,div):not(a):not(:where(a *)):not(.a-color-link):not(.a-expander-prompt):not(.a-color-price):not([class*=radio]):not([class*=teal]):not([class*=header-brand]){color:#fff!important;-webkit-text-fill-color:#fff!important;}
+html[data-ad7620-adprefs="1"] #a-page :is(a.a-color-link,.a-expander-header,.a-expander-prompt,a.a-link-normal){-webkit-text-fill-color:currentColor!important;}
+html[data-ad7620-adprefs="1"] #a-page :is(.a-expander-header i.a-icon,.a-expander-header .a-icon-collapse,.a-expander-header .a-icon-expand){filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}
+/* Submit / Delete ad data buttons: OLED + existing gray perimeter, white copy. */
+html[data-ad7620-adprefs="1"] #a-page :is(.a-button,.a-button-base,.a-button-primary,.a-button-small,#optOutControl){background:#000!important;background-color:#000!important;border-color:#747a7c!important;box-shadow:none!important;}
+html[data-ad7620-adprefs="1"] #a-page :is(.a-button,.a-button-base,.a-button-primary,.a-button-small)>.a-button-inner{background:transparent!important;background-color:transparent!important;box-shadow:none!important;}
+html[data-ad7620-adprefs="1"] #a-page :is(.a-button-text,#optOutControl .a-button-text,.a-button .a-button-text *){color:#fff!important;-webkit-text-fill-color:#fff!important;}
+/* Preserve the Amazon blue selected-radio asset; only white radio *floor* becomes OLED. */
+html[data-ad7620-adprefs="1"] #a-page .a-radio.a-radio-fancy{background:#000!important;background-color:#000!important;}
+/* Landing page: neutral link-row floors, not the separate teal identity banner. */
+html[data-ad7620-adprefs="1"] #a-page :is(.a-box-group>.a-box,.a-box-group>.a-box>.a-box-inner,a.a-touch-link.a-box:not(.back-button),a.a-touch-link.a-box:not(.back-button)>.a-box-inner){background:#000!important;background-color:#000!important;border-color:#494d4d!important;}
+html[data-ad7620-adprefs="1"] #a-page a.a-touch-link.a-box:not(.back-button) :is(.a-box-inner,span,strong,b){color:#fff!important;-webkit-text-fill-color:#fff!important;}
+html[data-ad7620-adprefs="1"] #a-page a.a-touch-link.a-box:not(.back-button) i.a-icon-touch-link{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}
+`;
+  // Native r2 has #mobileDataDeleteButton and #mobileAdPreferenceButton but no
+  // a.back-button: use those exact owners. r5/r6 have a.back-button and a
+  // page-specific expander/radio layout. No foreground scans or polling.
+  if(typeof ad7640HotRoute==='function' && ad7640HotRoute())return;
+  function owner(){
+    try{
+      var page=doc.getElementById('a-page');
+      if(!page)return;
+      var hasOrders=!!page.querySelector('.od-modernized .od-container');
+      if(hasOrders){doc.documentElement.removeAttribute(marker);return;}
+      var landing=!!page.querySelector('#mobileDataDeleteButton')&&
+                  !!page.querySelector('#mobileAdPreferenceButton');
+      var preferenceRadio=!!page.querySelector('#optOutControl') &&
+                          !!page.querySelector('.a-radio.a-radio-fancy');
+      var hasAdPreferenceHeader=!!page.querySelector('a.back-button .back-button-text');
+      var titleText=(page.querySelector('a.back-button .back-button-text')||{}).textContent||'';
+      var heading=page.querySelector('.a-size-large');
+      var headingText=heading?(heading.textContent||''):'';
+      var words=(titleText+' '+headingText).toLowerCase();
+      var expandedDeletion=hasAdPreferenceHeader&&(
+        words.indexOf('advertising preferences')!==-1 ||
+        words.indexOf('delete your personal information from our ad systems')!==-1);
+      var prefs=landing||preferenceRadio||expandedDeletion;
+      if(prefs)doc.documentElement.setAttribute(marker,'1');
+      else doc.documentElement.removeAttribute(marker);
+    }catch(_e){}
+  }
+  if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',owner,{once:true});
+  else owner();
+  window.addEventListener('load',owner,{once:true});
+  window.addEventListener('pageshow',owner,{once:true});
+}catch(_e){}})();

@@ -11,7 +11,7 @@ function ad7640ScopeCSS(css) {
     '#gwm-Deck-btf', '.gwm-dashboard-container',
     '#a-page:has(#interests-ai-sticky-div):has(#product-grid)',
     'body:has(#interests-ai-sticky-div)',
-    // v7.643: full-page owners still present in the v7.640 Search/PDP capture.
+    // v7.644: full-page owners still present in the v7.640 Search/PDP capture.
     // Do not exclude shared overlays (ax-mbs, reviews, lists, shipping, maps).
     'section.your-orders-mobile-content-container.aok-relative.js-yo-container',
     '#typ-body-container', '#live-page-container-mobile',
@@ -75,67 +75,88 @@ function ad7640ScopeCSS(css) {
   return result + css.slice(start);
 }
 
-// Review selectors previously repeated a document-wide :has() disjunction.
-// Resolve its two ID witnesses once per mutation delivery instead. This does
-// not walk nodes, read computed style/layout, or write on unchanged state.
-function ad7642ReviewScope(css) {
-  var prefix = ':is(body:has(#mobile-product-reviews),body:has(#cruise-customer-reviews))';
-  if (css.indexOf(prefix) < 0 || typeof MutationObserver !== 'function') return css;
-  if (!window.__ad7642ReviewOwner) {
-    function refresh() {
-      var body = document.body;
-      if (!body) return;
-      function owns(id) {
-        var node = document.getElementById(id);
-        return node && node !== body && body.contains(node);
-      }
-      var mobile = owns('mobile-product-reviews'), cruise = owns('cruise-customer-reviews');
-      var state = mobile || cruise ? 'reviews' + (mobile ? ' mobile' : '') + (owns('dp') ? ' product' : '') : null;
-      if (body.getAttribute('data-ad7642-reviews') !== state) {
-        if (state !== null) body.setAttribute('data-ad7642-reviews', state);
-        else body.removeAttribute('data-ad7642-reviews');
-      }
-    }
-    var observer = new MutationObserver(function(records) {
-      var probe=window.__adThemeWork7637;
-      if(probe)return probe.run('s0/review-owner-mutation',refresh,this,arguments);
-      return refresh();
-    });
-    observer.observe(document, {subtree: true, childList: true, attributes: true, attributeFilter: ['id']});
-    window.__ad7642ReviewOwner = observer;
-    refresh();
+// Search/PDP stylesheet delivery must not insert or repeatedly rewrite STYLE
+// elements in Amazon's live DOM. Static constructed sheets also survive head
+// replacement without mutation observers or DOM-ready restoration passes.
+function ad7644SheetRegistry() {
+  if(!ad7640HotRoute() || !window.CSSStyleSheet ||
+     typeof CSSStyleSheet.prototype.replaceSync!=='function' ||
+     !('adoptedStyleSheets' in document))return null;
+  return window.__ad7644StaticSheets || (window.__ad7644StaticSheets={entries:[],byId:Object.create(null)});
+}
+function ad7644UpdateStyle(style,mount) {
+  try {
+  var registry=ad7644SheetRegistry();
+  if(!registry || !style || style.tagName!=='STYLE' || !/^ad[0-9]/.test(style.id||''))return false;
+  var entry=registry.byId[style.id];
+  if(!entry) {
+    if(!mount)return false;
+    entry={id:style.id,node:style,sheet:new CSSStyleSheet(),css:null};
+    registry.byId[style.id]=entry;registry.entries.push(entry);
   }
-  // :is retains the original ID + body specificity; :where adds none.
-  // Keep the authored descendant selectors and every declaration unchanged.
-  return css.split(prefix).join('body:is(*,#mobile-product-reviews):where([data-ad7642-reviews])')
-    .split('body:has(#mobile-product-reviews):not(:has(#dp))')
-    .join('body:is(*,#mobile-product-reviews):is(*,#dp):where([data-ad7642-reviews~=mobile]:not([data-ad7642-reviews~=product]))');
+  entry.node=style;
+  var css=style.textContent||'';
+  if(entry.css!==css){entry.sheet.replaceSync(css);entry.css=css;}
+  // An empty withheld sheet is never adopted; the isolation inventory can
+  // distinguish genuinely absent CSS from a reported zero in an active sheet.
+  if(css && document.adoptedStyleSheets.indexOf(entry.sheet)<0) {
+    var adopted=document.adoptedStyleSheets.slice(),position=adopted.length;
+    // Isolation can restore an earlier sheet after later sheets are active.
+    // Keep original owned order without moving any Amazon-owned sheet.
+    var index=registry.entries.indexOf(entry);
+    for(var i=index+1;i<registry.entries.length;i++) {
+      var next=adopted.indexOf(registry.entries[i].sheet);
+      if(next>=0){position=next;break;}
+    }
+    adopted.splice(position,0,entry.sheet);document.adoptedStyleSheets=adopted;
+  }
+  return true;
+  } catch (_) {
+    // Preserve the OLED theme on older/restricted WebKit builds. A failed
+    // constructed-sheet operation must fall back to the original STYLE path.
+    if(!style.isConnected && !mount) {
+      var parent=document.head||document.documentElement;
+      if(parent)parent.appendChild(style);
+    }
+    return false;
+  }
 }
 
 function ad7640Style(style) {
   if (!ad7640HotRoute() || !style || style.tagName !== 'STYLE' || !/^ad[0-9]/.test(style.id || '')) return style;
   return {
-    get textContent() { return style.textContent; },
+    get textContent() {
+      var probe=window.__adThemeWork7637;
+      var held=probe&&probe.styleText?probe.styleText(style):null;
+      return held===null||held===undefined?style.textContent:held;
+    },
     set textContent(css) {
       // These complete sheets have only dedicated full-page owners; leaving
       // them empty avoids their @media rules and repeated parse work too.
       if (/^(ad7480-returns-theme|ad7412-address-management|ad7596-order-confirmation|ad7597-live-and-thankyou)$/.test(style.id)) {
         style.textContent = '';
       } else {
-        if (style.id === 'ad7593-review-business') css = ad7642ReviewScope(css);
         css = ad7640ScopeCSS(css);
         var probe=window.__adThemeWork7637;
-        if(probe&&probe.style&&probe.style(style,css,function(){style.textContent=css;}))return;
+        if(probe&&probe.style&&probe.style(style,css,function(){style.textContent=css;ad7644UpdateStyle(style,false);})){
+          ad7644UpdateStyle(style,false);return;
+        }
         style.textContent = css;
+        ad7644UpdateStyle(style,false);
       }
     }
   };
+}
+
+function ad7644AppendStyle(style) {
+  return ad7640HotRoute()?ad7640RetainStyle(style):style;
 }
 
 // Capture only owned style references. Head replacement cannot strand the
 // main floor sheet until window.load (which may wait on slow ad resources).
 function ad7640RetainStyle(style) {
   if (!style || style.tagName !== 'STYLE' || !/^ad[0-9]/.test(style.id || '')) return style;
+  if(ad7644UpdateStyle(style,true))return document.createDocumentFragment();
   var registry = window.__ad7640Styles;
   if (!registry) {
     registry = window.__ad7640Styles = {nodes: [], index: Object.create(null)};

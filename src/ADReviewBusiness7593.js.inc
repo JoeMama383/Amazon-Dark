@@ -54,6 +54,7 @@
 " background-blend-mode:multiply!important;\n"
 "}`;\n"
 "s.textContent=css;\n"
+"if(typeof ad7640HotRoute==='function'&&ad7640HotRoute())return;\n"
 "// One finite page-owned paint pass for otherwise unknown credit-card white panels.\n"
 "// Evaluate existing authored colors, never replace branded blue/orange surfaces.\n"
 "function ad7593BusinessNeutralPass(){try{\n"

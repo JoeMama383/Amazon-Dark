@@ -13,6 +13,9 @@ if(__TAME__)s.textContent+=`
  filter:brightness(__FACTOR__)!important;-webkit-filter:brightness(__FACTOR__)!important;mix-blend-mode:normal!important;
 }`;
 (d.head||d.documentElement).appendChild(s);
+// Account-only shadow hosting must not patch browser prototypes or register
+// catch-up queries on Search/PDP. Static document rules above remain present.
+if(typeof ad7640HotRoute==='function' && ad7640HotRoute())return;
 // Your Books components are nested shadow trees. Their authored lifecycle creates
 // these roots; attach a shared, immutable stylesheet at creation, no polling or
 // page-wide mutation observer. Unrelated custom elements take only the tag check.

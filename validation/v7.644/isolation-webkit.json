@@ -1,0 +1,66 @@
+[
+  {
+    "route": "/s",
+    "mode": 0,
+    "withheld": 0,
+    "retainedRules": 694,
+    "restored": 0,
+    "paintIdentical": true
+  },
+  {
+    "route": "/s",
+    "mode": 1,
+    "withheld": 37,
+    "retainedRules": 0,
+    "restored": 37,
+    "paintIdentical": true
+  },
+  {
+    "route": "/s",
+    "mode": 2,
+    "withheld": 1,
+    "retainedRules": 471,
+    "restored": 1,
+    "paintIdentical": true
+  },
+  {
+    "route": "/s",
+    "mode": 3,
+    "withheld": 36,
+    "retainedRules": 223,
+    "restored": 36,
+    "paintIdentical": true
+  },
+  {
+    "route": "/dp/TEST",
+    "mode": 0,
+    "withheld": 0,
+    "retainedRules": 732,
+    "restored": 0,
+    "paintIdentical": true
+  },
+  {
+    "route": "/dp/TEST",
+    "mode": 1,
+    "withheld": 41,
+    "retainedRules": 0,
+    "restored": 41,
+    "paintIdentical": true
+  },
+  {
+    "route": "/dp/TEST",
+    "mode": 2,
+    "withheld": 1,
+    "retainedRules": 654,
+    "restored": 1,
+    "paintIdentical": true
+  },
+  {
+    "route": "/dp/TEST",
+    "mode": 3,
+    "withheld": 40,
+    "retainedRules": 78,
+    "restored": 40,
+    "paintIdentical": true
+  }
+]

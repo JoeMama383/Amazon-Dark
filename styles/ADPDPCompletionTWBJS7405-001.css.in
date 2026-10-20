@@ -1,0 +1,1 @@
+html body video,html body .vjs-poster,html body [data-testid=product-image] img,html body img[data-testid=product-image],html body img.product-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;}

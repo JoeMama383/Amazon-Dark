@@ -18,6 +18,11 @@ MARKERS={
  'TreeWalker':r'\bcreateTreeWalker\s*\(',
  'querySelectorAll':r'\bquerySelectorAll\s*\(',
  'querySelector':r'\bquerySelector\s*\(',
+ 'getElementsByTagName':r'\bgetElementsByTagName\s*\(',
+ 'getComputedStyle':r'\bgetComputedStyle\s*\(',
+ 'getBoundingClientRect':r'\bgetBoundingClientRect\s*\(',
+ 'innerText':r'\binnerText\b',
+ 'attachShadow-hook':r'Element\.prototype\.attachShadow\s*=',
  'setTimeout':r'\bsetTimeout\s*\(',
  'addEventListener':r'\baddEventListener\s*\(',
  'scroll-listener':r'addEventListener\s*\(\s*[\x22\x27]scroll[\x22\x27]',
@@ -41,12 +46,12 @@ def extract(path):
     path=Path(path)
     if path.is_dir():
         return [(p.name, p.read_text(errors='replace'))
-                 for p in (path/'src').glob('*') if p.is_file() and p.suffix in ('.xm','.inc','.js','.h')
+                 for p in (path/'src').glob('*') if p.is_file() and p.suffix in ('.xm','.m','.mm','.inc','.js','.h')
                  and not (p.name.endswith('.js.inc') and (p.parent/p.name[:-4]).exists())]
     if path.suffix!='.zip':raise ValueError('Expected a source tree or source ZIP')
     with zipfile.ZipFile(path) as archive:
         names=archive.namelist()
-        matches=[n for n in names if '/src/' in n and not n.endswith('/') and n.rsplit('/',1)[-1].endswith(('.xm','.inc','.js','.h')) and not (n.endswith('.js.inc') and n[:-4] in names)]
+        matches=[n for n in names if '/src/' in n and not n.endswith('/') and n.rsplit('/',1)[-1].endswith(('.xm','.m','.mm','.inc','.js','.h')) and not (n.endswith('.js.inc') and n[:-4] in names)]
         return [(n.rsplit('/',1)[-1],archive.read(n).decode('utf-8','replace')) for n in matches]
 
 
@@ -72,7 +77,7 @@ def output(records,counters,title):
         lines.append('| '+group+' | '+str(len(r))+' | '+format(size,',')+' | '+' | '.join(str(c[x]) for x in ['MutationObserver','setInterval','requestAnimationFrame','TreeWalker','querySelectorAll','setTimeout','dispatch_after'])+' |')
     lines+=['','## Scanner and recurring-work sites','', '| Source file | Group | Patterns present |','|---|---|---|']
     for name,group,counts,size in sorted(records):
-        hits=[f'{k}={counts[k]}' for k in ['MutationObserver','setInterval','requestAnimationFrame','TreeWalker','querySelectorAll','setTimeout','scroll-listener'] if counts[k]]
+        hits=[f'{k}={counts[k]}' for k in ['MutationObserver','setInterval','requestAnimationFrame','TreeWalker','querySelectorAll','querySelector','getElementsByTagName','getComputedStyle','getBoundingClientRect','innerText','attachShadow-hook','setTimeout','scroll-listener'] if counts[k]]
         if hits: lines.append('| `src/'+name+'` | '+group+' | '+', '.join(hits)+' |')
     lines+=['','**Interpretation:** `querySelectorAll()` in a document-start one-shot is not equivalent to a recurring MutationObserver. Production source can include bounded DOM inspection on DOMContentLoaded/load; inspect the owner and gate before deleting. Explicit probes use TreeWalkers, RAF, and observers for their capture windows and must remain available.']
     return '\n'.join(lines)

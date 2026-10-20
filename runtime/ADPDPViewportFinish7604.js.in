@@ -1,0 +1,11 @@
+(function(){try{
+var d=document,s=d.getElementById('ad7604-pdp-viewport-finish');
+if(!s){s=d.createElement('style');s.id='ad7604-pdp-viewport-finish';(d.head||d.documentElement||d).appendChild(s);}
+/* Four independent v7.602 viewport captures: r1 similar-products grid,
+   r2 played sponsored video, r3/r4 House of Cards top highlights.
+   Do not synthesize dividers or circles. Preserve dynamic Prime/stars/badges.
+   The overlay lives inside the video click-through (not around the card),
+   so the separate sponsored and player controls remain readable. */
+var css=`@@AD_CSS:ADPDPViewportFinish7604-001.css.in@@`;
+if(s.textContent!==css)s.textContent=css;
+}catch(_){}})();

@@ -1,0 +1,1 @@
+html[data-ad7104-standalone] #ad[data-html-dimensions="300x250"] .swiper-slide [data-testid=pictureHighQuality]{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}

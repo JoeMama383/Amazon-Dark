@@ -1,0 +1,10 @@
+
+#ng-app.desktopMargin_myx img:not([class*=icon]):not([class*=Icon]),
+#root:has([class*="NavigationBar-module__navHeader_myx"]) :is(.main-box,.app-main-box,.device-details-image,.content-main-box,[id^="content-image-"],[class*="Card-module_card_mobile"]) img,
+#apd-content-wrapper .thread-image img,
+#customer-corner-root :is(img[class*="discovery-mode-image"],img[class*="modal-ftue-image"]),
+.cs-help-v4 :is(#picker-img,.search-bar-welcome-greeting-image,.help-content img:not(#picker-img):not(#lang-img)),
+#a-page .od-modernized :is(img.sp-dynamic-image,[data-testid="payment-instrument-art"] img,[data-testid="payment-instrument-art"] [data-testid="image"]>div),
+[data-csa-c-painter^="buy-again-"] img[class*="_imgLimit_"] {
+ filter:brightness(__FACTOR__)!important;-webkit-filter:brightness(__FACTOR__)!important;mix-blend-mode:normal!important;
+}

@@ -1,3 +1,9 @@
+# AmazonDark v7.644~static-style-delivery
+
+Production cleanup based on v7.643. Search/product pages use document-owned constructed stylesheets instead of inserting theme STYLE nodes into Amazon's live DOM. The review ownership observer is removed; static review selectors handle DOM changes. Medical, business, checkout, advertising-preference and account classifiers are excluded from the two affected routes. Other menu themes retain their existing behavior. This is not a claim that the entire tweak is CSS-only or that phone input delay has been eliminated.
+
+Editable stylesheet blocks are in `styles/`, with non-style templates in `runtime/`. `scripts/build-style-sources.py` expands them into the committed compiler inputs and CI verifies they agree. Python is build/test tooling, not installed Amazon runtime. See `styles/README.md`, `DIFF-v7.644.md`, `VALIDATION-v7.644.md`, and `COMMANDS.md`.
+
 # AmazonDark v7.643~startup-isolation
 
 Diagnostic follow-up to the v7.642 phone capture, which still recorded substantial Search/product delays. Normal mode retains the production theme. Explicit `arm isolate-css` captures omit intercepted AmazonDark CSS before a fresh Search/product document loads, retain a simple black root floor, and restore the saved CSS at session end. Base-only and follow-up-only partitions are also available. The report records eligibility, withheld styles, residual rules and restoration; late or incomplete evidence is not treated as successful isolation. The existing review ownership observer now receives armed callback timing. No new production observer, polling loop or DOM traversal is added. This is not a verified production latency fix. See `DIFF-v7.643.md`, `VALIDATION-v7.643.md`, and `COMMANDS.md` for evidence, limitations, the short existing-clone push and separate probe commands.

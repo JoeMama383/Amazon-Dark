@@ -1,0 +1,1 @@
+#gwm-window [data-csa-c-painter=canvas-card-cards] .canvas-image-link hp-background-image img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}

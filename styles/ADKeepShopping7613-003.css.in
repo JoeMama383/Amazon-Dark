@@ -1,0 +1,1 @@
+ :is([class*="header" i],[class*="title" i]) :is(svg,svg *,i[class*="chevron" i],i[class*="arrow" i]){color:#fff!important;fill:#fff!important;stroke:#fff!important;}

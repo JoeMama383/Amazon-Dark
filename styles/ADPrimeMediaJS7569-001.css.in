@@ -1,0 +1,1 @@
+body:has(.discounts-react-app) :is([class*=ProductCardImage-module__container_],.dps-asin,.dcl-product) img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}

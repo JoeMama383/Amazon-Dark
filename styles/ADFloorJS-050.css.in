@@ -1,0 +1,1 @@
+#sc-saved-cart .sc-list-item .sc-nested-list .a-section.a-spacing-none>.a-size-small:not(.a-color-success):not(.a-color-link):not(.a-color-price){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}

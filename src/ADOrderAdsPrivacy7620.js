@@ -111,6 +111,7 @@ html[data-ad7620-adprefs="1"] #a-page a.a-touch-link.a-box:not(.back-button) i.a
   // Native r2 has #mobileDataDeleteButton and #mobileAdPreferenceButton but no
   // a.back-button: use those exact owners. r5/r6 have a.back-button and a
   // page-specific expander/radio layout. No foreground scans or polling.
+  if(typeof ad7640HotRoute==='function' && ad7640HotRoute())return;
   function owner(){
     try{
       var page=doc.getElementById('a-page');

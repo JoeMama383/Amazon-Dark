@@ -1,0 +1,1 @@
+ :is([class*="image-container" i],[class*="image-wrapper" i],[class*="imageContainer"],[class*="imageWrapper"],[class*="thumbnail-container" i]){background-color:transparent!important;}

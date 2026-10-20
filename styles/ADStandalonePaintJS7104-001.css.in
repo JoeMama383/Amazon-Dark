@@ -1,0 +1,1 @@
+html[data-ad7104-standalone] #ad [style*=\"z-index:-2\"]{background:#000!important;background-color:#000!important;}

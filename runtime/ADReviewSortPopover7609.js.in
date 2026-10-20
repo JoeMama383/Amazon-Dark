@@ -1,0 +1,8 @@
+(function(){try{
+var d=document,s=d.getElementById('ad7609-review-sort-popover');
+if(!s){s=d.createElement('style');s.id='ad7609-review-sort-popover';(d.head||d.documentElement).appendChild(s);}
+/* v7.605 VIEWPORT r4: .a-dropdown.a-dropdown-common popover containing
+   .sort-order-option and #sort-order-dropdown_0/_1. Paint ONLY this owner;
+   keep its selected blue border and original close sprite/geometry. */
+s.textContent=`@@AD_CSS:ADReviewSortPopover7609-001.css.in@@`;
+}catch(_){}})();
